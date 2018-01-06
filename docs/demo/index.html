@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<title>CHyF Pilot Demo</title>
+	<meta charset="utf-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<link rel="shortcut icon" type="image/x-icon" href="docs/images/favicon.ico" />
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+		integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous" />
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.2.0/dist/leaflet.css" />
+	<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.1/themes/smoothness/jquery-ui.css" />
+	<style>
+		/* make the map fullscreen */
+		html, body {
+            height: 100%;
+            width: 100%;
+        }
+		body {
+            padding: 0;
+            margin: 0;
+		}
+		#container {
+			height: 100%;
+            width: 100%;
+			overflow: hidden;
+		}
+		#map {
+			height: 100%;
+            width: 100%;
+        }
+		/* Slideable Sidebar */
+		#tabWrapper {
+			position: absolute;
+			top: 0;
+			left: 0;
+			display: flex;
+			align-items: center;
+			height: 100%;
+			z-index: 1000;
+		}
+		#tabs {
+			height: 100%;
+			width: 425px;
+			background-color: transparent;
+			display: flex;
+			flex-direction: column;
+			flex-wrap: nowrap;
+		}
+		#hideButton {
+			border-color: lightSlateGrey;
+			border-left: none;
+			border-top-left-radius: 0;
+			border-bottom-left-radius: 0;
+			padding-left: 6px;
+			padding-right: 6px;
+		}
+		.nav-tabs {
+			flex: 0 0 auto;
+			border-bottom-color: lightSlateGrey;
+		}
+		.nav-tabs > li > a {
+			padding: 6px 8px 5px 8px;
+			background-color: white;
+			border-top: 1px solid lightgrey;
+			border-right: 1px solid lightgrey;
+			border-left: 1px solid lightgrey;
+			border-bottom-color: lightSlateGrey;
+		}
+		.nav-tabs > li.active > a,
+		.nav-tabs > li.active > a:hover,
+		.nav-tabs > li.active > a:focus {
+			border: 1px solid lightSlateGrey;
+			border-bottom-color: transparent;
+			cursor: default;
+		}
+		.nav-tabs > li > a:hover {
+			border-color: LightSteelBlue ;
+			border-bottom-color: lightSlateGrey;
+		}
+		.tab-content {
+			background-color: white;
+			border-right: 1px solid lightSlateGrey;
+			flex: 1 1 1px;
+			overflow: hidden;
+		}
+		.tab-pane {
+			padding: 10px;
+			height: 100%;
+		}
+		.btn {
+			padding-left: 6px;
+			padding-right: 6px;
+		}
+		#title {
+			position: absolute;
+			z-index: 999;
+			top: 0px;
+			left: 50%;
+    		transform: translate(-50%,0);
+			border: 1px solid lightSlateGrey;
+			border-top: none;
+			background-color: white;
+			border-radius: 0 0 4px 4px;
+			padding: 4px 8px 4px 8px;
+			font-family: Verdana, Arial, Helvetica, sans-serif;
+			font-size: 1.2em;
+			font-weight: bold;
+			color: #445566;
+		}
+	</style>
+</head>
+
+<body>
+	<div id="container">
+		<div id="title">ChyF Pilot Demo</div>
+		<div id="tabWrapper">
+			<div id="tabs">
+				<ul class="nav nav-tabs" role="tablist">
+					<li role="presentation" class="active">
+						<a href="#tabs-1" aria-controls="tabs-1" role="tab" data-toggle="tab">Stuff</a>
+					</li>
+				</ul>
+				<div class="tab-content">
+					<div role="tabpanel" class="tab-pane active" id="tabs-1">
+					</div>
+				</div>
+			</div>
+			<div id="hideHandle">
+				<button id="hideButton" type="button" class="btn btn-default" title="Collapse side panel">
+					<span class="glyphicon glyphicon-chevron-left" aria-label="Clear"></span>
+				</button>
+			</div>
+		</div> <!-- tabWrapper -->
+		<div id="map"></div>
+	</div> <!-- container -->
+	<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCO2a43ItOYdAuRFcbCSLLn8AQwnMlf6sI"></script>
+	<script src="https://unpkg.com/leaflet@1.2.0/dist/leaflet.js"></script>
+	<script src='https://unpkg.com/leaflet.gridlayer.googlemutant@latest/Leaflet.GoogleMutant.js'></script>
+	<script src="https://unpkg.com/esri-leaflet@2.1.1/dist/esri-leaflet.js"
+		integrity="sha512-ECQqaYZke9cSdqlFG08zSkudgrdF6I1d8ViSa7I3VIszJyVqw4ng1G8sehEXlumdMnFYfzY0tMgdQa4WCs9IUw=="
+		crossorigin=""></script>
+	<script src="leaflet-layerjson.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.1/jquery-ui.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" crossorigin="anonymous"
+		integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"></script>
+	<script>
+		// parse query params
+		var queryParams = {};
+		location.search.substr(1).split("&").forEach(function(item) {
+			var s = item.split("="), k = s[0], v = s[1] && decodeURIComponent(s[1]);
+			queryParams[k] = v;
+		});
+
+		// API URLs
+		var chyfApi = "";
+		if(queryParams['env'] == 'local') {
+			gcApi = "http://localhost:8080/pub/geocoder/";
+		}
+
+		// Leaflet Map setup
+		var map = L.map('map', {
+			minZoom: 4,
+			maxZoom: 18,
+			zoomControl: false
+		}).setView([45.44, -73.27], 9);
+		var baseLayers = {};
+		var overlays = {};
+
+		var baseErrorMsg = "An unexpected server error occurred; No response from server.\n";
+
+		var mapboxStreetsLayer = L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoiY2hvZGdzb24iLCJhIjoiY2oxM3JibHM4MDF3dTJxcDhlcnd1enF5aSJ9.Z_z0AGjZf6P9oh8NWY1JqQ', {
+			maxZoom: 18,
+			attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ' +
+				'<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
+				'Imagery © <a href="http://mapbox.com">Mapbox</a>',
+			id: 'mapbox.streets'
+		});
+		baseLayers['MapBox Streets'] = mapboxStreetsLayer;
+		mapboxStreetsLayer.addTo(map);
+
+		var esriStreetsLayer = L.esri.basemapLayer('Streets');
+		baseLayers['ESRI Streets'] = esriStreetsLayer;
+
+		var googleRoads = L.gridLayer.googleMutant({
+			type: 'roadmap' // valid values are 'roadmap', 'satellite', 'terrain' and 'hybrid'
+		});
+		baseLayers['Google Roads'] = googleRoads;
+
+		var mapboxSatlayer = L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoiY2hvZGdzb24iLCJhIjoiY2oxM3JibHM4MDF3dTJxcDhlcnd1enF5aSJ9.Z_z0AGjZf6P9oh8NWY1JqQ', {
+			maxZoom: 18,
+			attribution: 'Imagery © <a href="http://mapbox.com">Mapbox</a>',
+			id: 'mapbox.satellite'
+		});
+		baseLayers['MapBox Satellite'] = mapboxSatlayer;
+
+		var esriStreetsLayer = L.esri.basemapLayer('Imagery');
+		baseLayers['ESRI Imagery'] = esriStreetsLayer;
+
+		var googleSatellite = L.gridLayer.googleMutant({
+			type: 'satellite' // valid values are 'roadmap', 'satellite', 'terrain' and 'hybrid'
+		});
+		baseLayers['Google Satellite'] = googleSatellite;
+
+		var esriStreetsLayer = L.esri.basemapLayer('Topographic');
+		baseLayers['ESRI Topographic'] = esriStreetsLayer;
+
+		var layerControl = L.control.layers(baseLayers, overlays).addTo(map);
+
+		// tabs UI setup
+		$('#myTabs a').click(function (e) {
+			e.preventDefault();
+			$(this).tab('show');
+		});
+
+		var tabs = true;
+		$('#hideButton').on('click', function() {
+			if(tabs) {
+				$('#tabWrapper').animate({
+					left: -425
+				}, 425, "swing", function() {
+					$('#hideButton').attr('title', 'Expand side panel');
+					$('#hideButton span').removeClass('glyphicon-chevron-left');
+					$('#hideButton span').addClass('glyphicon-chevron-right');
+					tabs = false;
+					map.invalidateSize();
+				});
+			} else {
+				$('#tabWrapper').animate({
+					left: 0
+				}, 425, "swing", function() {
+					$('#hideButton').attr('title', 'Collapse side panel');
+					$('#hideButton span').removeClass('glyphicon-chevron-right');
+					$('#hideButton span').addClass('glyphicon-chevron-left');
+					tabs = true;
+					map.invalidateSize();
+				});
+			}
+		});
+
+		function centerMap(bounds, center = true) {
+			var options = {
+				maxZoom: 16
+			};
+			if(tabs) {
+				options.paddingTopLeft = [400,0];
+			}
+			if(center) {
+				map.fitBounds(bounds.pad(0.25), options);
+			} else if(!map.getBounds().contains(bounds.pad(0.25))) {
+				// if the bounds aren't within the current map bounds
+				// zoom out to include the bounds
+				map.fitBounds(bounds.extend(map.getBounds()).pad(0.25), options);
+			}
+		}
+	</script>
+</body>
+</html>
