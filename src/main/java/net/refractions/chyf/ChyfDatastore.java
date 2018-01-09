@@ -8,7 +8,6 @@ import java.util.Map;
 
 import net.refractions.chyf.enumTypes.FlowpathRank;
 import net.refractions.chyf.enumTypes.FlowpathType;
-import net.refractions.chyf.hydrograph.EFlowpath;
 import net.refractions.chyf.hydrograph.HyGraph;
 import net.refractions.chyf.hydrograph.HyGraphBuilder;
 
@@ -20,10 +19,16 @@ import org.geotools.feature.FeatureIterator;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 
+import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.MultiLineString;
+import com.vividsolutions.jts.geom.PrecisionModel;
 
 public class ChyfDatastore {
+	
+	public static final int BASE_SRS = 3978;
+	public static final GeometryFactory GEOMETRY_FACTORY = new GeometryFactory(new PrecisionModel(), BASE_SRS);
+	public static final int MAX_RESULTS = 100;
 	
 	private HyGraph hyGraph;
 
@@ -31,6 +36,10 @@ public class ChyfDatastore {
 		init(dataDir);
 	}
 
+	public HyGraph getHyGraph() {
+		return hyGraph;
+	}
+	
 	private void init(String dataDir) {
 		try {
 			HyGraphBuilder gb = new HyGraphBuilder();
@@ -58,14 +67,10 @@ public class ChyfDatastore {
 	
 	private DataStore getShapeFileDataStore(String fileName) throws IOException {
 	    File file = new File(fileName);
-	    Map<String, Object> map = new HashMap<>();
+	    Map<String, Object> map = new HashMap<String, Object>();
 		map.put("url", file.toURI().toURL());
 		map.put("charset", Charset.forName("ISO-8859-1"));
 	    return DataStoreFinder.getDataStore(map);
-	}
-	
-	public EFlowpath getEdge(int id) {
-		return hyGraph.getEFlowpath(id);
 	}
 	
 }

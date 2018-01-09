@@ -13,11 +13,11 @@ public class HtmlConverterHelper extends ConverterHelper {
 		super(out);
 	}
 	
-	public void writeHeader(ApiResponse response) throws IOException {
+	public void writeResponseHeader(ApiResponse response) throws IOException {
 		out.write(("<!DOCTYPE html><html><head><title>Router Response</title></head><body><table>"));
 	}
 
-	public void writeFooter(ApiResponse response) throws IOException {
+	public void writeResponseFooter(ApiResponse response) throws IOException {
 		out.write("</table></body></html>");
 	}
 
@@ -134,6 +134,36 @@ public class HtmlConverterHelper extends ConverterHelper {
 			return "";
 		}
 		return StringEscapeUtils.escapeXml10(field.toString());
+	}
+
+	@Override
+	protected void writeObjectHeader() throws IOException {
+		out.write("<tr><td><table>");
+	}
+	
+	@Override
+	protected void writeObjectFooter() throws IOException {
+		out.write("</table></td></tr>");	
+	}
+	
+	@Override
+	protected void writeListHeader() throws IOException {
+		out.write("<table>");
+	}
+	
+	@Override
+	protected void writeListFooter() throws IOException {
+		out.write("</table>");
+	}
+	
+	@Override
+	protected void writeNestedFieldHeader(String fieldName) throws IOException {
+		out.write("<tr><td>" + fieldName + "</td><td>");
+	}
+	
+	@Override
+	protected void writeNestedFieldFooter() throws IOException {
+		out.write("</td></tr>");
 	}
 
 }

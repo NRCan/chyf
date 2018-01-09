@@ -1,10 +1,11 @@
-package net.refractions.chyf.rest.messageconverters;
+package net.refractions.chyf.rest.exceptions;
 
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 
 public class ErrorMessage {
+	
 	private String message;
 	
 	public ErrorMessage(String message) {

@@ -14,7 +14,7 @@ import com.vividsolutions.jts.geom.util.AffineTransformation;
 
 public class GeotoolsGeometryReprojector {
 	
-	public <T extends Geometry> T reproject(T geom, int toSRSCode) {
+	public static <T extends Geometry> T reproject(T geom, int toSRSCode) {
 		if(geom == null) {
 			return null;
 		}

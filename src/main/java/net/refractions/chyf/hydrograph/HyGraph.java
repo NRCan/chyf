@@ -1,11 +1,12 @@
 package net.refractions.chyf.hydrograph;
 
 import java.util.Arrays;
+import java.util.List;
 
-import com.vividsolutions.jts.geom.Point;
-
+import net.refractions.chyf.indexing.Filter;
 import net.refractions.chyf.indexing.RTree;
 
+import com.vividsolutions.jts.geom.Point;
 
 public class HyGraph {
 	private Nexus[] nexuses;
@@ -26,8 +27,12 @@ public class HyGraph {
 		return eFlowpaths[eflowpathIndex];
 	}
 	
-	public EFlowpath nearestEdge(Point p) {
-		return eFlowpathIndex.search(p, 1, null).get(0);
+	public List<EFlowpath> findEdges(Point p, int nResults, Integer maxDistance) {
+		return eFlowpathIndex.search(p, nResults, maxDistance);
+	}
+
+	public List<EFlowpath> findEdges(Point p, int nResults, Integer maxDistance, Filter<EFlowpath> f) {
+		return eFlowpathIndex.search(p, nResults, maxDistance, f);
 	}
 
 }

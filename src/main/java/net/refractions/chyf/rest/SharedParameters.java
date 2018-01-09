@@ -1,10 +1,12 @@
 package net.refractions.chyf.rest;
 
+import net.refractions.chyf.ChyfDatastore;
+
 
 public class SharedParameters {
 	private String callback = "jsonp";
 	private int srs = 4326;
-	private Integer maxFeatures;
+	private Integer maxFeatures = null;
 
 	public String getCallback() {
 		return callback;
@@ -34,4 +36,9 @@ public class SharedParameters {
 		this.maxFeatures = maxFeatures;
 	}	
 
+	public void resolveAndValidate() {
+		if(maxFeatures == null || maxFeatures > ChyfDatastore.MAX_RESULTS) {
+			maxFeatures = ChyfDatastore.MAX_RESULTS;
+		}
+	}
 }
