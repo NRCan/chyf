@@ -78,7 +78,9 @@ L.LayerJSON = L.FeatureGroup.extend({
 
         map.on('moveend zoomend', this._onMove, this);
 
-		this.update();
+		if(this._map.getZoom() >= this.options.minZoom) {
+			this.update();
+		}
 	},
 
 	onRemove: function(map) {
@@ -190,11 +192,17 @@ L.LayerJSON = L.FeatureGroup.extend({
 							   parseFloat( this._getPath(data, propLoc[1]) )  );
 		}
 		else {
+			// get the location data
+			var geometry = this._getPath(data, propLoc);
+			// if it is a line or polygon, it will be  nested array,
+			// dig down for the first coordinate value (non-array)
+			while(L.Util.isArray(geometry[0])) {
+				geometry = geometry[0];
+			}
 			if (this.options.locAsGeoJSON) {
-				var lnglat = this._getPath(data, propLoc);
-				loc = L.latLng( lnglat[1], lnglat[0] );
+				loc = L.latLng( geometry[1], geometry[0] );
 			} else {
-				loc = L.latLng( this._getPath(data, propLoc) );
+				loc = L.latLng( geometry[0], geometry[1] );
 			}
 		}
 
@@ -264,7 +272,7 @@ L.LayerJSON = L.FeatureGroup.extend({
 		else
 		 	this.clearLayers();
 
-		if(newZoom < this.options.minZoom)
+		if(this._map.getZoom() < this.options.minZoom)
 			return false;
 
 		this.update();

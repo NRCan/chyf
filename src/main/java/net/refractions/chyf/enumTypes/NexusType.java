@@ -3,34 +3,35 @@ package net.refractions.chyf.enumTypes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public enum FlowpathType {
-	OBSERVED_FLOWPATH("Observed"),
-	CONSTRUCTED_FLOWPATH("Constructed"),
-	INFERRED_FLOWPATH("Inferred"),
-	BANK_FLOWPATH("Bank"),
+public enum NexusType {
+	TERMINAL("Terminal"),
+	FLOWPATH("Flowpath"),
+	WATER("Water"),
+	BANK("Bank"),
+	INFERRED("Inferred"),
 	UNKNOWN("Unknown");
 	
 	static final Logger logger = LoggerFactory.getLogger(FlowpathType.class.getCanonicalName());
 
 	private String label;
 	
-	private FlowpathType(String label) {
+	private NexusType(String label) {
 		this.label = label;
 	}
 	
 	/**
 	 * Takes a string value and returns the corresponding FlowpathType object.
 	 * 
-	 * @param flowpathType string representation of the FlowpathType
+	 * @param nexusType string representation of the FlowpathType
 	 * @return the FlowpathType corresponding to the given string representation.
 	 */
-	public static FlowpathType convert(String flowpathType) {
-		for(FlowpathType ft : values()) {
-			if(ft.label.equalsIgnoreCase(flowpathType)) {
-				return ft;
+	public static NexusType convert(String nexusType) {
+		for(NexusType nt : values()) {
+			if(nt.label.equalsIgnoreCase(nexusType)) {
+				return nt;
 			}
 		}
-		logger.warn("Invalid FlowpathType value: '" + flowpathType + "' defaulting to 'Unknown'.");
+		logger.warn("Invalid NexusType value: '" + nexusType + "' defaulting to 'Unknown'.");
 		return UNKNOWN;
 	}
 	
@@ -41,5 +42,5 @@ public enum FlowpathType {
 	public String toString() {
 		return label;
 	}
-	
+
 }

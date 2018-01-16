@@ -4,6 +4,11 @@ import java.io.IOException;
 import java.io.Writer;
 
 import com.google.gson.stream.JsonWriter;
+import com.vividsolutions.jts.geom.CoordinateSequence;
+import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.LineString;
+import com.vividsolutions.jts.geom.Point;
+import com.vividsolutions.jts.geom.Polygon;
 
 public class JsonConverterHelper extends ConverterHelper {
 
@@ -15,52 +20,129 @@ public class JsonConverterHelper extends ConverterHelper {
 	}
 	
 	@Override
-	protected void writeResponseHeader(ApiResponse response) throws IOException {
+	protected void responseHeader(ApiResponse response) throws IOException {
 		jw.beginObject();
 	}
 	
 	@Override
-	protected void writeResponseFooter(ApiResponse response) throws IOException {
+	protected void responseFooter(ApiResponse response) throws IOException {
 		jw.endObject();
 	}
 	
 	@Override
-	protected void writeField(String fieldName, int fieldValue) throws IOException {
+	protected void field(String fieldName, int fieldValue) throws IOException {
 		jw.name(fieldName).value(fieldValue);
 	}
 
 	@Override
-	protected void writeField(String fieldName, String fieldValue) throws IOException {
+	protected void field(String fieldName, String fieldValue) throws IOException {
 		jw.name(fieldName).value(fieldValue);
 	}
-
+	
 	@Override
-	protected void writeObjectHeader() throws IOException {
+	protected void featureCollectionHeader() throws IOException {
 		jw.beginObject();
-	}
-
-	@Override
-	protected void writeObjectFooter() throws IOException {
-		jw.endObject();
-	}
-
-	@Override
-	protected void writeListHeader() throws IOException {
+		jw.name("type").value("FeatureCollection");
+		jw.name("features");
 		jw.beginArray();
 	}
 
 	@Override
-	protected void writeListFooter() throws IOException {
+	protected void featureCollectionFooter() throws IOException {
+		jw.endArray();
+		jw.endObject();
+	}
+
+	@Override
+	protected void featureHeader(Geometry g, Integer id) throws IOException {
+		jw.beginObject();
+		jw.name("type").value("Feature");
+		if(id != null) {
+			jw.name("ID").value(id);
+		}
+		jw.name("geometry");
+		geometry(g);
+		jw.name("properties");
+		jw.beginObject();
+	}
+
+	@Override
+	protected void featureFooter() throws IOException {
+		jw.endObject();
+		jw.endObject();
+	}
+
+	@Override
+	protected void objectHeader() throws IOException {
+		jw.beginObject();
+	}
+
+	@Override
+	protected void objectFooter() throws IOException {
+		jw.endObject();
+	}
+
+	@Override
+	protected void listHeader() throws IOException {
+		jw.beginArray();
+	}
+
+	@Override
+	protected void listFooter() throws IOException {
 		jw.endArray();
 	}
 
 	@Override
-	protected void writeNestedFieldHeader(String fieldName) throws IOException {
+	protected void nestedFieldHeader(String fieldName) throws IOException {
 		jw.name(fieldName);
 	}
 
 	@Override
-	protected void writeNestedFieldFooter() throws IOException {
+	protected void nestedFieldFooter() throws IOException {
+	}
+
+	private void geometry(Geometry g) throws IOException {
+		jw.beginObject();
+		jw.name("type").value(g.getGeometryType());
+		jw.name("coordinates");
+		switch(g.getGeometryType()) {
+			case "Point":
+				coordinate(((Point)g).getX(), ((Point)g).getY());
+				break;
+			case "LineString":
+				coordinates(((LineString)g).getCoordinateSequence());
+				break;
+			case "Polygon":
+				polygon(((Polygon)g)); 
+				break;
+			default: jw.value("Unknown geometry type");
+		}
+		jw.endObject();
+
+	}
+
+	private void polygon(Polygon p) throws IOException {
+		jw.beginArray();
+		coordinates(p.getExteriorRing().getCoordinateSequence());
+		for(int i = 0; i < p.getNumInteriorRing(); i++) {
+			coordinates(p.getInteriorRingN(i).getCoordinateSequence());
+		}
+		jw.endArray();
+	}
+
+	private void coordinates(CoordinateSequence cs) throws IOException {
+		jw.beginArray();
+		for(int i = 0; i < cs.size(); i++) {
+			coordinate(cs.getX(i), cs.getY(i));
+		}
+		jw.endArray();		
+	}
+
+	private void coordinate(double x, double y) throws IOException {
+		jw.beginArray();
+		jw.jsonValue(formatOrdinate(x));
+		jw.jsonValue(formatOrdinate(y));
+		jw.endArray();		
 	}
 
 }

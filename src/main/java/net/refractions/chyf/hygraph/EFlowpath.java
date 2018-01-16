@@ -1,4 +1,4 @@
-package net.refractions.chyf.hydrograph;
+package net.refractions.chyf.hygraph;
 
 import net.refractions.chyf.enumTypes.FlowpathRank;
 import net.refractions.chyf.enumTypes.FlowpathType;
@@ -15,15 +15,24 @@ public class EFlowpath implements SpatiallyIndexable {
 	private final double length;
 	private final FlowpathType type;
 	private final FlowpathRank rank;
+	private int strahlerOrder;
+	private int hortonOrder;
+	private int hackOrder;
+	private final ECatchment catchment;
 	private final LineString lineString;
 	
-	public EFlowpath(int id, Nexus fromNode, Nexus toNode, double length, FlowpathType type, FlowpathRank rank, LineString lineString) {
+	public EFlowpath(int id, Nexus fromNode, Nexus toNode, double length, FlowpathType type, FlowpathRank rank, 
+			int strahlerOrder, int hortonOrder, int hackOrder, ECatchment catchment, LineString lineString) {
 		this.id = id;
 		this.fromNode = fromNode;
 		this.toNode = toNode;
 		this.length = length;
 		this.type = type;
 		this.rank = rank;
+		this.setStrahlerOrder(strahlerOrder);
+		this.setHortonOrder(hortonOrder);
+		this.setHackOrder(hackOrder);
+		this.catchment = catchment;
 		this.lineString = lineString;
 	}
 
@@ -53,6 +62,34 @@ public class EFlowpath implements SpatiallyIndexable {
 
 	public FlowpathRank getRank() {
 		return rank;
+	}
+
+	public int getStrahlerOrder() {
+		return strahlerOrder;
+	}
+
+	public void setStrahlerOrder(int strahlerOrder) {
+		this.strahlerOrder = strahlerOrder;
+	}
+
+	public int getHortonOrder() {
+		return hortonOrder;
+	}
+
+	public void setHortonOrder(int hortonOrder) {
+		this.hortonOrder = hortonOrder;
+	}
+
+	public int getHackOrder() {
+		return hackOrder;
+	}
+
+	public void setHackOrder(int hackOrder) {
+		this.hackOrder = hackOrder;
+	}
+
+	public ECatchment getCatchment() {
+		return catchment;
 	}
 
 	public Nexus getOtherNode(final Nexus node) {

@@ -9,8 +9,7 @@
 	<link rel="shortcut icon" type="image/x-icon" href="docs/images/favicon.ico" />
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
 		integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous" />
-	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.2.0/dist/leaflet.css" />
-	<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.1/themes/smoothness/jquery-ui.css" />
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.0/dist/leaflet.css" />
 	<style>
 		/* make the map fullscreen */
 		html, body {
@@ -21,78 +20,42 @@
             padding: 0;
             margin: 0;
 		}
-		#container {
+		#container1 {
 			height: 100%;
             width: 100%;
 			overflow: hidden;
-		}
-		#map {
-			height: 100%;
-            width: 100%;
-        }
-		/* Slideable Sidebar */
-		#tabWrapper {
-			position: absolute;
-			top: 0;
-			left: 0;
-			display: flex;
-			align-items: center;
-			height: 100%;
-			z-index: 1000;
-		}
-		#tabs {
-			height: 100%;
-			width: 425px;
-			background-color: transparent;
 			display: flex;
 			flex-direction: column;
 			flex-wrap: nowrap;
+			align-items: stretch;
 		}
-		#hideButton {
-			border-color: lightSlateGrey;
-			border-left: none;
-			border-top-left-radius: 0;
-			border-bottom-left-radius: 0;
-			padding-left: 6px;
-			padding-right: 6px;
+		#container2 {
+            width: 100%;
+			flex: 1 0 auto;
+			display: flex;
+			flex-direction: row;
+			flex-wrap: nowrap;
+			align-items: stretch;
+			overflow: auto;
 		}
-		.nav-tabs {
+		#databar {
 			flex: 0 0 auto;
-			border-bottom-color: lightSlateGrey;
-		}
-		.nav-tabs > li > a {
-			padding: 6px 8px 5px 8px;
-			background-color: white;
-			border-top: 1px solid lightgrey;
-			border-right: 1px solid lightgrey;
-			border-left: 1px solid lightgrey;
-			border-bottom-color: lightSlateGrey;
-		}
-		.nav-tabs > li.active > a,
-		.nav-tabs > li.active > a:hover,
-		.nav-tabs > li.active > a:focus {
+			height: 200px;
+			width: 100%;
 			border: 1px solid lightSlateGrey;
-			border-bottom-color: transparent;
-			cursor: default;
+			padding: 5px;
 		}
-		.nav-tabs > li > a:hover {
-			border-color: LightSteelBlue ;
-			border-bottom-color: lightSlateGrey;
-		}
-		.tab-content {
-			background-color: white;
+		#toolbar {
+			flex: 0 0 auto;
+            width: 200px;
+			overflow: auto;
 			border-right: 1px solid lightSlateGrey;
-			flex: 1 1 1px;
+			padding: 5px;
+        }
+		#map {
+			flex: 1 0 auto;
 			overflow: hidden;
-		}
-		.tab-pane {
-			padding: 10px;
-			height: 100%;
-		}
-		.btn {
-			padding-left: 6px;
-			padding-right: 6px;
-		}
+        }
 		#title {
 			position: absolute;
 			z-index: 999;
@@ -104,6 +67,8 @@
 			background-color: white;
 			border-radius: 0 0 4px 4px;
 			padding: 4px 8px 4px 8px;
+		}
+		.title {
 			font-family: Verdana, Arial, Helvetica, sans-serif;
 			font-size: 1.2em;
 			font-weight: bold;
@@ -113,37 +78,26 @@
 </head>
 
 <body>
-	<div id="container">
-		<div id="title">ChyF Pilot Demo</div>
-		<div id="tabWrapper">
-			<div id="tabs">
-				<ul class="nav nav-tabs" role="tablist">
-					<li role="presentation" class="active">
-						<a href="#tabs-1" aria-controls="tabs-1" role="tab" data-toggle="tab">Stuff</a>
-					</li>
-				</ul>
-				<div class="tab-content">
-					<div role="tabpanel" class="tab-pane active" id="tabs-1">
-					</div>
-				</div>
-			</div>
-			<div id="hideHandle">
-				<button id="hideButton" type="button" class="btn btn-default" title="Collapse side panel">
-					<span class="glyphicon glyphicon-chevron-left" aria-label="Clear"></span>
-				</button>
-			</div>
-		</div> <!-- tabWrapper -->
-		<div id="map"></div>
-	</div> <!-- container -->
+	<div id="container1">
+		<div id="title" class="title">ChyF Pilot Demo</div>
+		<div id="container2">
+			<div id="toolbar">
+				<span class="title">CHyF Tools</span>
+				<button type="button" class="btn btn-primary">Flows Into</button>
+				(not working yet)
+			</div> <!-- toolbar -->
+			<div id="map"></div>
+		</div> <!-- container2 -->
+		<div id="databar">data table goes here</div> <!-- databar -->
+	</div> <!-- container1 -->
 	<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCO2a43ItOYdAuRFcbCSLLn8AQwnMlf6sI"></script>
-	<script src="https://unpkg.com/leaflet@1.2.0/dist/leaflet.js"></script>
+	<script src="https://unpkg.com/leaflet@1.3.0/dist/leaflet.js"></script>
 	<script src='https://unpkg.com/leaflet.gridlayer.googlemutant@latest/Leaflet.GoogleMutant.js'></script>
 	<script src="https://unpkg.com/esri-leaflet@2.1.1/dist/esri-leaflet.js"
 		integrity="sha512-ECQqaYZke9cSdqlFG08zSkudgrdF6I1d8ViSa7I3VIszJyVqw4ng1G8sehEXlumdMnFYfzY0tMgdQa4WCs9IUw=="
 		crossorigin=""></script>
 	<script src="leaflet-layerjson.js"></script>
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
-	<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.1/jquery-ui.min.js"></script>
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" crossorigin="anonymous"
 		integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"></script>
 	<script>
@@ -155,9 +109,9 @@
 		});
 
 		// API URLs
-		var chyfApi = "";
+		var chyfApi = "http://office.refractions.net:8888/chyf/";
 		if(queryParams['env'] == 'local') {
-			gcApi = "http://localhost:8080/pub/geocoder/";
+			gcApi = "http://localhost:8080/chyf/";
 		}
 
 		// Leaflet Map setup
@@ -166,13 +120,18 @@
 			maxZoom: 18,
 			zoomControl: false
 		}).setView([45.44, -73.27], 9);
+		map.createPane('catchment');
+		map.createPane('flowpath');
+		map.createPane('nexus');
+		map.createPane('selection');
+
 		var baseLayers = {};
 		var overlays = {};
 
 		var baseErrorMsg = "An unexpected server error occurred; No response from server.\n";
 
 		var cbmtLayer = L.tileLayer('http://geoappext.nrcan.gc.ca/arcgis/rest/services/BaseMaps/CBMT_CBCT_GEOM_3857/MapServer/tile/{z}/{y}/{x}', {
-			maxZoom: 15,
+			maxZoom: 15
 		});
 		baseLayers['NRCan CBMT/CBCT'] = cbmtLayer;
 		cbmtLayer.addTo(map);
@@ -212,7 +171,139 @@
 		var esriStreetsLayer = L.esri.basemapLayer('Topographic');
 		baseLayers['ESRI Topographic'] = esriStreetsLayer;
 
+		var catchmentLayer = new L.layerJSON({
+			url: chyfApi + "ecatchment/within.json?bbox={lon1},{lat1},{lon2},{lat2}",
+			minZoom: 13,
+			caching: false,
+			propertyItems: "data.features",
+			propertyId: "ID",
+			propertyTitle: "ID",
+			locAsGeoJSON: true,
+			propertyLoc: "geometry.coordinates",
+			dataToMarker: function(data) {
+				var polygon = L.GeoJSON.geometryToLayer(data.geometry, {pane: 'catchment'});
+				var color = "DarkGreen";
+				// switch(data.properties.type) {
+				// 	case "Observed":
+				// 		color = "#2536ed";
+				// 		break;
+				// 	case "Constructed":
+				// 		color = "#b9e85b";
+				// 		break;
+				// 	case "Inferred":
+				// 		color = "#ffffff";
+				// 		break;
+				// 	case "Bank":
+				// 		color = "#faf020";
+				// 		break;
+				// }
+				polygon.setStyle({
+        			color: color,
+					weight: 1,
+					fill: false
+				});
+				return polygon;
+			}
+		});
+		overlays["Elementary Catchments"] = catchmentLayer;
+		catchmentLayer.addTo(map);
+
+		var flowpathLayer = new L.layerJSON({
+			url: chyfApi + "eflowpath/within.json?bbox={lon1},{lat1},{lon2},{lat2}",
+			minZoom: 13,
+			pane: 'flowpath',
+			caching: false,
+			propertyItems: "data.features",
+			propertyId: "ID",
+			propertyTitle: "ID",
+			locAsGeoJSON: true,
+			propertyLoc: "geometry.coordinates",
+			dataToMarker: function(data) {
+				var path = L.GeoJSON.geometryToLayer(data.geometry, {pane: 'flowpath'});
+				var color = "#ff0000";
+				switch(data.properties.type) {
+					case "Observed":
+						color = "#2536ed";
+						break;
+					case "Constructed":
+						color = "#b9e85b";
+						break;
+					case "Inferred":
+						color = "#ffffff";
+						break;
+					case "Bank":
+						color = "#faf020";
+						break;
+				}
+				path.setStyle({
+        			color: color
+				});
+				return path;
+			}
+		});
+		overlays["Elementary Flowpaths"] = flowpathLayer;
+		flowpathLayer.addTo(map);
+
+		var nexusLayer = new L.layerJSON({
+			url: chyfApi + "nexus/within.json?bbox={lon1},{lat1},{lon2},{lat2}",
+			minZoom: 13,
+			pane: 'nexus',
+			caching: false,
+			propertyItems: "data.features",
+			propertyId: false,
+			//propertyTitle: "ID",
+			locAsGeoJSON: true,
+			propertyLoc: "geometry.coordinates",
+			dataToMarker: function(data) {
+				var latLng = L.latLng(data.geometry.coordinates[1], data.geometry.coordinates[0]);
+				var options = {
+					weight: 1,
+					radius: 5,
+					color: "#000000",
+					fillColor: "#ff0000",
+					fillOpacity: 0.5,
+					pane: 'nexus'
+				};
+				switch(data.properties.type) {
+					case "Terminal":
+						options.fillColor = "#888888";
+						break;
+					case "Flowpath":
+						options.fillColor = "#FF0000";
+						break;
+					case "Water":
+						options.fillColor = "#00FF00";
+						break;
+					case "Bank":
+						options.fillColor = "DarkGreen";
+						break;
+					case "Inferred":
+						options.color = "#FFFFFF";
+						options.fillColor = "#000000";
+						break;
+				}
+				return L.circleMarker(latLng, options);
+			}
+		});
+		overlays["Nexuses"] = nexusLayer;
+		nexusLayer.addTo(map);
+
 		var layerControl = L.control.layers(baseLayers, overlays).addTo(map);
+
+		// var testLayer;
+		// var testRequest = $.ajax({
+		// 	url: chyfApi + "eflowpath/105.json",
+		// 	success: function(data) {
+		// 		testLayer = L.geoJson(data.data, {
+		// 			pane: 'selection',
+		// 			onEachFeature: function(feature, layer) {
+		// 				var color = "#FF0000";
+		// 				layer.setStyle({color:color, weight:5});
+		// 			}
+		// 		}).addTo(map);
+		// 	}
+		// });
+
 
 		// tabs UI setup
 		$('#myTabs a').click(function (e) {
@@ -224,8 +315,8 @@
 		$('#hideButton').on('click', function() {
 			if(tabs) {
 				$('#tabWrapper').animate({
-					left: -425
-				}, 425, "swing", function() {
+					left: -200
+				}, 200, "swing", function() {
 					$('#hideButton').attr('title', 'Expand side panel');
 					$('#hideButton span').removeClass('glyphicon-chevron-left');
 					$('#hideButton span').addClass('glyphicon-chevron-right');
@@ -235,7 +326,7 @@
 			} else {
 				$('#tabWrapper').animate({
 					left: 0
-				}, 425, "swing", function() {
+				}, 200, "swing", function() {
 					$('#hideButton').attr('title', 'Collapse side panel');
 					$('#hideButton span').removeClass('glyphicon-chevron-right');
 					$('#hideButton span').addClass('glyphicon-chevron-left');
@@ -250,7 +341,7 @@
 				maxZoom: 16
 			};
 			if(tabs) {
-				options.paddingTopLeft = [400,0];
+				options.paddingTopLeft = [200,0];
 			}
 			if(center) {
 				map.fitBounds(bounds.pad(0.25), options);

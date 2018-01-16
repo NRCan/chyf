@@ -22,12 +22,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 @ComponentScan("net.refractions.chyf.rest")
 @EnableWebMvc
 public class WebConfig extends WebMvcConfigurerAdapter {
-		
-	@Override
-	public void configureDefaultServletHandling(DefaultServletHandlerConfigurer configurer) {
-		configurer.enable();
-	}
-	
+			
 	@Override
 	public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
 		converters.add(jsonErrorMessageConverter());
@@ -72,7 +67,7 @@ public class WebConfig extends WebMvcConfigurerAdapter {
 				.mediaType("xhtml", MediaType.APPLICATION_XHTML_XML)
 				.mediaType("html", MediaType.TEXT_HTML)
 				.mediaType("json", MediaType.APPLICATION_JSON)
-				.mediaType("geojson", new MediaType("application", "vnd.geo+json",
+				.mediaType("geojson", new MediaType("application", "geo+json",
 						Charset.forName("UTF-8")))
 				.mediaType("jsonp",
 						new MediaType("application", "javascript", Charset.forName("UTF-8")))

@@ -19,7 +19,7 @@ public class JsonResponseConverter extends AbstractHttpMessageConverter<ApiRespo
 	}
 
 	public JsonResponseConverter() {
-		super(new MediaType("application", "vnd.geo+json",
+		super(new MediaType("application", "geo+json",
 				Charset.forName("UTF-8")), MediaType.APPLICATION_JSON);
 	}
 

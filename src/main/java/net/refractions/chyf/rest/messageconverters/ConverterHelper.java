@@ -5,7 +5,12 @@ import java.io.Writer;
 import java.text.DecimalFormat;
 import java.util.List;
 
-import net.refractions.chyf.hydrograph.EFlowpath;
+import net.refractions.chyf.hygraph.ECatchment;
+import net.refractions.chyf.hygraph.EFlowpath;
+import net.refractions.chyf.hygraph.Nexus;
+import net.refractions.chyf.rest.GeotoolsGeometryReprojector;
+
+import com.vividsolutions.jts.geom.Geometry;
 
 public abstract class ConverterHelper {
 	static final DecimalFormat DEGREE_FORMAT = new DecimalFormat("###.#####");
@@ -17,48 +22,67 @@ public abstract class ConverterHelper {
 		this.out = out;
 	}
 
-	protected abstract void writeResponseHeader(ApiResponse response) throws IOException;
-	protected abstract void writeResponseFooter(ApiResponse response) throws IOException;
-	protected abstract void writeObjectHeader() throws IOException;
-	protected abstract void writeObjectFooter() throws IOException;
-	protected abstract void writeListHeader() throws IOException;
-	protected abstract void writeListFooter() throws IOException;
-	protected abstract void writeNestedFieldHeader(String fieldName) throws IOException;
-	protected abstract void writeNestedFieldFooter() throws IOException;
+	protected abstract void responseHeader(ApiResponse response) throws IOException;
+	protected abstract void responseFooter(ApiResponse response) throws IOException;
+	protected abstract void featureCollectionHeader() throws IOException;
+	protected abstract void featureCollectionFooter() throws IOException;
+	protected abstract void featureHeader(Geometry g, Integer id) throws IOException;
+	protected abstract void featureFooter() throws IOException;
+	protected abstract void objectHeader() throws IOException;
+	protected abstract void objectFooter() throws IOException;
+	protected abstract void listHeader() throws IOException;
+	protected abstract void listFooter() throws IOException;
+	protected abstract void nestedFieldHeader(String fieldName) throws IOException;
+	protected abstract void nestedFieldFooter() throws IOException;
 	
-	protected abstract void writeField(String fieldName, int fieldValue) throws IOException;
-	protected abstract void writeField(String fieldName, String fieldValue) throws IOException;
+	protected abstract void field(String fieldName, int fieldValue) throws IOException;
+	protected abstract void field(String fieldName, String fieldValue) throws IOException;
 
-	protected void writeFields(EFlowpath eFlowpath) throws IOException {
-		writeObjectHeader();
-		writeField("ID", eFlowpath.getId());
-		writeObjectFooter();
+	protected void nexus(Nexus nexus, ApiResponse response) throws IOException {
+		featureHeader(GeotoolsGeometryReprojector.reproject(nexus.getPoint(), response.getSrs()), null);
+		field("type", nexus.getType().toString());
+		featureFooter();
 	}
-	
+	protected void eFlowpath(EFlowpath eFlowpath, ApiResponse response) throws IOException {
+		featureHeader(GeotoolsGeometryReprojector.reproject(eFlowpath.getLineString(), response.getSrs()), eFlowpath.getId());
+		field("type", eFlowpath.getType().toString());
+		field("rank", eFlowpath.getRank().toString());
+		featureFooter();
+	}
+
+	protected void eCatchment(ECatchment eCatchment, ApiResponse response) throws IOException {
+		featureHeader(GeotoolsGeometryReprojector.reproject(eCatchment.getPolygon(), response.getSrs()), eCatchment.getId());
+		featureFooter();
+	}
+
 	public void convertResponse(ApiResponse response) 
 			throws IOException {
-		writeResponseHeader(response);
+		responseHeader(response);
 		Object data = response.getData();
 		if(data instanceof List<?>) {
-			writeNestedFieldHeader("data");
-			writeListHeader();
+			nestedFieldHeader("data");
+			featureCollectionHeader();
 			for(Object o : ((List<?>)data)) {
-				writeSingleDataObject(o);
+				dataObject(o, response);
 			}
-			writeListFooter();
-			writeNestedFieldFooter();
+			featureCollectionFooter();
+			nestedFieldFooter();
 		} else {
-			writeNestedFieldHeader("data");
-			writeSingleDataObject(data);
-			writeNestedFieldFooter();
+			nestedFieldHeader("data");
+			dataObject(data,response);
+			nestedFieldFooter();
 		}
-		writeResponseFooter(response);
+		responseFooter(response);
 	}
 	
-	private void writeSingleDataObject(Object data) throws IOException {
-		if(data instanceof EFlowpath) {
-			writeFields((EFlowpath)data);
-		}		
+	private void dataObject(Object data, ApiResponse response) throws IOException {
+		if(data instanceof Nexus) {
+			nexus((Nexus)data, response);
+		} else if(data instanceof EFlowpath) {
+			eFlowpath((EFlowpath)data, response);
+		} else if(data instanceof ECatchment) {
+			eCatchment((ECatchment)data, response);
+		}
 	}
 	
 	protected static String formatOrdinate(double ord) {

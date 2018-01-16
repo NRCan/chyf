@@ -3,9 +3,11 @@ package net.refractions.chyf.rest.messageconverters;
 import java.io.IOException;
 import java.io.Writer;
 
-import net.refractions.chyf.hydrograph.EFlowpath;
+import net.refractions.chyf.hygraph.EFlowpath;
 
 import org.apache.commons.lang3.StringEscapeUtils;
+
+import com.vividsolutions.jts.geom.Geometry;
 
 public class HtmlConverterHelper extends ConverterHelper {
 	
@@ -13,26 +15,26 @@ public class HtmlConverterHelper extends ConverterHelper {
 		super(out);
 	}
 	
-	public void writeResponseHeader(ApiResponse response) throws IOException {
+	public void responseHeader(ApiResponse response) throws IOException {
 		out.write(("<!DOCTYPE html><html><head><title>Router Response</title></head><body><table>"));
 	}
 
-	public void writeResponseFooter(ApiResponse response) throws IOException {
+	public void responseFooter(ApiResponse response) throws IOException {
 		out.write("</table></body></html>");
 	}
 
-	protected void writeField(String fieldName, int fieldValue) throws IOException {
+	protected void field(String fieldName, int fieldValue) throws IOException {
 		out.write("<tr><td>" + fieldName + ":</td>");		
 		out.write("<td>" + fieldValue + "</td></tr>\n");
 	}
 
-	protected void writeField(String fieldName, String fieldValue) throws IOException {
+	protected void field(String fieldName, String fieldValue) throws IOException {
 		out.write("<tr><td>" + fieldName + ":</td>");		
 		out.write("<td>" + escape(fieldValue) + "</td></tr>\n");
 	}
 
 	protected void writeFields(EFlowpath eFlowpath) throws IOException {
-		writeField("ID", eFlowpath.getId());
+		field("ID", eFlowpath.getId());
 	}
 	
 //		writeField("routeDescription", response.getRouteDescription());
@@ -137,33 +139,56 @@ public class HtmlConverterHelper extends ConverterHelper {
 	}
 
 	@Override
-	protected void writeObjectHeader() throws IOException {
+	protected void objectHeader() throws IOException {
 		out.write("<tr><td><table>");
 	}
 	
 	@Override
-	protected void writeObjectFooter() throws IOException {
+	protected void objectFooter() throws IOException {
 		out.write("</table></td></tr>");	
 	}
 	
 	@Override
-	protected void writeListHeader() throws IOException {
+	protected void listHeader() throws IOException {
 		out.write("<table>");
 	}
 	
 	@Override
-	protected void writeListFooter() throws IOException {
+	protected void listFooter() throws IOException {
 		out.write("</table>");
 	}
 	
 	@Override
-	protected void writeNestedFieldHeader(String fieldName) throws IOException {
+	protected void nestedFieldHeader(String fieldName) throws IOException {
 		out.write("<tr><td>" + fieldName + "</td><td>");
 	}
 	
 	@Override
-	protected void writeNestedFieldFooter() throws IOException {
+	protected void nestedFieldFooter() throws IOException {
 		out.write("</td></tr>");
+	}
+
+	@Override
+	protected void featureCollectionHeader() throws IOException {
+		listHeader();
+	}
+
+	@Override
+	protected void featureCollectionFooter() throws IOException {
+		listFooter();
+	}
+
+	@Override
+	protected void featureHeader(Geometry g, Integer id) throws IOException {
+		objectHeader();
+		if(id != null) {
+			field("ID", id);
+		}
+	}
+
+	@Override
+	protected void featureFooter() throws IOException {
+		objectFooter();
 	}
 
 }

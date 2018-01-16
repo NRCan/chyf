@@ -7,7 +7,7 @@ package net.refractions.chyf.rest;
 import javax.annotation.PreDestroy;
 
 import net.refractions.chyf.ChyfDatastore;
-import net.refractions.chyf.hydrograph.HyGraph;
+import net.refractions.chyf.hygraph.HyGraph;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;

@@ -1,9 +1,12 @@
 package net.refractions.chyf.rest.controllers;
 
+import java.util.List;
+
 import net.refractions.chyf.ChyfDatastore;
-import net.refractions.chyf.hygraph.EFlowpath;
+import net.refractions.chyf.hygraph.ECatchment;
 import net.refractions.chyf.hygraph.HyGraph;
 import net.refractions.chyf.indexing.BboxIntersectsFilter;
+import net.refractions.chyf.indexing.ECatchmentContainsPointFilter;
 import net.refractions.chyf.rest.ReverseGeocodeParameters;
 import net.refractions.chyf.rest.SharedParameters;
 import net.refractions.chyf.rest.exceptions.InvalidParameterException;
@@ -18,27 +21,27 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/eflowpath")
+@RequestMapping("/ecatchment")
 @CrossOrigin
-public class EFlowpathController {
-	
+public class ECatchmentController {
+
 	@Autowired
 	private HyGraph hyGraph;
 	
 	@RequestMapping(value = "/{id}", method = {RequestMethod.GET,RequestMethod.POST})
-	public ApiResponse getEFlowpathById(@PathVariable("id") int id,
+	public ApiResponse getECatchmentById(@PathVariable("id") int id,
 			SharedParameters params, BindingResult bindingResult) {
 		if(bindingResult.hasErrors()) {
 			throw new InvalidParameterException(bindingResult);
 		}
 		
-		ApiResponse resp = new ApiResponse(hyGraph.getEFlowpath(id));
+		ApiResponse resp = new ApiResponse(hyGraph.getECatchment(id));
 		resp.setParams(params);
 		return resp;
 	}
 
 	@RequestMapping(value = "/near", method = {RequestMethod.GET,RequestMethod.POST})
-	public ApiResponse getEFlowpathsNear(ReverseGeocodeParameters params, BindingResult bindingResult) {
+	public ApiResponse getECatchmentsNear(ReverseGeocodeParameters params, BindingResult bindingResult) {
 		if(bindingResult.hasErrors()) {
 			throw new InvalidParameterException(bindingResult);
 		}
@@ -48,15 +51,14 @@ public class EFlowpathController {
 			String errMsg = "The point parameter must be provided.";
 			throw new IllegalArgumentException(errMsg);
 		}
-		
-		
-		ApiResponse resp = new ApiResponse(hyGraph.findEFlowpaths(params.getPoint(), params.getMaxFeatures(), null, null));
+				
+		ApiResponse resp = new ApiResponse(hyGraph.findECatchments(params.getPoint(), params.getMaxFeatures(), null, null));
 		resp.setParams(params);
 		return resp;
 	}
 
 	@RequestMapping(value = "/within", method = {RequestMethod.GET,RequestMethod.POST})
-	public ApiResponse getEFlowpathsWithin(ReverseGeocodeParameters params, BindingResult bindingResult) {
+	public ApiResponse getECatchmentsWithin(ReverseGeocodeParameters params, BindingResult bindingResult) {
 		if(bindingResult.hasErrors()) {
 			throw new InvalidParameterException(bindingResult);
 		}
@@ -67,17 +69,17 @@ public class EFlowpathController {
 			throw new IllegalArgumentException(errMsg);
 		}
 
-		ApiResponse resp = new ApiResponse(hyGraph.findEFlowpaths(
+		ApiResponse resp = new ApiResponse(hyGraph.findECatchments(
 				ChyfDatastore.GEOMETRY_FACTORY.createPoint(params.getBbox().centre()), 
 				params.getMaxFeatures(),
 				params.getMaxDistance(), 
-				new BboxIntersectsFilter<EFlowpath>(params.getBbox())));
+				new BboxIntersectsFilter<ECatchment>(params.getBbox())));
 		resp.setParams(params);
 		return resp;
 	}
 
-	@RequestMapping(value = "/flowsFrom", method = {RequestMethod.GET,RequestMethod.POST})
-	public ApiResponse getEFlowpathFlowsFrom(ReverseGeocodeParameters params, BindingResult bindingResult) {
+	@RequestMapping(value = "/containing", method = {RequestMethod.GET,RequestMethod.POST})
+	public ApiResponse getECatchmentsContaining(ReverseGeocodeParameters params, BindingResult bindingResult) {
 		if(bindingResult.hasErrors()) {
 			throw new InvalidParameterException(bindingResult);
 		}
@@ -88,15 +90,15 @@ public class EFlowpathController {
 			throw new IllegalArgumentException(errMsg);
 		}
 
-		ApiResponse resp = new ApiResponse(hyGraph.getEFlowpath(params.getPoint()));
+		List<ECatchment> eCatchments = hyGraph.findECatchments(params.getPoint(), 1, 0, 
+				new ECatchmentContainsPointFilter(params.getPoint()));
+		ECatchment containing = null;
+		if(eCatchments.size() > 0) {
+			containing = eCatchments.get(0);
+		}
+		ApiResponse resp = new ApiResponse(containing);
 		resp.setParams(params);
 		return resp;
 	}
 
-
 }
-
-
-
-
-
