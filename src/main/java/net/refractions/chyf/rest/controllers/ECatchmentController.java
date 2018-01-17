@@ -72,7 +72,7 @@ public class ECatchmentController {
 		ApiResponse resp = new ApiResponse(hyGraph.findECatchments(
 				ChyfDatastore.GEOMETRY_FACTORY.createPoint(params.getBbox().centre()), 
 				params.getMaxFeatures(),
-				params.getMaxDistance(), 
+				params.getMaxDistance(), //Math.min((int)Math.round(params.getBbox().maxExtent()), params.getMaxDistance() == null ? Integer.MAX_VALUE : params.getMaxDistance()), 
 				new BboxIntersectsFilter<ECatchment>(params.getBbox())));
 		resp.setParams(params);
 		return resp;
@@ -90,13 +90,25 @@ public class ECatchmentController {
 			throw new IllegalArgumentException(errMsg);
 		}
 
-		List<ECatchment> eCatchments = hyGraph.findECatchments(params.getPoint(), 1, 0, 
+		List<ECatchment> eCatchments = hyGraph.findECatchments(params.getPoint(), 1, null, 
 				new ECatchmentContainsPointFilter(params.getPoint()));
 		ECatchment containing = null;
 		if(eCatchments.size() > 0) {
 			containing = eCatchments.get(0);
 		}
 		ApiResponse resp = new ApiResponse(containing);
+		resp.setParams(params);
+		return resp;
+	}
+
+	@RequestMapping(value = "/indexNode/{id}", method = {RequestMethod.GET,RequestMethod.POST})
+	public ApiResponse getECatchmentIndexNodeById(@PathVariable("id") int id,
+			SharedParameters params, BindingResult bindingResult) {
+		if(bindingResult.hasErrors()) {
+			throw new InvalidParameterException(bindingResult);
+		}
+		
+		ApiResponse resp = new ApiResponse(hyGraph.getECatchmentIndexNode(id));
 		resp.setParams(params);
 		return resp;
 	}

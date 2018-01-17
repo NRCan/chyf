@@ -5,12 +5,18 @@ import java.io.Writer;
 import java.text.DecimalFormat;
 import java.util.List;
 
+import net.refractions.chyf.ChyfDatastore;
 import net.refractions.chyf.hygraph.ECatchment;
 import net.refractions.chyf.hygraph.EFlowpath;
 import net.refractions.chyf.hygraph.Nexus;
+import net.refractions.chyf.indexing.SpatiallyIndexable;
 import net.refractions.chyf.rest.GeotoolsGeometryReprojector;
 
+import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.CoordinateSequence;
+import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.Polygon;
 
 public abstract class ConverterHelper {
 	static final DecimalFormat DEGREE_FORMAT = new DecimalFormat("###.#####");
@@ -37,7 +43,8 @@ public abstract class ConverterHelper {
 	
 	protected abstract void field(String fieldName, int fieldValue) throws IOException;
 	protected abstract void field(String fieldName, String fieldValue) throws IOException;
-
+	protected abstract void nullData() throws IOException;
+	
 	protected void nexus(Nexus nexus, ApiResponse response) throws IOException {
 		featureHeader(GeotoolsGeometryReprojector.reproject(nexus.getPoint(), response.getSrs()), null);
 		field("type", nexus.getType().toString());
@@ -52,6 +59,20 @@ public abstract class ConverterHelper {
 
 	protected void eCatchment(ECatchment eCatchment, ApiResponse response) throws IOException {
 		featureHeader(GeotoolsGeometryReprojector.reproject(eCatchment.getPolygon(), response.getSrs()), eCatchment.getId());
+		featureFooter();
+	}
+
+	protected void spatiallyIndexable(SpatiallyIndexable spatiallyIndexable, ApiResponse response) throws IOException {
+		Envelope e = spatiallyIndexable.getEnvelope();
+		Coordinate[] coords = {
+				new Coordinate(e.getMinX(), e.getMinY()), 
+				new Coordinate(e.getMinX(), e.getMaxY()), 
+				new Coordinate(e.getMaxX(), e.getMaxY()), 
+				new Coordinate(e.getMaxX(), e.getMinY()),
+				new Coordinate(e.getMinX(), e.getMinY())
+		};
+		Polygon polygon = ChyfDatastore.GEOMETRY_FACTORY.createPolygon(coords);
+		featureHeader(GeotoolsGeometryReprojector.reproject(polygon, response.getSrs()), null);
 		featureFooter();
 	}
 
@@ -82,9 +103,22 @@ public abstract class ConverterHelper {
 			eFlowpath((EFlowpath)data, response);
 		} else if(data instanceof ECatchment) {
 			eCatchment((ECatchment)data, response);
+		} else if(data instanceof SpatiallyIndexable) {
+			spatiallyIndexable((SpatiallyIndexable)data, response);
+		} else {
+			nullData();
 		}
 	}
 	
+//	writeField("executionTime", response.getExecutionTime());
+//	writeField("version", RouterConfig.VERSION);
+//	writeField("disclaimer", config.getDisclaimer());
+//	writeField("privacyStatement", config.getPrivacyStatement());
+//	writeField("copyrightNotice", config.getCopyrightNotice());
+//	writeField("copyrightLicense", config.getCopyrightLicense());
+//	writeField("srsCode", response.getSrsCode());
+
+
 	protected static String formatOrdinate(double ord) {
 		if(ord <= 180 && ord >= -180) {
 			return DEGREE_FORMAT.format(ord);

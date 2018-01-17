@@ -93,6 +93,23 @@ public class EFlowpathController {
 		return resp;
 	}
 
+	@RequestMapping(value = "/upstreamOf", method = {RequestMethod.GET,RequestMethod.POST})
+	public ApiResponse getEFlowpathsUpstreamOf(ReverseGeocodeParameters params, BindingResult bindingResult) {
+		if(bindingResult.hasErrors()) {
+			throw new InvalidParameterException(bindingResult);
+		}
+		params.resolveAndValidate();
+		
+		if(params.getPoint() == null) {
+			String errMsg = "The point parameter must be provided.";
+			throw new IllegalArgumentException(errMsg);
+		}
+
+		ApiResponse resp = new ApiResponse(hyGraph.getUpstreamEFlowpaths(params.getPoint(), params.getMaxFeatures()));
+		resp.setParams(params);
+		return resp;
+	}
+
 
 }
 

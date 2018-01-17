@@ -28,7 +28,12 @@ public class JsonConverterHelper extends ConverterHelper {
 	protected void responseFooter(ApiResponse response) throws IOException {
 		jw.endObject();
 	}
-	
+
+	@Override
+	protected void nullData() throws IOException {
+		jw.nullValue();
+	}
+
 	@Override
 	protected void field(String fieldName, int fieldValue) throws IOException {
 		jw.name(fieldName).value(fieldValue);
