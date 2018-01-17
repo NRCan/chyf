@@ -35,7 +35,7 @@ public class JsonConverterHelper extends ConverterHelper {
 	}
 
 	@Override
-	protected void field(String fieldName, int fieldValue) throws IOException {
+	protected void field(String fieldName, long fieldValue) throws IOException {
 		jw.name(fieldName).value(fieldValue);
 	}
 

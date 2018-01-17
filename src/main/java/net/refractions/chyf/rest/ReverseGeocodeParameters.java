@@ -77,6 +77,8 @@ public class ReverseGeocodeParameters extends SharedParameters {
 		if(bboxPolygon != null) {
 			bboxPolygon = GeotoolsGeometryReprojector.reproject(bboxPolygon, ChyfDatastore.BASE_SRS);
 			bboxEnvelope = bboxPolygon.getEnvelopeInternal();
+			// if their is a bbox, override the maxdistance with the radius of the bbox
+			maxDistance = (int)Math.round(GeomUtil.getRadius(bboxEnvelope));
 		}		
 	}
 

@@ -116,4 +116,25 @@ public class HyGraph {
 		return results;
 	}
 
+	public Object getDownstreamEFlowpaths(Point point, int maxResults) {
+		EFlowpath eFlowpath = getEFlowpath(point);
+		if(eFlowpath == null) {
+			return Collections.emptyList();
+		}
+		List<EFlowpath> results = new ArrayList<EFlowpath>(maxResults);
+		results.add(eFlowpath);
+		for(int i = 0; i < results.size(); i++) {
+			for(EFlowpath downstream: results.get(i).getToNode().getDownFlows()) {
+				results.add(downstream);
+				if(results.size() >= maxResults) {
+					break;
+				}
+			}
+			if(results.size() >= maxResults) {
+				break;
+			}
+		}
+		return results;
+	}
+
 }

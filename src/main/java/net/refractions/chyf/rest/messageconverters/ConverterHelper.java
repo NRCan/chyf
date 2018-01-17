@@ -13,7 +13,6 @@ import net.refractions.chyf.indexing.SpatiallyIndexable;
 import net.refractions.chyf.rest.GeotoolsGeometryReprojector;
 
 import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.CoordinateSequence;
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.Polygon;
@@ -41,7 +40,7 @@ public abstract class ConverterHelper {
 	protected abstract void nestedFieldHeader(String fieldName) throws IOException;
 	protected abstract void nestedFieldFooter() throws IOException;
 	
-	protected abstract void field(String fieldName, int fieldValue) throws IOException;
+	protected abstract void field(String fieldName, long fieldValue) throws IOException;
 	protected abstract void field(String fieldName, String fieldValue) throws IOException;
 	protected abstract void nullData() throws IOException;
 	
@@ -79,6 +78,7 @@ public abstract class ConverterHelper {
 	public void convertResponse(ApiResponse response) 
 			throws IOException {
 		responseHeader(response);
+		field("executionTime", response.getExecutionTime());
 		Object data = response.getData();
 		if(data instanceof List<?>) {
 			nestedFieldHeader("data");

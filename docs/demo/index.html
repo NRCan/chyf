@@ -38,14 +38,14 @@
 			align-items: stretch;
 			overflow: auto;
 		}
-		#databar {
+		#dataBar {
 			flex: 0 0 auto;
 			height: 200px;
 			width: 100%;
 			border: 1px solid lightSlateGrey;
 			padding: 5px;
 		}
-		#toolbar {
+		#toolBar {
 			flex: 0 0 auto;
             width: 180px;
 			overflow: auto;
@@ -100,14 +100,22 @@
 			border-color: lightBlue;
 			box-shadow: 2px 2px 5px rgba(0,0,0,.25) inset, -2px -2px 5px white inset;
 		}
-		.notYet {
-			border-color: red;
+		#dataBar table {
+			display: block;
+			border: 1px solid grey;
+			border-collapse: collapse;
 		}
-		.notice {
-			margin-top: 15px;
-			border: 1px solid black;
-			color: red;
-			padding: 4px;
+		#dataBar table th, #dataBar table td  {
+			border: 1px solid grey;
+			padding: 1px 4px;
+		}
+		#dataBar table tbody {
+			display: block;
+		}
+		#dataBar table tbody {
+			display: block;
+			height: 150px;
+			overflow-y: scroll;
 		}
 
 	</style>
@@ -117,7 +125,7 @@
 	<div id="container1">
 		<div id="title">ChyF Pilot Demo</div>
 		<div id="container2">
-			<div id="toolbar">
+			<div id="toolBar">
 				<div class="toolCat">Nexuses</div>
 				<button id="nexusById" type="button" class="toolBtn">Find by ID:</button>
 				<input id="nexusId" class="idInput" type="text"/>
@@ -126,14 +134,15 @@
 				<input id="flowpathId" class="idInput" type="text"/>
 				<button id="flowpathFlowsFrom" type="button" class="toolBtn tool">Flows From</button>
 				<button id="flowpathsUpstreamOf" type="button" class="toolBtn tool">Upstream Of</button>
+				<button id="flowpathsDownstreamOf" type="button" class="toolBtn tool">Downstream Of</button>
 				<div class="toolCat">Catchments</div>
 				<button id="catchmentById" type="button" class="toolBtn">Find by ID:</button>
 				<input id="catchmentId" class="idInput" type="text"/>
 				<button id="catchmentContaining" type="button" class="toolBtn tool">Containing</button>
-			</div> <!-- toolbar -->
+			</div> <!-- toolBar -->
 			<div id="map"></div>
 		</div> <!-- container2 -->
-		<div id="databar">data table goes here</div> <!-- databar -->
+		<div id="dataBar"></div> <!-- dataBar -->
 	</div> <!-- container1 -->
 	<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCO2a43ItOYdAuRFcbCSLLn8AQwnMlf6sI"></script>
 	<script src="https://unpkg.com/leaflet@1.3.0/dist/leaflet.js"></script>
@@ -382,6 +391,9 @@
 				case 'flowpathsUpstreamOf':
 					selectCatchments("eflowpath/upstreamOf.json?point=" + e.latlng.lng + "," + e.latlng.lat);
 					break;
+					case 'flowpathsDownstreamOf':
+						selectCatchments("eflowpath/downstreamOf.json?point=" + e.latlng.lng + "," + e.latlng.lat);
+						break;
 				case 'catchmentContaining':
 					selectCatchments("ecatchment/containing.json?point=" + e.latlng.lng + "," + e.latlng.lat);
 					break;
@@ -393,6 +405,7 @@
 			var selectionRequest = $.ajax({
 				url: chyfApi + path,
 				success: function(data) {
+					fillDataTable(data.data);
 					selectionLayer = L.geoJson(data.data, {
 						pointToLayer: function(geoJsonPoint, latLng) {
 							return L.circleMarker(latLng, {
@@ -414,6 +427,7 @@
 			var selectionRequest = $.ajax({
 				url: chyfApi + path,
 				success: function(data) {
+					fillDataTable(data.data);
 					selectionLayer = L.geoJson(data.data, {
 						pane: 'selection',
 						style: function(feature) {
@@ -430,6 +444,7 @@
 			var selectionRequest = $.ajax({
 				url: chyfApi + path,
 				success: function(data) {
+					fillDataTable(data.data);
 					selectionLayer = L.geoJson(data.data, {
 						pane: 'selection',
 						style: function(feature) {
@@ -453,6 +468,40 @@
 			selectCatchments("ecatchment/" + $('#catchmentId').val() + ".json");
 		});
 
+
+		function fillDataTable(data) {
+			var $table = $('<table/>');
+			var features;
+			if(data.type == 'Feature') {
+				features = [data];
+			} else if(data.type == 'FeatureCollection') {
+				if(!data.features || data.features.length == 0) {
+					return;
+				}
+				features = data.features;
+			} else {
+				return;
+			}
+			var $thead = $('<thead/>');
+			var cols = features[0].properties;
+			$thead.append('<th>ID</th>');
+			for(var prop in cols) {
+				$thead.append('<th>' + prop + '</th>');
+			}
+			$table.append($thead);
+			var $tbody = $('<tbody/>');
+			for(var i in features) {
+				var $row = $('<tr/>');
+				$row.append('<td>' + features[i].ID + '</td>');
+				for(var prop in cols) {
+					$row.append('<td>' + features[i].properties[prop] + '</td>');
+				}
+				$tbody.append($row);
+			}
+			$table.append($tbody);
+			$('#dataBar').empty();
+			$('#dataBar').append($table);
+		}
 
 		function centerMap(bounds, center = true) {
 			if(!bounds || !bounds.isValid()) {

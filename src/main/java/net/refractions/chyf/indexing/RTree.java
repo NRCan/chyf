@@ -52,7 +52,10 @@ public class RTree<T extends SpatiallyIndexable> {
 		while(left > 0) {
 			medianSplit(left, right);
 			right = left-1;
-			left = (left-1) / PAGE_SIZE;
+			// We can't re-organize the branch nodes without also moving their children around (slow)
+			//left = (left-1) / PAGE_SIZE; 
+			// So this way we just build parent branch nodes for the branch nodes, leaving them in-place
+			left = left - PAGE_SIZE;
 		}
 	}
 
@@ -137,15 +140,9 @@ public class RTree<T extends SpatiallyIndexable> {
 	private void medianSplit(int left, int right) {
 		IndexableEnvelope union = merge_all_boxes(left, right);
 		
-		if((left-1)%PAGE_SIZE != 0) {
-			System.out.println("foo");
-		}
 		// if we have a finished page
 		if(right - left < PAGE_SIZE ) {
 			// put the union envelope at the parent node
-			if(nodes[(left-1)/PAGE_SIZE] != null) {
-				System.out.println("foo");
-			}
 			nodes[(left-1)/PAGE_SIZE] = union;
 			return;
 		}

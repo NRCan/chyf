@@ -11,6 +11,8 @@ import net.refractions.chyf.rest.ReverseGeocodeParameters;
 import net.refractions.chyf.rest.SharedParameters;
 import net.refractions.chyf.rest.exceptions.InvalidParameterException;
 import net.refractions.chyf.rest.messageconverters.ApiResponse;
+import net.refractions.util.GeomUtil;
+import net.refractions.util.StopWatch;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.BindingResult;
@@ -50,9 +52,13 @@ public class ECatchmentController {
 		if(params.getPoint() == null) {
 			String errMsg = "The point parameter must be provided.";
 			throw new IllegalArgumentException(errMsg);
-		}
-				
-		ApiResponse resp = new ApiResponse(hyGraph.findECatchments(params.getPoint(), params.getMaxFeatures(), null, null));
+		}				
+
+		StopWatch sw = new StopWatch();
+		sw.start();
+		ApiResponse resp = new ApiResponse(hyGraph.findECatchments(params.getPoint(), params.getMaxFeatures(), params.getMaxDistance(), null));
+		sw.stop();
+		resp.setExecutionTime(sw.getElapsedTime());
 		resp.setParams(params);
 		return resp;
 	}
@@ -68,12 +74,15 @@ public class ECatchmentController {
 			String errMsg = "The bbox parameter must be provided.";
 			throw new IllegalArgumentException(errMsg);
 		}
-
+		StopWatch sw = new StopWatch();
+		sw.start();
 		ApiResponse resp = new ApiResponse(hyGraph.findECatchments(
 				ChyfDatastore.GEOMETRY_FACTORY.createPoint(params.getBbox().centre()), 
 				params.getMaxFeatures(),
-				params.getMaxDistance(), //Math.min((int)Math.round(params.getBbox().maxExtent()), params.getMaxDistance() == null ? Integer.MAX_VALUE : params.getMaxDistance()), 
+				params.getMaxDistance(), 
 				new BboxIntersectsFilter<ECatchment>(params.getBbox())));
+		sw.stop();
+		resp.setExecutionTime(sw.getElapsedTime());
 		resp.setParams(params);
 		return resp;
 	}
@@ -90,6 +99,8 @@ public class ECatchmentController {
 			throw new IllegalArgumentException(errMsg);
 		}
 
+		StopWatch sw = new StopWatch();
+		sw.start();
 		List<ECatchment> eCatchments = hyGraph.findECatchments(params.getPoint(), 1, null, 
 				new ECatchmentContainsPointFilter(params.getPoint()));
 		ECatchment containing = null;
@@ -97,18 +108,8 @@ public class ECatchmentController {
 			containing = eCatchments.get(0);
 		}
 		ApiResponse resp = new ApiResponse(containing);
-		resp.setParams(params);
-		return resp;
-	}
-
-	@RequestMapping(value = "/indexNode/{id}", method = {RequestMethod.GET,RequestMethod.POST})
-	public ApiResponse getECatchmentIndexNodeById(@PathVariable("id") int id,
-			SharedParameters params, BindingResult bindingResult) {
-		if(bindingResult.hasErrors()) {
-			throw new InvalidParameterException(bindingResult);
-		}
-		
-		ApiResponse resp = new ApiResponse(hyGraph.getECatchmentIndexNode(id));
+		sw.stop();
+		resp.setExecutionTime(sw.getElapsedTime());
 		resp.setParams(params);
 		return resp;
 	}

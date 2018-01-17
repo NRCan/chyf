@@ -28,7 +28,7 @@ public class HtmlConverterHelper extends ConverterHelper {
 		// TODO
 	}
 
-	protected void field(String fieldName, int fieldValue) throws IOException {
+	protected void field(String fieldName, long fieldValue) throws IOException {
 		out.write("<tr><td>" + fieldName + ":</td>");		
 		out.write("<td>" + fieldValue + "</td></tr>\n");
 	}

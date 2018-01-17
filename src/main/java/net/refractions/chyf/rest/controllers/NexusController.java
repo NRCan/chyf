@@ -8,6 +8,7 @@ import net.refractions.chyf.rest.ReverseGeocodeParameters;
 import net.refractions.chyf.rest.SharedParameters;
 import net.refractions.chyf.rest.exceptions.InvalidParameterException;
 import net.refractions.chyf.rest.messageconverters.ApiResponse;
+import net.refractions.util.StopWatch;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.BindingResult;
@@ -32,7 +33,11 @@ public class NexusController {
 			throw new InvalidParameterException(bindingResult);
 		}
 		
+		StopWatch sw = new StopWatch();
+		sw.start();		
 		ApiResponse resp = new ApiResponse(hyGraph.getNexus(id));
+		sw.stop();
+		resp.setExecutionTime(sw.getElapsedTime());		
 		resp.setParams(params);
 		return resp;
 	}
@@ -49,8 +54,11 @@ public class NexusController {
 			throw new IllegalArgumentException(errMsg);
 		}
 		
-		
-		ApiResponse resp = new ApiResponse(hyGraph.findNexuses(params.getPoint(), params.getMaxFeatures(), null, null));
+		StopWatch sw = new StopWatch();
+		sw.start();		
+		ApiResponse resp = new ApiResponse(hyGraph.findNexuses(params.getPoint(), params.getMaxFeatures(),  params.getMaxDistance(), null));
+		sw.stop();
+		resp.setExecutionTime(sw.getElapsedTime());		
 		resp.setParams(params);
 		return resp;
 	}
@@ -67,11 +75,15 @@ public class NexusController {
 			throw new IllegalArgumentException(errMsg);
 		}
 
+		StopWatch sw = new StopWatch();
+		sw.start();		
 		ApiResponse resp = new ApiResponse(hyGraph.findNexuses(
 				ChyfDatastore.GEOMETRY_FACTORY.createPoint(params.getBbox().centre()), 
 				params.getMaxFeatures(),
 				params.getMaxDistance(), 
 				new BboxIntersectsFilter<Nexus>(params.getBbox())));
+		sw.stop();
+		resp.setExecutionTime(sw.getElapsedTime());		
 		resp.setParams(params);
 		return resp;
 	}

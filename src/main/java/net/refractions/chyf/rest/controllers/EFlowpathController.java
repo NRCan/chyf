@@ -8,6 +8,7 @@ import net.refractions.chyf.rest.ReverseGeocodeParameters;
 import net.refractions.chyf.rest.SharedParameters;
 import net.refractions.chyf.rest.exceptions.InvalidParameterException;
 import net.refractions.chyf.rest.messageconverters.ApiResponse;
+import net.refractions.util.StopWatch;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.BindingResult;
@@ -32,7 +33,11 @@ public class EFlowpathController {
 			throw new InvalidParameterException(bindingResult);
 		}
 		
+		StopWatch sw = new StopWatch();
+		sw.start();		
 		ApiResponse resp = new ApiResponse(hyGraph.getEFlowpath(id));
+		sw.stop();
+		resp.setExecutionTime(sw.getElapsedTime());
 		resp.setParams(params);
 		return resp;
 	}
@@ -49,8 +54,11 @@ public class EFlowpathController {
 			throw new IllegalArgumentException(errMsg);
 		}
 		
-		
-		ApiResponse resp = new ApiResponse(hyGraph.findEFlowpaths(params.getPoint(), params.getMaxFeatures(), null, null));
+		StopWatch sw = new StopWatch();
+		sw.start();		
+		ApiResponse resp = new ApiResponse(hyGraph.findEFlowpaths(params.getPoint(), params.getMaxFeatures(), params.getMaxDistance(), null));
+		sw.stop();
+		resp.setExecutionTime(sw.getElapsedTime());
 		resp.setParams(params);
 		return resp;
 	}
@@ -66,12 +74,15 @@ public class EFlowpathController {
 			String errMsg = "The bbox parameter must be provided.";
 			throw new IllegalArgumentException(errMsg);
 		}
-
+		StopWatch sw = new StopWatch();
+		sw.start();
 		ApiResponse resp = new ApiResponse(hyGraph.findEFlowpaths(
 				ChyfDatastore.GEOMETRY_FACTORY.createPoint(params.getBbox().centre()), 
 				params.getMaxFeatures(),
 				params.getMaxDistance(), 
 				new BboxIntersectsFilter<EFlowpath>(params.getBbox())));
+		sw.stop();
+		resp.setExecutionTime(sw.getElapsedTime());
 		resp.setParams(params);
 		return resp;
 	}
@@ -87,8 +98,11 @@ public class EFlowpathController {
 			String errMsg = "The point parameter must be provided.";
 			throw new IllegalArgumentException(errMsg);
 		}
-
+		StopWatch sw = new StopWatch();
+		sw.start();
 		ApiResponse resp = new ApiResponse(hyGraph.getEFlowpath(params.getPoint()));
+		sw.stop();
+		resp.setExecutionTime(sw.getElapsedTime());
 		resp.setParams(params);
 		return resp;
 	}
@@ -105,11 +119,35 @@ public class EFlowpathController {
 			throw new IllegalArgumentException(errMsg);
 		}
 
+		StopWatch sw = new StopWatch();
+		sw.start();
 		ApiResponse resp = new ApiResponse(hyGraph.getUpstreamEFlowpaths(params.getPoint(), params.getMaxFeatures()));
+		sw.stop();
+		resp.setExecutionTime(sw.getElapsedTime());
 		resp.setParams(params);
 		return resp;
 	}
 
+	@RequestMapping(value = "/downstreamOf", method = {RequestMethod.GET,RequestMethod.POST})
+	public ApiResponse getEFlowpathsDownstreamOf(ReverseGeocodeParameters params, BindingResult bindingResult) {
+		if(bindingResult.hasErrors()) {
+			throw new InvalidParameterException(bindingResult);
+		}
+		params.resolveAndValidate();
+		
+		if(params.getPoint() == null) {
+			String errMsg = "The point parameter must be provided.";
+			throw new IllegalArgumentException(errMsg);
+		}
+
+		StopWatch sw = new StopWatch();
+		sw.start();
+		ApiResponse resp = new ApiResponse(hyGraph.getDownstreamEFlowpaths(params.getPoint(), params.getMaxFeatures()));
+		sw.stop();
+		resp.setExecutionTime(sw.getElapsedTime());
+		resp.setParams(params);
+		return resp;
+	}
 
 }
 

@@ -1,6 +1,7 @@
 package net.refractions.util;
 
 import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.LinearRing;
 import com.vividsolutions.jts.geom.Point;
@@ -54,4 +55,7 @@ public class GeomUtil {
 		return bbox.getFactory().createPoint(new Coordinate(x, y));
 	}
 
+	public static double getRadius(Envelope e) {
+		return Math.sqrt(Math.pow(e.getMaxX() - e.getMinX(), 2) + Math.pow(e.getMaxY() - e.getMinY(), 2)) / 2; 
+	}
 }
