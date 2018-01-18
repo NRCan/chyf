@@ -28,9 +28,13 @@ public class HtmlConverterHelper extends ConverterHelper {
 		// TODO
 	}
 
+	@Override
+	protected void field(String fieldName, double fieldValue) throws IOException {
+		field(fieldName, METRE_FORMAT.format(fieldValue));
+	}
+
 	protected void field(String fieldName, long fieldValue) throws IOException {
-		out.write("<tr><td>" + fieldName + ":</td>");		
-		out.write("<td>" + fieldValue + "</td></tr>\n");
+		field(fieldName, Long.toString(fieldValue));
 	}
 
 	protected void field(String fieldName, String fieldValue) throws IOException {

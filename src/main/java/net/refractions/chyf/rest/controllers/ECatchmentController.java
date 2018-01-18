@@ -11,7 +11,6 @@ import net.refractions.chyf.rest.ReverseGeocodeParameters;
 import net.refractions.chyf.rest.SharedParameters;
 import net.refractions.chyf.rest.exceptions.InvalidParameterException;
 import net.refractions.chyf.rest.messageconverters.ApiResponse;
-import net.refractions.util.GeomUtil;
 import net.refractions.util.StopWatch;
 
 import org.springframework.beans.factory.annotation.Autowired;

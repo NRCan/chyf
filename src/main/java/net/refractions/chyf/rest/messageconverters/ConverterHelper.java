@@ -41,6 +41,7 @@ public abstract class ConverterHelper {
 	protected abstract void nestedFieldFooter() throws IOException;
 	
 	protected abstract void field(String fieldName, long fieldValue) throws IOException;
+	protected abstract void field(String fieldName, double fieldValue) throws IOException;
 	protected abstract void field(String fieldName, String fieldValue) throws IOException;
 	protected abstract void nullData() throws IOException;
 	
@@ -51,8 +52,13 @@ public abstract class ConverterHelper {
 	}
 	protected void eFlowpath(EFlowpath eFlowpath, ApiResponse response) throws IOException {
 		featureHeader(GeotoolsGeometryReprojector.reproject(eFlowpath.getLineString(), response.getSrs()), eFlowpath.getId());
+		field("name", eFlowpath.getName());
 		field("type", eFlowpath.getType().toString());
 		field("rank", eFlowpath.getRank().toString());
+		field("strahleror", eFlowpath.getStrahlerOrder());
+		field("hortonor", eFlowpath.getHortonOrder());
+		field("hackor", eFlowpath.getHackOrder());
+		field("length", eFlowpath.getLength());
 		featureFooter();
 	}
 

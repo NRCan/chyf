@@ -41,7 +41,6 @@
 		#dataBar {
 			flex: 0 0 auto;
 			height: 200px;
-			width: 100%;
 			border: 1px solid lightSlateGrey;
 			padding: 5px;
 		}
@@ -100,22 +99,31 @@
 			border-color: lightBlue;
 			box-shadow: 2px 2px 5px rgba(0,0,0,.25) inset, -2px -2px 5px white inset;
 		}
-		#dataBar table {
-			display: block;
+		#dataTableContainer {
+			display: inline-block;
+			height: 100%;
+			overflow: auto;
+			border: 1px solid grey;
+			margin-left: 50%; /* From parent width */
+   			transform: translateX(-50%);
+		}
+		#dataTableContainer table {
+			/*display: block;*/
+			max-height: 190px;
 			border: 1px solid grey;
 			border-collapse: collapse;
-		}
-		#dataBar table th, #dataBar table td  {
-			border: 1px solid grey;
-			padding: 1px 4px;
-		}
-		#dataBar table tbody {
-			display: block;
-		}
-		#dataBar table tbody {
-			display: block;
-			height: 150px;
 			overflow-y: scroll;
+		}
+		#dataTableContainer table th, #dataTableContainer table td  {
+			border: 1px solid grey;
+			padding: 1px 8px;
+		}
+		#dataTableContainer table thead {
+		/*	display: inline-block;*/
+			background-color: #cce0ff;
+		}
+		#dataTableContainer table tbody tr:nth-last-child(even) {
+			background-color:  #e5e5e5;
 		}
 
 	</style>
@@ -142,7 +150,7 @@
 			</div> <!-- toolBar -->
 			<div id="map"></div>
 		</div> <!-- container2 -->
-		<div id="dataBar"></div> <!-- dataBar -->
+		<div id="dataBar"><div id="dataTableContainer"</div></div> <!-- dataBar -->
 	</div> <!-- container1 -->
 	<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCO2a43ItOYdAuRFcbCSLLn8AQwnMlf6sI"></script>
 	<script src="https://unpkg.com/leaflet@1.3.0/dist/leaflet.js"></script>
@@ -427,7 +435,7 @@
 			var selectionRequest = $.ajax({
 				url: chyfApi + path,
 				success: function(data) {
-					fillDataTable(data.data);
+					fillDataTable(data.data, flowpathCols);
 					selectionLayer = L.geoJson(data.data, {
 						pane: 'selection',
 						style: function(feature) {
@@ -468,8 +476,20 @@
 			selectCatchments("ecatchment/" + $('#catchmentId').val() + ".json");
 		});
 
-
-		function fillDataTable(data) {
+		var flowpathCols = {
+			'id': 'Flowpath ID',
+			'name': 'Primary Name',
+			'type': 'Flowpath Type',
+			'rank': 'Flowpath Rank',
+			'strahleror': 'Strahler Order',
+			'hortonor': 'Horton Order',
+			'hackor': 'Hack Order',
+			'length': 'Length (metres)'
+		};
+		function fillDataTable(data, cols) {
+			if(!data) {
+				return;
+			}
 			var $table = $('<table/>');
 			var features;
 			if(data.type == 'Feature') {
@@ -483,24 +503,25 @@
 				return;
 			}
 			var $thead = $('<thead/>');
-			var cols = features[0].properties;
-			$thead.append('<th>ID</th>');
-			for(var prop in cols) {
-				$thead.append('<th>' + prop + '</th>');
+			for(var i in cols) {
+				$thead.append('<th>' + cols[i] + '</th>');
 			}
 			$table.append($thead);
 			var $tbody = $('<tbody/>');
-			for(var i in features) {
+			for(var f in features) {
 				var $row = $('<tr/>');
-				$row.append('<td>' + features[i].ID + '</td>');
-				for(var prop in cols) {
-					$row.append('<td>' + features[i].properties[prop] + '</td>');
+				for(var c in cols) {
+					if(c == 'id') {
+						$row.append('<td>' + features[f].ID + '</td>');
+					} else {
+						$row.append('<td>' + features[f].properties[c] + '</td>');
+					}
 				}
 				$tbody.append($row);
 			}
 			$table.append($tbody);
-			$('#dataBar').empty();
-			$('#dataBar').append($table);
+			$('#dataTableContainer').empty();
+			$('#dataTableContainer').append($table);
 		}
 
 		function centerMap(bounds, center = true) {
@@ -518,6 +539,7 @@
 				map.fitBounds(bounds.extend(map.getBounds()).pad(0.25), options);
 			}
 		}
+		selectFlowpaths("eflowpath/downstreamOf.json?point=-73.27468872070314,45.464946600971466");
 	</script>
 </body>
 </html>

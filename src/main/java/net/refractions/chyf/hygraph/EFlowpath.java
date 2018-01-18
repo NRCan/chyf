@@ -15,13 +15,14 @@ public class EFlowpath implements SpatiallyIndexable {
 	private final double length;
 	private final FlowpathType type;
 	private final FlowpathRank rank;
+	private final String name;
 	private int strahlerOrder;
 	private int hortonOrder;
 	private int hackOrder;
 	private final ECatchment catchment;
 	private final LineString lineString;
 	
-	public EFlowpath(int id, Nexus fromNode, Nexus toNode, double length, FlowpathType type, FlowpathRank rank, 
+	public EFlowpath(int id, Nexus fromNode, Nexus toNode, double length, FlowpathType type, FlowpathRank rank, String name, 
 			int strahlerOrder, int hortonOrder, int hackOrder, ECatchment catchment, LineString lineString) {
 		this.id = id;
 		this.fromNode = fromNode;
@@ -29,6 +30,7 @@ public class EFlowpath implements SpatiallyIndexable {
 		this.length = length;
 		this.type = type;
 		this.rank = rank;
+		this.name = name;
 		this.setStrahlerOrder(strahlerOrder);
 		this.setHortonOrder(hortonOrder);
 		this.setHackOrder(hackOrder);
@@ -62,6 +64,10 @@ public class EFlowpath implements SpatiallyIndexable {
 
 	public FlowpathRank getRank() {
 		return rank;
+	}
+	
+	public String getName() {
+		return name;
 	}
 
 	public int getStrahlerOrder() {

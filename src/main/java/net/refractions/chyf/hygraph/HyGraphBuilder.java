@@ -43,15 +43,15 @@ public class HyGraphBuilder {
 				eCatchments.toArray(new ECatchment[eCatchments.size()]));
 	}
 	
-	public EFlowpath addEFlowpath(FlowpathType type, FlowpathRank rank, int strahlerOrder, int hortonOrder, int hackOrder, LineString lineString) {
+	public EFlowpath addEFlowpath(FlowpathType type, FlowpathRank rank, String name, int strahlerOrder, int hortonOrder, int hackOrder, LineString lineString) {
 		return addEFlowpath(getNexus(lineString.getStartPoint()), getNexus(lineString.getEndPoint()), 
-				lineString.getLength(), type, rank, strahlerOrder, hortonOrder, hackOrder, getECatchment(lineString, type), lineString);
+				lineString.getLength(), type, rank, name, strahlerOrder, hortonOrder, hackOrder, getECatchment(lineString, type), lineString);
 	}
 
 	private EFlowpath addEFlowpath(Nexus fromNexus, Nexus toNexus, double length, 
-			FlowpathType type, FlowpathRank rank, int strahlerOrder, int hortonOrder, int hackOrder, 
+			FlowpathType type, FlowpathRank rank, String name, int strahlerOrder, int hortonOrder, int hackOrder, 
 			ECatchment catchment, LineString lineString) {
-		EFlowpath eFlowpath = new EFlowpath(nextEdgeId++, fromNexus, toNexus, length, type, rank, 
+		EFlowpath eFlowpath = new EFlowpath(nextEdgeId++, fromNexus, toNexus, length, type, rank, name, 
 				strahlerOrder, hortonOrder, hackOrder, catchment, lineString);
 		eFlowpaths.add(eFlowpath);
 		fromNexus.addDownFlow(eFlowpath);

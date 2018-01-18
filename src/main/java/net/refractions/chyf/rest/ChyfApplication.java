@@ -5,20 +5,23 @@
 package net.refractions.chyf.rest;
 
 import javax.annotation.PreDestroy;
+import javax.servlet.ServletContext;
 
 import net.refractions.chyf.ChyfDatastore;
 import net.refractions.chyf.hygraph.HyGraph;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
 @Component
 public class ChyfApplication {
-	private static final String DATA_DIR = "C:\\apps\\chyf\\";
+
 	private ChyfDatastore chyfDatastore;
 	
-	public ChyfApplication() {
-		chyfDatastore = new ChyfDatastore(DATA_DIR);
+    @Autowired
+	public ChyfApplication(ServletContext servletContext) {
+		chyfDatastore = new ChyfDatastore(servletContext.getInitParameter("chyfDataDir"));
 	}
 	
 	@Bean

@@ -40,6 +40,11 @@ public class JsonConverterHelper extends ConverterHelper {
 	}
 
 	@Override
+	protected void field(String fieldName, double fieldValue) throws IOException {
+		jw.name(fieldName).jsonValue(METRE_FORMAT.format(fieldValue));
+	}
+
+	@Override
 	protected void field(String fieldName, String fieldValue) throws IOException {
 		jw.name(fieldName).value(fieldValue);
 	}

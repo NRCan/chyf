@@ -87,6 +87,7 @@ public class ChyfDatastore {
 		            flowPath = GeotoolsGeometryReprojector.reproject(flowPath, BASE_SRS);
 		            FlowpathType type = FlowpathType.convert((String)feature.getAttribute("TYPE"));
 		            FlowpathRank rank = FlowpathRank.convert((String)feature.getAttribute("RANK"));
+		            String name = ((String)feature.getAttribute("NAME")).intern();
 		            Integer strahlerOrder = (Integer)feature.getAttribute("STRAHLEROR");
 		            if(strahlerOrder == null) {
 		            	strahlerOrder = -1;
@@ -99,7 +100,7 @@ public class ChyfDatastore {
 		            if(hackOrder == null) {
 		            	hackOrder = -1;
 		            }
-		            gb.addEFlowpath(type, rank, strahlerOrder, hortonOrder, hackOrder, flowPath);
+		            gb.addEFlowpath(type, rank, name, strahlerOrder, hortonOrder, hackOrder, flowPath);
 		        }
 		    }
 		    flowPathDataStore.dispose();
