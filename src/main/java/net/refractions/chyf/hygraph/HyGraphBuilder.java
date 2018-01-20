@@ -1,13 +1,16 @@
 package net.refractions.chyf.hygraph;
 
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import net.refractions.chyf.enumTypes.CatchmentType;
 import net.refractions.chyf.enumTypes.FlowpathRank;
 import net.refractions.chyf.enumTypes.FlowpathType;
+import net.refractions.chyf.enumTypes.NexusType;
 
 import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.Point;
@@ -38,6 +41,8 @@ public class HyGraphBuilder {
 	}
 	
 	public HyGraph build() {
+		classifyNexuses();
+		classifyCatchments();
 		return new HyGraph(nexuses.toArray(new Nexus[nexuses.size()]), 
 				eFlowpaths.toArray(new EFlowpath[eFlowpaths.size()]),
 				eCatchments.toArray(new ECatchment[eCatchments.size()]));
@@ -58,14 +63,37 @@ public class HyGraphBuilder {
 		toNexus.addUpFlow(eFlowpath);
 		if(catchment != null) {
 			catchment.addFlowpath(eFlowpath);
+			if(catchment.getPolygon().touches(fromNexus.getPoint())) {
+				catchment.addUpNexus(fromNexus);
+			}
+			if(catchment.getPolygon().touches(toNexus.getPoint())) {
+				catchment.addDownNexus(toNexus);
+			}
 		} else {
 			logger.warn("EFlowpath " + eFlowpath.getId() + " is not contained by any catchment.");
 		}
 		return eFlowpath;
 	}
 
-	public ECatchment addECatchment(Polygon polygon) {
-		ECatchment eCatchment = new ECatchment(nextCatchmentId++, polygon); 
+	public ECatchment addECatchment(CatchmentType type, Polygon polygon) {
+		@SuppressWarnings("unchecked")
+		List<ECatchment> possibleCatchments = eCatchmentIndex.query(polygon.getEnvelopeInternal());
+		for(ECatchment catchment : possibleCatchments) {
+			// TODO could just call relate() here and check for any overlaps as well
+			if(catchment.getPolygon().equalsTopo(polygon)) {
+				// if the pre-existing matching catchment is not a WaterCatchment
+				// or the newly added catchment is a WaterCatchment
+				if(!catchment.getType().toString().equals("WaterCatchment")
+						|| type.toString().equals("WaterCatchment")) {
+					// something is wrong
+					logger.warn("Identical catchments; catchment id: " + catchment.getId() );
+				}
+				// don't create the duplicate, return the original
+				return catchment;
+			}
+		}
+		// not a duplicate so create and add it
+		ECatchment eCatchment = new ECatchment(nextCatchmentId++, type, polygon);
 		eCatchments.add(eCatchment);
 		eCatchmentIndex.insert(eCatchment.getEnvelope(), eCatchment);
 		return eCatchment;
@@ -82,7 +110,7 @@ public class HyGraphBuilder {
 		// fallback for if the flowpath is not contained by any ECatchment, but it is a bank flowpath
 		// then just find the catchment containining the downstream point
 		// as bank flowpaths may cross other catchments
-		if(FlowpathType.BANK_FLOWPATH == type) {
+		if(FlowpathType.BANK == type) {
 			Point p = lineString.getEndPoint();
 			for(ECatchment catchment : possibleCatchments) {
 				if(catchment.getPolygon().contains(p)) {
@@ -111,4 +139,61 @@ public class HyGraphBuilder {
 		return node;
 	}
 
+	private void classifyNexuses() {
+		for(Nexus n : nexuses) {
+			if(n.getUpFlows().size() == 0) {
+				if(n.getDownFlows().size() == 1 
+						&& n.getDownFlows().get(0).getType() == FlowpathType.BANK) {
+					n.setType(NexusType.BANK);
+				} else { 
+					n.setType(NexusType.HEADWATER);
+				}
+			} else if(n.getDownFlows().size() == 0) {
+				n.setType(NexusType.TERMINAL);
+			} else {
+				// count up how many of each type of flowpath we have going each direction
+				EnumMap<FlowpathType,Integer> upTypes = new EnumMap<FlowpathType,Integer>(FlowpathType.class);
+				EnumMap<FlowpathType,Integer> downTypes = new EnumMap<FlowpathType,Integer>(FlowpathType.class);
+				for(FlowpathType t : FlowpathType.values()) {
+					upTypes.put(t, 0);
+					downTypes.put(t, 0);
+				}
+				for(EFlowpath f : n.getUpFlows()) {
+					upTypes.put(f.getType(), upTypes.get(f.getType())+1);
+				}
+				for(EFlowpath f : n.getDownFlows()) {
+					downTypes.put(f.getType(), downTypes.get(f.getType())+1);
+				}
+				if(upTypes.get(FlowpathType.INFERRED) == n.getUpFlows().size() 
+						&& downTypes.get(FlowpathType.INFERRED) == n.getDownFlows().size()) {
+					// all inferred
+					if(n.getUpFlows().size() == 1 && n.getDownFlows().size() == 1) {
+						n.setType(NexusType.WATER);
+					} else {
+						n.setType(NexusType.INFERRED);
+					}
+				} else {
+					// TODO could check for other wierd/unexpected combinations of up/downflows
+					// but for now we will assume this is a regular flowpath nexus
+					n.setType(NexusType.FLOWPATH);
+				}
+			}
+		}
+	}
+	
+	private void classifyCatchments() {
+		for(ECatchment c : eCatchments) {
+			if(c.getFlowpaths().size() == 0) {
+				@SuppressWarnings("unchecked")
+				List<Nexus> possibleNexuses = nexusIndex.query(c.getEnvelope());
+				for(Nexus n : possibleNexuses) {
+					if(n.getType().equals(NexusType.BANK) 
+							&& c.getPolygon().touches(n.getPoint())) {
+						c.addDownNexus(n);
+						c.setType(CatchmentType.BANK_CATCHMENT);
+					}
+				}
+			}
+		}
+	}
 }

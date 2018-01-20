@@ -64,6 +64,10 @@ public abstract class ConverterHelper {
 
 	protected void eCatchment(ECatchment eCatchment, ApiResponse response) throws IOException {
 		featureHeader(GeotoolsGeometryReprojector.reproject(eCatchment.getPolygon(), response.getSrs()), eCatchment.getId());
+		field("type", eCatchment.getType().toString());
+		field("subtype", eCatchment.getType().getSubType());
+		//field("rank", eCatchment.getRank());
+		field("area", eCatchment.getArea());		
 		featureFooter();
 	}
 

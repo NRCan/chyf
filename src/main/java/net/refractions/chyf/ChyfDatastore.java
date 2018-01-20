@@ -6,6 +6,7 @@ import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 
+import net.refractions.chyf.enumTypes.CatchmentType;
 import net.refractions.chyf.enumTypes.FlowpathRank;
 import net.refractions.chyf.enumTypes.FlowpathType;
 import net.refractions.chyf.hygraph.HyGraph;
@@ -56,6 +57,38 @@ public class ChyfDatastore {
 
 		    HyGraphBuilder gb = new HyGraphBuilder();
 
+			// read and add Waterbodies
+			DataStore waterbodyDataStore = getShapeFileDataStore(dataDir + "Waterbody.shp");
+		    String waterbodyTypeName = waterbodyDataStore.getTypeNames()[0];
+		    FeatureSource<SimpleFeatureType, SimpleFeature> waterbodyFeatureSource = waterbodyDataStore.getFeatureSource(waterbodyTypeName);
+		    FeatureCollection<SimpleFeatureType, SimpleFeature> waterbodyFeatureCollection = waterbodyFeatureSource.getFeatures(query);
+		    try (FeatureIterator<SimpleFeature> features = waterbodyFeatureCollection.features()) {
+		        while (features.hasNext()) {
+		            SimpleFeature feature = features.next();
+		            //System.out.print(feature.getID());
+		            Polygon catchment = (Polygon)(((MultiPolygon)(feature.getDefaultGeometryProperty().getValue())).getGeometryN(0));
+		            catchment.setSRID(4617); 
+		            catchment = GeotoolsGeometryReprojector.reproject(catchment, BASE_SRS);
+		            CatchmentType type = CatchmentType.UNKNOWN;
+		            switch(((Long)feature.getAttribute("DEFINITION")).intValue()) {
+		            case 1:
+		            	type = CatchmentType.WATER_CATCHMENT_CANAL;
+		            	break;
+		            case 4:
+		            	type = CatchmentType.WATER_CATCHMENT_LAKE;
+		            	break;
+		            case 6: 
+		            	type = CatchmentType.WATER_CATCHMENT_RIVER;
+		            	break;
+		            case 9:
+		            	type = CatchmentType.WATER_CATCHMENT_POND;
+		            	break;
+		            }
+		            gb.addECatchment(type, catchment);
+		        }
+		    }
+		    waterbodyDataStore.dispose();
+
 			// read and add Catchments
 			DataStore catchmentDataStore = getShapeFileDataStore(dataDir + "Catchment.shp");
 		    String catchmentTypeName = catchmentDataStore.getTypeNames()[0];
@@ -68,7 +101,7 @@ public class ChyfDatastore {
 		            Polygon catchment = (Polygon)(((MultiPolygon)(feature.getDefaultGeometryProperty().getValue())).getGeometryN(0));
 		            catchment.setSRID(4617); 
 		            catchment = GeotoolsGeometryReprojector.reproject(catchment, BASE_SRS);
-		            gb.addECatchment(catchment);
+		            gb.addECatchment(CatchmentType.UNKNOWN, catchment);
 		        }
 		    }
 		    catchmentDataStore.dispose();

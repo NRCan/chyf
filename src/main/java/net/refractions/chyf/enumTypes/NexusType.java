@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public enum NexusType {
+	HEADWATER("Headwater"),
 	TERMINAL("Terminal"),
 	FLOWPATH("Flowpath"),
 	WATER("Water"),
@@ -20,10 +21,10 @@ public enum NexusType {
 	}
 	
 	/**
-	 * Takes a string value and returns the corresponding FlowpathType object.
+	 * Takes a string value and returns the corresponding NexusType object.
 	 * 
-	 * @param nexusType string representation of the FlowpathType
-	 * @return the FlowpathType corresponding to the given string representation.
+	 * @param nexusType string representation of the NexusType
+	 * @return the NexusType corresponding to the given string representation.
 	 */
 	public static NexusType convert(String nexusType) {
 		for(NexusType nt : values()) {
@@ -36,7 +37,7 @@ public enum NexusType {
 	}
 	
 	/**
-	 * @return the string representation of this RoadClass object
+	 * @return the string representation of this NexusType object
 	 */
 	@Override
 	public String toString() {

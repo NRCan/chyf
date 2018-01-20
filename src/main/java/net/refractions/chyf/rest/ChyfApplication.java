@@ -1,7 +1,3 @@
-/**
- * Copyright 2008-2015, Province of British Columbia
- * All rights reserved.
- */
 package net.refractions.chyf.rest;
 
 import javax.annotation.PreDestroy;

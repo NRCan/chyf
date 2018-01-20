@@ -4,10 +4,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public enum FlowpathType {
-	OBSERVED_FLOWPATH("Observed"),
-	CONSTRUCTED_FLOWPATH("Constructed"),
-	INFERRED_FLOWPATH("Inferred"),
-	BANK_FLOWPATH("Bank"),
+	OBSERVED("Observed"),
+	CONSTRUCTED("Constructed"),
+	INFERRED("Inferred"),
+	BANK("Bank"),
 	UNKNOWN("Unknown");
 	
 	static final Logger logger = LoggerFactory.getLogger(FlowpathType.class.getCanonicalName());
@@ -35,7 +35,7 @@ public enum FlowpathType {
 	}
 	
 	/**
-	 * @return the string representation of this RoadClass object
+	 * @return the string representation of this FlowpathType object
 	 */
 	@Override
 	public String toString() {

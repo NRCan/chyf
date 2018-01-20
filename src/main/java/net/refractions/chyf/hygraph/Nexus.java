@@ -44,6 +44,10 @@ public class Nexus implements SpatiallyIndexable{
 		return type;
 	}
 
+	public void setType(NexusType type) {
+		this.type = type;
+	}
+
 	@Override
 	public Envelope getEnvelope() {
 		return point.getEnvelopeInternal();

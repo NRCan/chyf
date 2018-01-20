@@ -413,7 +413,7 @@
 			var selectionRequest = $.ajax({
 				url: chyfApi + path,
 				success: function(data) {
-					fillDataTable(data.data);
+					fillDataTable(data.data, nexusCols);
 					selectionLayer = L.geoJson(data.data, {
 						pointToLayer: function(geoJsonPoint, latLng) {
 							return L.circleMarker(latLng, {
@@ -452,7 +452,7 @@
 			var selectionRequest = $.ajax({
 				url: chyfApi + path,
 				success: function(data) {
-					fillDataTable(data.data);
+					fillDataTable(data.data, catchmentCols);
 					selectionLayer = L.geoJson(data.data, {
 						pane: 'selection',
 						style: function(feature) {
@@ -476,6 +476,10 @@
 			selectCatchments("ecatchment/" + $('#catchmentId').val() + ".json");
 		});
 
+		var nexusCols = {
+		//	'id': 'Nexus ID',
+			'type': 'Nexus Type'
+		};
 		var flowpathCols = {
 			'id': 'Flowpath ID',
 			'name': 'Primary Name',
@@ -485,6 +489,13 @@
 			'hortonor': 'Horton Order',
 			'hackor': 'Hack Order',
 			'length': 'Length (metres)'
+		};
+		var catchmentCols = {
+			'id': 'Catchment ID',
+			'type': 'Catchment Type',
+			'subtype': 'Catchment SubType',
+			'rank': 'Catchment Rank',
+			'area': 'Area (square metres)'
 		};
 		function fillDataTable(data, cols) {
 			if(!data) {
@@ -539,7 +550,7 @@
 				map.fitBounds(bounds.extend(map.getBounds()).pad(0.25), options);
 			}
 		}
-		selectFlowpaths("eflowpath/downstreamOf.json?point=-73.27468872070314,45.464946600971466");
+		//selectFlowpaths("eflowpath/downstreamOf.json?point=-73.27468872070314,45.464946600971466");
 	</script>
 </body>
 </html>

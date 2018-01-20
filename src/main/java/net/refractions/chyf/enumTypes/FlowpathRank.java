@@ -33,7 +33,7 @@ public enum FlowpathRank {
 	}
 	
 	/**
-	 * @return the string representation of this RoadClass object
+	 * @return the string representation of this FlowpathRank object
 	 */
 	@Override
 	public String toString() {
