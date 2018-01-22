@@ -147,10 +147,12 @@
 				<button id="catchmentById" type="button" class="toolBtn">Find by ID:</button>
 				<input id="catchmentId" class="idInput" type="text"/>
 				<button id="catchmentContaining" type="button" class="toolBtn tool">Containing</button>
+				<button id="catchmentsUpstreamOf" type="button" class="toolBtn tool">Upstream Of</button>
+				<button id="catchmentsDownstreamOf" type="button" class="toolBtn tool">Downstream Of</button>
 			</div> <!-- toolBar -->
 			<div id="map"></div>
 		</div> <!-- container2 -->
-		<div id="dataBar"><div id="dataTableContainer"</div></div> <!-- dataBar -->
+		<div id="dataBar"><div id="dataTableContainer"></div></div> <!-- dataBar -->
 	</div> <!-- container1 -->
 	<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCO2a43ItOYdAuRFcbCSLLn8AQwnMlf6sI"></script>
 	<script src="https://unpkg.com/leaflet@1.3.0/dist/leaflet.js"></script>
@@ -181,7 +183,7 @@
 		// Leaflet Map setup
 		var map = L.map('map', {
 			minZoom: 4,
-			maxZoom: 18,
+			maxZoom: 21,
 			zoomControl: false
 		}).setView([45.44, -73.27], 9);
 		map.createPane('catchment');
@@ -329,6 +331,9 @@
 					pane: 'nexus'
 				};
 				switch(data.properties.type) {
+					case "Headwater":
+						options.fillColor = "#FFFFFF";
+						break;
 					case "Terminal":
 						options.fillColor = "#888888";
 						break;
@@ -336,7 +341,7 @@
 						options.fillColor = "#FF0000";
 						break;
 					case "Water":
-						options.fillColor = "#00FF00";
+						options.fillColor = "#0000FF";
 						break;
 					case "Bank":
 						options.fillColor = "DarkGreen";
@@ -397,13 +402,19 @@
 					selectFlowpaths("eflowpath/flowsFrom.json?point=" + e.latlng.lng + "," + e.latlng.lat);
 					break;
 				case 'flowpathsUpstreamOf':
-					selectCatchments("eflowpath/upstreamOf.json?point=" + e.latlng.lng + "," + e.latlng.lat);
+					selectFlowpaths("eflowpath/upstreamOf.json?point=" + e.latlng.lng + "," + e.latlng.lat);
 					break;
-					case 'flowpathsDownstreamOf':
-						selectCatchments("eflowpath/downstreamOf.json?point=" + e.latlng.lng + "," + e.latlng.lat);
-						break;
+				case 'flowpathsDownstreamOf':
+					selectFlowpaths("eflowpath/downstreamOf.json?point=" + e.latlng.lng + "," + e.latlng.lat);
+					break;
 				case 'catchmentContaining':
 					selectCatchments("ecatchment/containing.json?point=" + e.latlng.lng + "," + e.latlng.lat);
+					break;
+				case 'catchmentsUpstreamOf':
+					selectCatchments("ecatchment/upstreamOf.json?point=" + e.latlng.lng + "," + e.latlng.lat);
+					break;
+				case 'catchmentsDownstreamOf':
+					selectCatchments("ecatchment/downstreamOf.json?point=" + e.latlng.lng + "," + e.latlng.lat);
 					break;
 			}
 		});

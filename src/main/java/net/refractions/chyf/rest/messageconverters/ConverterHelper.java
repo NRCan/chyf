@@ -54,7 +54,7 @@ public abstract class ConverterHelper {
 		featureHeader(GeotoolsGeometryReprojector.reproject(eFlowpath.getLineString(), response.getSrs()), eFlowpath.getId());
 		field("name", eFlowpath.getName());
 		field("type", eFlowpath.getType().toString());
-		field("rank", eFlowpath.getRank().toString());
+		field("rank", eFlowpath.getRank());
 		field("strahleror", eFlowpath.getStrahlerOrder());
 		field("hortonor", eFlowpath.getHortonOrder());
 		field("hackor", eFlowpath.getHackOrder());
@@ -66,7 +66,7 @@ public abstract class ConverterHelper {
 		featureHeader(GeotoolsGeometryReprojector.reproject(eCatchment.getPolygon(), response.getSrs()), eCatchment.getId());
 		field("type", eCatchment.getType().toString());
 		field("subtype", eCatchment.getType().getSubType());
-		//field("rank", eCatchment.getRank());
+		field("rank", eCatchment.getRank());
 		field("area", eCatchment.getArea());		
 		featureFooter();
 	}

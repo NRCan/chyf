@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import net.refractions.chyf.enumTypes.CatchmentType;
-import net.refractions.chyf.enumTypes.FlowpathRank;
 import net.refractions.chyf.enumTypes.FlowpathType;
 import net.refractions.chyf.hygraph.HyGraph;
 import net.refractions.chyf.hygraph.HyGraphBuilder;
@@ -72,16 +71,16 @@ public class ChyfDatastore {
 		            CatchmentType type = CatchmentType.UNKNOWN;
 		            switch(((Long)feature.getAttribute("DEFINITION")).intValue()) {
 		            case 1:
-		            	type = CatchmentType.WATER_CATCHMENT_CANAL;
+		            	type = CatchmentType.WATER_CANAL;
 		            	break;
 		            case 4:
-		            	type = CatchmentType.WATER_CATCHMENT_LAKE;
+		            	type = CatchmentType.WATER_LAKE;
 		            	break;
 		            case 6: 
-		            	type = CatchmentType.WATER_CATCHMENT_RIVER;
+		            	type = CatchmentType.WATER_RIVER;
 		            	break;
 		            case 9:
-		            	type = CatchmentType.WATER_CATCHMENT_POND;
+		            	type = CatchmentType.WATER_POND;
 		            	break;
 		            }
 		            gb.addECatchment(type, catchment);
@@ -119,7 +118,13 @@ public class ChyfDatastore {
 		            flowPath.setSRID(4617); // CSRS/GRS80/NAD83/
 		            flowPath = GeotoolsGeometryReprojector.reproject(flowPath, BASE_SRS);
 		            FlowpathType type = FlowpathType.convert((String)feature.getAttribute("TYPE"));
-		            FlowpathRank rank = FlowpathRank.convert((String)feature.getAttribute("RANK"));
+		            String rankString = (String)feature.getAttribute("RANK");
+		            int rank = -1;
+		            if(rankString.equals("Primary")) {
+		            	rank = 1;
+		            } else if(rankString.equals("Secondary")) {
+		            	rank = 2;
+		            } 
 		            String name = ((String)feature.getAttribute("NAME")).intern();
 		            Integer strahlerOrder = (Integer)feature.getAttribute("STRAHLEROR");
 		            if(strahlerOrder == null) {

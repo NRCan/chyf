@@ -1,12 +1,9 @@
 package net.refractions.chyf.rest.controllers;
 
-import java.util.List;
-
 import net.refractions.chyf.ChyfDatastore;
 import net.refractions.chyf.hygraph.ECatchment;
 import net.refractions.chyf.hygraph.HyGraph;
 import net.refractions.chyf.indexing.BboxIntersectsFilter;
-import net.refractions.chyf.indexing.ECatchmentContainsPointFilter;
 import net.refractions.chyf.rest.ReverseGeocodeParameters;
 import net.refractions.chyf.rest.SharedParameters;
 import net.refractions.chyf.rest.exceptions.InvalidParameterException;
@@ -100,13 +97,50 @@ public class ECatchmentController {
 
 		StopWatch sw = new StopWatch();
 		sw.start();
-		List<ECatchment> eCatchments = hyGraph.findECatchments(params.getPoint(), 1, null, 
-				new ECatchmentContainsPointFilter(params.getPoint()));
-		ECatchment containing = null;
-		if(eCatchments.size() > 0) {
-			containing = eCatchments.get(0);
-		}
+		ECatchment containing = hyGraph.getECatchment(params.getPoint());
 		ApiResponse resp = new ApiResponse(containing);
+		sw.stop();
+		resp.setExecutionTime(sw.getElapsedTime());
+		resp.setParams(params);
+		return resp;
+	}
+
+	@RequestMapping(value = "/upstreamOf", method = {RequestMethod.GET,RequestMethod.POST})
+	public ApiResponse getECatchmentsUpstreamOf(ReverseGeocodeParameters params, BindingResult bindingResult) {
+		if(bindingResult.hasErrors()) {
+			throw new InvalidParameterException(bindingResult);
+		}
+		params.resolveAndValidate();
+		
+		if(params.getPoint() == null) {
+			String errMsg = "The point parameter must be provided.";
+			throw new IllegalArgumentException(errMsg);
+		}
+
+		StopWatch sw = new StopWatch();
+		sw.start();
+		ApiResponse resp = new ApiResponse(hyGraph.getUpstreamECatchments(params.getPoint(), params.getMaxFeatures()));
+		sw.stop();
+		resp.setExecutionTime(sw.getElapsedTime());
+		resp.setParams(params);
+		return resp;
+	}
+
+	@RequestMapping(value = "/downstreamOf", method = {RequestMethod.GET,RequestMethod.POST})
+	public ApiResponse getECatchmentsDownstreamOf(ReverseGeocodeParameters params, BindingResult bindingResult) {
+		if(bindingResult.hasErrors()) {
+			throw new InvalidParameterException(bindingResult);
+		}
+		params.resolveAndValidate();
+		
+		if(params.getPoint() == null) {
+			String errMsg = "The point parameter must be provided.";
+			throw new IllegalArgumentException(errMsg);
+		}
+
+		StopWatch sw = new StopWatch();
+		sw.start();
+		ApiResponse resp = new ApiResponse(hyGraph.getDownstreamECatchments(params.getPoint(), params.getMaxFeatures()));
 		sw.stop();
 		resp.setExecutionTime(sw.getElapsedTime());
 		resp.setParams(params);

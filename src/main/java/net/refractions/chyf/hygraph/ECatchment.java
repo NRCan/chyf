@@ -16,6 +16,7 @@ public class ECatchment implements SpatiallyIndexable {
 	private final double area;
 	private final Polygon polygon;
 	private CatchmentType type;
+	private int rank = -1;
 	private List<EFlowpath> flowpaths;
 	private List<Nexus> upNexuses; 
 	private List<Nexus> downNexuses; 
@@ -46,6 +47,10 @@ public class ECatchment implements SpatiallyIndexable {
 		this.type = type;
 	}
 
+	public int getRank() {
+		return rank;
+	}
+
 	public Polygon getPolygon() {
 		return polygon;
 	}
@@ -61,6 +66,10 @@ public class ECatchment implements SpatiallyIndexable {
 	}
 
 	public void addFlowpath(EFlowpath flowpath) {
+		if(flowpath.getRank() > 0 
+				&& (rank < 0 || (flowpath.getRank() < rank))) {
+			rank = flowpath.getRank();
+		}
 		flowpaths.add(flowpath);
 	}
 

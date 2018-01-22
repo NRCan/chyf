@@ -1,6 +1,5 @@
 package net.refractions.chyf.hygraph;
 
-import net.refractions.chyf.enumTypes.FlowpathRank;
 import net.refractions.chyf.enumTypes.FlowpathType;
 import net.refractions.chyf.indexing.SpatiallyIndexable;
 
@@ -14,7 +13,7 @@ public class EFlowpath implements SpatiallyIndexable {
 	private final Nexus toNode;
 	private final double length;
 	private final FlowpathType type;
-	private final FlowpathRank rank;
+	private final int rank;
 	private final String name;
 	private int strahlerOrder;
 	private int hortonOrder;
@@ -22,7 +21,7 @@ public class EFlowpath implements SpatiallyIndexable {
 	private final ECatchment catchment;
 	private final LineString lineString;
 	
-	public EFlowpath(int id, Nexus fromNode, Nexus toNode, double length, FlowpathType type, FlowpathRank rank, String name, 
+	public EFlowpath(int id, Nexus fromNode, Nexus toNode, double length, FlowpathType type, int rank, String name, 
 			int strahlerOrder, int hortonOrder, int hackOrder, ECatchment catchment, LineString lineString) {
 		this.id = id;
 		this.fromNode = fromNode;
@@ -62,7 +61,7 @@ public class EFlowpath implements SpatiallyIndexable {
 		return type;
 	}
 
-	public FlowpathRank getRank() {
+	public int getRank() {
 		return rank;
 	}
 	

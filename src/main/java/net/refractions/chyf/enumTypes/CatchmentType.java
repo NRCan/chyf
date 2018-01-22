@@ -4,13 +4,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public enum CatchmentType {
-	REACH_CATCHMENT ("ReachCatchment", null),
-	BANK_CATCHMENT ("BankCatchment", null),
-	WATER_CATCHMENT_LAKE ("WaterCatchment", "Lake"),
-	WATER_CATCHMENT_POND ("WaterCatchment", "Pond"),
-	WATER_CATCHMENT_RIVER ("WaterCatchment", "River"),
-	WATER_CATCHMENT_CANAL ("WaterCatchment", "Canal"),
-	EMPTY_CATCHMENT ("EmptyCatchment", null),
+	REACH("Reach", null),
+	BANK("Bank", null),
+	WATER_LAKE("Water", "Lake"),
+	WATER_POND("Water", "Pond"),
+	WATER_RIVER("Water", "River"),
+	WATER_CANAL("Water", "Canal"),
+	EMPTY("EmptyCatchment", null),
 	UNKNOWN("Unknown", null);
 	
 	static final Logger logger = LoggerFactory.getLogger(CatchmentType.class.getCanonicalName());

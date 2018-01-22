@@ -4,13 +4,12 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import net.refractions.chyf.enumTypes.CatchmentType;
-import net.refractions.chyf.enumTypes.FlowpathRank;
 import net.refractions.chyf.enumTypes.FlowpathType;
 import net.refractions.chyf.enumTypes.NexusType;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.Point;
@@ -48,13 +47,13 @@ public class HyGraphBuilder {
 				eCatchments.toArray(new ECatchment[eCatchments.size()]));
 	}
 	
-	public EFlowpath addEFlowpath(FlowpathType type, FlowpathRank rank, String name, int strahlerOrder, int hortonOrder, int hackOrder, LineString lineString) {
+	public EFlowpath addEFlowpath(FlowpathType type, int rank, String name, int strahlerOrder, int hortonOrder, int hackOrder, LineString lineString) {
 		return addEFlowpath(getNexus(lineString.getStartPoint()), getNexus(lineString.getEndPoint()), 
 				lineString.getLength(), type, rank, name, strahlerOrder, hortonOrder, hackOrder, getECatchment(lineString, type), lineString);
 	}
 
 	private EFlowpath addEFlowpath(Nexus fromNexus, Nexus toNexus, double length, 
-			FlowpathType type, FlowpathRank rank, String name, int strahlerOrder, int hortonOrder, int hackOrder, 
+			FlowpathType type, int rank, String name, int strahlerOrder, int hortonOrder, int hackOrder, 
 			ECatchment catchment, LineString lineString) {
 		EFlowpath eFlowpath = new EFlowpath(nextEdgeId++, fromNexus, toNexus, length, type, rank, name, 
 				strahlerOrder, hortonOrder, hackOrder, catchment, lineString);
@@ -83,8 +82,8 @@ public class HyGraphBuilder {
 			if(catchment.getPolygon().equalsTopo(polygon)) {
 				// if the pre-existing matching catchment is not a WaterCatchment
 				// or the newly added catchment is a WaterCatchment
-				if(!catchment.getType().toString().equals("WaterCatchment")
-						|| type.toString().equals("WaterCatchment")) {
+				if(!catchment.getType().toString().equals("Water")
+						|| type.toString().equals("Water")) {
 					// something is wrong
 					logger.warn("Identical catchments; catchment id: " + catchment.getId() );
 				}
@@ -186,12 +185,31 @@ public class HyGraphBuilder {
 			if(c.getFlowpaths().size() == 0) {
 				@SuppressWarnings("unchecked")
 				List<Nexus> possibleNexuses = nexusIndex.query(c.getEnvelope());
-				for(Nexus n : possibleNexuses) {
-					if(n.getType().equals(NexusType.BANK) 
-							&& c.getPolygon().touches(n.getPoint())) {
-						c.addDownNexus(n);
-						c.setType(CatchmentType.BANK_CATCHMENT);
+				Nexus bankNexus = null;
+				int bankNexuses = 0;
+				int totalNexuses = 0;
+				for(Nexus n: possibleNexuses) {
+					if(c.getPolygon().touches(n.getPoint())) {
+						totalNexuses++;
+						if(n.getType().equals(NexusType.BANK)) {
+							bankNexuses++;
+							bankNexus = n;
+						}
 					}
+				}
+				if(totalNexuses == 0) {
+					c.setType(CatchmentType.EMPTY);
+				} else if(bankNexuses == 1) {
+					c.addDownNexus(bankNexus);
+					c.setType(CatchmentType.BANK);
+				} else {
+					logger.warn("Catchment " + c.getId() + " has no flowpaths and an unexpected number of nexuses (" + totalNexuses + ").");
+					c.setType(CatchmentType.UNKNOWN);
+				}
+			} else {
+				if(c.getType() == null || c.getType() == CatchmentType.UNKNOWN) {
+					// Water types will have already been assigned
+					c.setType(CatchmentType.REACH);
 				}
 			}
 		}
