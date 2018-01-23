@@ -3,9 +3,9 @@ package net.refractions.chyf.rest.messageconverters;
 import java.io.IOException;
 import java.io.Writer;
 import java.text.DecimalFormat;
-import java.util.List;
 
 import net.refractions.chyf.ChyfDatastore;
+import net.refractions.chyf.hygraph.DrainageArea;
 import net.refractions.chyf.hygraph.ECatchment;
 import net.refractions.chyf.hygraph.EFlowpath;
 import net.refractions.chyf.hygraph.Nexus;
@@ -71,6 +71,12 @@ public abstract class ConverterHelper {
 		featureFooter();
 	}
 
+	protected void drainageArea(DrainageArea drainageArea, ApiResponse response) throws IOException {
+		featureHeader(GeotoolsGeometryReprojector.reproject(drainageArea.getGeometry(), response.getSrs()), 1);
+		field("area", drainageArea.getArea());		
+		featureFooter();
+	}
+
 	protected void spatiallyIndexable(SpatiallyIndexable spatiallyIndexable, ApiResponse response) throws IOException {
 		Envelope e = spatiallyIndexable.getEnvelope();
 		Coordinate[] coords = {
@@ -90,10 +96,10 @@ public abstract class ConverterHelper {
 		responseHeader(response);
 		field("executionTime", response.getExecutionTime());
 		Object data = response.getData();
-		if(data instanceof List<?>) {
+		if(data instanceof Iterable<?>) {
 			nestedFieldHeader("data");
 			featureCollectionHeader();
-			for(Object o : ((List<?>)data)) {
+			for(Object o : ((Iterable<?>)data)) {
 				dataObject(o, response);
 			}
 			featureCollectionFooter();
@@ -113,6 +119,8 @@ public abstract class ConverterHelper {
 			eFlowpath((EFlowpath)data, response);
 		} else if(data instanceof ECatchment) {
 			eCatchment((ECatchment)data, response);
+		} else if(data instanceof DrainageArea) {
+			drainageArea((DrainageArea)data, response);
 		} else if(data instanceof SpatiallyIndexable) {
 			spatiallyIndexable((SpatiallyIndexable)data, response);
 		} else {

@@ -3,17 +3,28 @@ package net.refractions.chyf.hygraph;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 
+import net.refractions.chyf.ChyfDatastore;
 import net.refractions.chyf.enumTypes.CatchmentType;
+import net.refractions.chyf.enumTypes.NexusType;
 import net.refractions.chyf.indexing.ECatchmentContainsPointFilter;
 import net.refractions.chyf.indexing.Filter;
 import net.refractions.chyf.indexing.RTree;
 import net.refractions.chyf.indexing.SpatiallyIndexable;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.Point;
+import com.vividsolutions.jts.operation.union.UnaryUnionOp;
 
 public class HyGraph {
+	static final Logger logger = LoggerFactory.getLogger(HyGraph.class.getCanonicalName());
+
 	private Nexus[] nexuses;
 	private EFlowpath[] eFlowpaths;
 	private ECatchment[] eCatchments;
@@ -25,6 +36,22 @@ public class HyGraph {
 		this.nexuses = nexuses;
 		this.eFlowpaths = eFlowpaths;
 		this.eCatchments = eCatchments;
+
+		// Sort the terminal nodes first for easy access
+		Arrays.sort(nexuses, new Comparator<Nexus>(){
+			@Override
+			public int compare(Nexus n1, Nexus n2) {
+				if(n1.getType().equals(NexusType.TERMINAL)
+						&& !n2.getType().equals(NexusType.TERMINAL)) {
+					return -1;
+				} else if(!n1.getType().equals(NexusType.TERMINAL)
+						&& n2.getType().equals(NexusType.TERMINAL)) {
+					return 1;
+				}
+				return 0;
+			}
+		});
+
 		nexusIndex = new RTree<Nexus>(Arrays.asList(nexuses));
 		eFlowpathIndex = new RTree<EFlowpath>(Arrays.asList(eFlowpaths));
 		eCatchmentIndex = new RTree<ECatchment>(Arrays.asList(eCatchments));
@@ -47,7 +74,6 @@ public class HyGraph {
 	 * 		is not contained in any elementary catchment
 	 */
 	public EFlowpath getEFlowpath(Point point) {
-
 		List<ECatchment> possibleCatchments = eCatchmentIndex.search(point, 1, null, 
 				new ECatchmentContainsPointFilter(point));
 		EFlowpath flowpath = null;
@@ -108,88 +134,125 @@ public class HyGraph {
 		return eCatchmentIndex.getNode(id);
 	}
 
-	public List<EFlowpath> getUpstreamEFlowpaths(Point point, int maxResults) {
-		EFlowpath eFlowpath = getEFlowpath(point);
+	public List<EFlowpath> getUpstreamEFlowpaths(EFlowpath eFlowpath, int maxResults) {
 		if(eFlowpath == null) {
 			return Collections.emptyList();
 		}
+		HashSet<EFlowpath> resultSet = new HashSet<EFlowpath>(maxResults);
 		List<EFlowpath> results = new ArrayList<EFlowpath>(maxResults);
 		results.add(eFlowpath);
-		for(int i = 0; i < results.size(); i++) {
-			for(EFlowpath upstream: results.get(i).getFromNode().getUpFlows()) {
-				results.add(upstream);
-				if(results.size() >= maxResults) {
-					break;
+		resultLoop:
+			for(int i = 0; i < results.size(); i++) {
+				for(EFlowpath upstream: results.get(i).getFromNode().getUpFlows()) {
+					if(resultSet.add(upstream)) {
+						results.add(upstream);
+						if(results.size() >= maxResults) {
+							break resultLoop;
+						}
+					}
 				}
 			}
-			if(results.size() >= maxResults) {
-				break;
-			}
-		}
 		return results;
 	}
 
-	public Object getDownstreamEFlowpaths(Point point, int maxResults) {
-		EFlowpath eFlowpath = getEFlowpath(point);
+	public Object getDownstreamEFlowpaths(EFlowpath eFlowpath, int maxResults) {
 		if(eFlowpath == null) {
 			return Collections.emptyList();
 		}
+		HashSet<EFlowpath> resultSet = new HashSet<EFlowpath>(maxResults);
 		List<EFlowpath> results = new ArrayList<EFlowpath>(maxResults);
 		results.add(eFlowpath);
-		for(int i = 0; i < results.size(); i++) {
-			for(EFlowpath downstream: results.get(i).getToNode().getDownFlows()) {
-				results.add(downstream);
-				if(results.size() >= maxResults) {
-					break;
-				}
-			}
-			if(results.size() >= maxResults) {
-				break;
-			}
-		}
-		return results;
-	}
-
-	public List<ECatchment> getUpstreamECatchments(Point point, Integer maxResults) {
-		ECatchment eCatchment = getECatchment(point);
-		if(eCatchment == null) {
-			return Collections.emptyList();
-		}
-		List<ECatchment> results = new ArrayList<ECatchment>(maxResults);
-		results.add(eCatchment);
 		resultLoop:
-		for(int i = 0; i < results.size(); i++) {
-			for(Nexus n: results.get(i).getUpNexuses()) {
-				for(EFlowpath f: n.getUpFlows()) {
-					results.add(f.getCatchment());
-					if(results.size() >= maxResults) {
-						break resultLoop;
+			for(int i = 0; i < results.size(); i++) {
+				for(EFlowpath downstream: results.get(i).getToNode().getDownFlows()) {
+					if(resultSet.add(downstream)) {
+						results.add(downstream);
+						if(results.size() >= maxResults) {
+							break resultLoop;
+						}
 					}
 				}
 			}
-		}
 		return results;
 	}
 
-	public List<ECatchment> getDownstreamECatchments(Point point, Integer maxResults) {
-		ECatchment eCatchment = getECatchment(point);
+	public List<ECatchment> getUpstreamECatchments(ECatchment eCatchment, int maxResults) {
 		if(eCatchment == null) {
 			return Collections.emptyList();
 		}
-		List<ECatchment> results = new ArrayList<ECatchment>(maxResults);
+		int size = Math.min(ChyfDatastore.MAX_RESULTS, maxResults);
+		HashSet<ECatchment> resultSet = new HashSet<ECatchment>(size);
+		List<ECatchment> results = new ArrayList<ECatchment>(size);
 		results.add(eCatchment);
 		resultLoop:
-		for(int i = 0; i < results.size(); i++) {
-			for(Nexus n: results.get(i).getDownNexuses()) {
-				for(EFlowpath f: n.getDownFlows()) {
-					results.add(f.getCatchment());
-					if(results.size() >= maxResults) {
-						break resultLoop;
+			for(int i = 0; i < results.size(); i++) {
+				for(Nexus n: results.get(i).getUpNexuses()) {
+					for(EFlowpath f: n.getUpFlows()) {
+						if(f.getCatchment() != null) {
+							if(resultSet.add(f.getCatchment())) {
+								results.add(f.getCatchment());
+								if(results.size() >= maxResults) {
+									break resultLoop;
+								}
+							}
+						}
+					}
+					if(n.getType() == NexusType.BANK) {
+						if(n.getBankCatchment() != null) {
+							if(resultSet.add(n.getBankCatchment())) {
+								results.add(n.getBankCatchment());
+								if(results.size() >= maxResults) {
+									break resultLoop;
+								}
+							}
+						}
 					}
 				}
 			}
-		}
 		return results;
+	}
+
+	public List<ECatchment> getDownstreamECatchments(ECatchment eCatchment, int maxResults) {
+		if(eCatchment == null) {
+			return Collections.emptyList();
+		}
+		int size = Math.min(ChyfDatastore.MAX_RESULTS, maxResults);
+		HashSet<ECatchment> resultSet = new HashSet<ECatchment>(size);
+		ArrayList<ECatchment> results = new ArrayList<ECatchment>(size);
+		results.add(eCatchment);
+		resultLoop:
+			for(int i = 0; i < results.size(); i++) {
+				for(Nexus n: results.get(i).getDownNexuses()) {
+					for(EFlowpath f: n.getDownFlows()) {
+						if(f.getCatchment() != null) {
+							if(resultSet.add(f.getCatchment())) {
+								results.add(f.getCatchment());
+								if(results.size() >= maxResults) {
+									break resultLoop;
+								}
+							}
+						}
+					}
+				}
+			}
+		return results;
+	}
+
+	public DrainageArea getUpstreamDrainageArea(ECatchment eCatchment) {
+		return buildDrainageArea(getUpstreamECatchments(eCatchment, Integer.MAX_VALUE));
+	}
+
+	public DrainageArea getDownstreamDrainageArea(ECatchment eCatchment) {
+		return buildDrainageArea(getDownstreamECatchments(eCatchment, Integer.MAX_VALUE));
+	}
+
+	private DrainageArea buildDrainageArea(List<ECatchment> catchments) {
+		List<Geometry> geoms = new ArrayList<Geometry>(catchments.size());
+		for(ECatchment c : catchments) {
+			geoms.add(c.getPolygon());
+		}
+		Geometry g = UnaryUnionOp.union(geoms);
+		return new DrainageArea(g);
 	}
 
 }

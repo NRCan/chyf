@@ -140,15 +140,22 @@
 			 	<div class="toolCat">Flowpaths</div>
 				<button id="flowpathById" type="button" class="toolBtn">Find by ID:</button>
 				<input id="flowpathId" class="idInput" type="text"/>
-				<button id="flowpathFlowsFrom" type="button" class="toolBtn tool">Flows From</button>
-				<button id="flowpathsUpstreamOf" type="button" class="toolBtn tool">Upstream Of</button>
-				<button id="flowpathsDownstreamOf" type="button" class="toolBtn tool">Downstream Of</button>
+				<button id="flowpathsUpstreamOfId" type="button" class="toolBtn tool">Upstream Of ID</button>
+				<button id="flowpathsDownstreamOfId" type="button" class="toolBtn tool">Downstream Of ID</button>
+				<button id="flowpathFlowsFrom" type="button" class="toolBtn tool">Flows From Point</button>
+				<button id="flowpathsUpstreamOf" type="button" class="toolBtn tool">Upstream Of Point</button>
+				<button id="flowpathsDownstreamOf" type="button" class="toolBtn tool">Downstream Of Point</button>
 				<div class="toolCat">Catchments</div>
 				<button id="catchmentById" type="button" class="toolBtn">Find by ID:</button>
 				<input id="catchmentId" class="idInput" type="text"/>
-				<button id="catchmentContaining" type="button" class="toolBtn tool">Containing</button>
-				<button id="catchmentsUpstreamOf" type="button" class="toolBtn tool">Upstream Of</button>
-				<button id="catchmentsDownstreamOf" type="button" class="toolBtn tool">Downstream Of</button>
+				<button id="catchmentsUpstreamOfId" type="button" class="toolBtn">Upstream Of ID</button>
+				<button id="catchmentsDownstreamOfId" type="button" class="toolBtn">Downstream Of ID</button>
+				<button id="catchmentContaining" type="button" class="toolBtn tool">Containing Point</button>
+				<button id="catchmentsUpstreamOf" type="button" class="toolBtn tool">Upstream Of Point</button>
+				<button id="catchmentsDownstreamOf" type="button" class="toolBtn tool">Downstream Of Point</button>
+				<div class="toolCat">Drainage Areas</div>
+				<button id="drainageAreaUpstreamOf" type="button" class="toolBtn tool">Upstream Of Point</button>
+				<button id="drainageAreaDownstreamOf" type="button" class="toolBtn tool">Downstream Of Point</button>
 			</div> <!-- toolBar -->
 			<div id="map"></div>
 		</div> <!-- container2 -->
@@ -363,11 +370,15 @@
 		var selectionLayer;
 		var selectionRequest;
 
-		function clearSelection() {
+		function clearSelectionLayer() {
 			if(selectionLayer) {
 				map.removeLayer(selectionLayer);
 				selectionLayer = null;
 			}
+		}
+
+		function clearSelection() {
+			clearSelectionLayer();
 			if(selectionRequest != null) {
 				selectionRequest.abort();
 			}
@@ -416,6 +427,12 @@
 				case 'catchmentsDownstreamOf':
 					selectCatchments("ecatchment/downstreamOf.json?point=" + e.latlng.lng + "," + e.latlng.lat);
 					break;
+				case 'drainageAreaUpstreamOf':
+					selectDrainageArea("drainageArea/upstreamOf.json?point=" + e.latlng.lng + "," + e.latlng.lat);
+					break;
+				case 'drainageAreaDownstreamOf':
+					selectDrainageArea("drainageArea/downstreamOf.json?point=" + e.latlng.lng + "," + e.latlng.lat);
+					break;
 			}
 		});
 
@@ -425,6 +442,7 @@
 				url: chyfApi + path,
 				success: function(data) {
 					fillDataTable(data.data, nexusCols);
+					clearSelectionLayer();
 					selectionLayer = L.geoJson(data.data, {
 						pointToLayer: function(geoJsonPoint, latLng) {
 							return L.circleMarker(latLng, {
@@ -447,6 +465,7 @@
 				url: chyfApi + path,
 				success: function(data) {
 					fillDataTable(data.data, flowpathCols);
+					clearSelectionLayer();
 					selectionLayer = L.geoJson(data.data, {
 						pane: 'selection',
 						style: function(feature) {
@@ -464,6 +483,25 @@
 				url: chyfApi + path,
 				success: function(data) {
 					fillDataTable(data.data, catchmentCols);
+					clearSelectionLayer();
+					selectionLayer = L.geoJson(data.data, {
+						pane: 'selection',
+						style: function(feature) {
+							return {color:selectColor, weight:4};
+						}
+					}).addTo(map);
+					centerMap(selectionLayer.getBounds());
+				}
+			});
+		}
+
+		function selectDrainageArea(path) {
+			clearSelection();
+			var selectionRequest = $.ajax({
+				url: chyfApi + path,
+				success: function(data) {
+					fillDataTable(data.data, drainageAreaCols);
+					clearSelectionLayer();
 					selectionLayer = L.geoJson(data.data, {
 						pane: 'selection',
 						style: function(feature) {
@@ -483,8 +521,24 @@
 			selectFlowpaths("eflowpath/" + $('#flowpathId').val() + ".json");
 		});
 
+		$('#flowpathsUpstreamOfId').on("click", function() {
+			selectFlowpaths("eflowpath/" + $('#flowpathId').val() + "/upstream.json");
+		});
+
+		$('#flowpathsDownstreamOfId').on("click", function() {
+			selectFlowpaths("eflowpath/" + $('#flowpathId').val() + "/downstream.json");
+		});
+
 		$('#catchmentById').on("click", function() {
 			selectCatchments("ecatchment/" + $('#catchmentId').val() + ".json");
+		});
+
+		$('#catchmentsUpstreamOfId').on("click", function() {
+			selectCatchments("ecatchment/" + $('#catchmentId').val() + "/upstream.json");
+		});
+
+		$('#catchmentsDownstreamOfId').on("click", function() {
+			selectCatchments("ecatchment/" + $('#catchmentId').val() + "/downstream.json");
 		});
 
 		var nexusCols = {
@@ -506,6 +560,9 @@
 			'type': 'Catchment Type',
 			'subtype': 'Catchment SubType',
 			'rank': 'Catchment Rank',
+			'area': 'Area (square metres)'
+		};
+		var drainageAreaCols = {
 			'area': 'Area (square metres)'
 		};
 		function fillDataTable(data, cols) {

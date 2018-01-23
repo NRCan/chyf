@@ -13,7 +13,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.converter.AbstractHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
-import org.springframework.stereotype.Component;
 
 /**
  * Supports more than just JSON output types, this is the default exception format.
@@ -21,7 +20,6 @@ import org.springframework.stereotype.Component;
  * @author chodgson
  * 
  */
-@Component
 public class JsonErrorMessageConverter extends AbstractHttpMessageConverter<ErrorMessage> {
 	
 	public JsonErrorMessageConverter() {

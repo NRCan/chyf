@@ -11,6 +11,7 @@ import net.refractions.chyf.enumTypes.NexusType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.vividsolutions.jts.geom.IntersectionMatrix;
 import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.Polygon;
@@ -78,8 +79,8 @@ public class HyGraphBuilder {
 		@SuppressWarnings("unchecked")
 		List<ECatchment> possibleCatchments = eCatchmentIndex.query(polygon.getEnvelopeInternal());
 		for(ECatchment catchment : possibleCatchments) {
-			// TODO could just call relate() here and check for any overlaps as well
-			if(catchment.getPolygon().equalsTopo(polygon)) {
+			IntersectionMatrix matrix = catchment.getPolygon().relate(polygon);
+			if(matrix.isEquals(3,3)) {
 				// if the pre-existing matching catchment is not a WaterCatchment
 				// or the newly added catchment is a WaterCatchment
 				if(!catchment.getType().toString().equals("Water")
@@ -89,6 +90,9 @@ public class HyGraphBuilder {
 				}
 				// don't create the duplicate, return the original
 				return catchment;
+			} else if(matrix.matches("T********")) {
+				logger.warn("Overlapping catchments; catchment id: " + catchment.getId() );
+				return null;
 			}
 		}
 		// not a duplicate so create and add it
@@ -101,10 +105,19 @@ public class HyGraphBuilder {
 	private ECatchment getECatchment(LineString lineString, FlowpathType type) {
 		@SuppressWarnings("unchecked")
 		List<ECatchment> possibleCatchments = eCatchmentIndex.query(lineString.getEnvelopeInternal());
+		ECatchment c = null;
+		int count = 0;
 		for(ECatchment catchment : possibleCatchments) {
 			if(catchment.getPolygon().contains(lineString)) {
-				return catchment;
+				c = catchment;
+				count++;
 			}
+		}
+		if(count > 1) {
+			logger.warn("Flowpath is in multiple catchments, such as catchment " + c.getId());
+		}
+		if(c != null) {
+			return c;
 		}
 		// fallback for if the flowpath is not contained by any ECatchment, but it is a bank flowpath
 		// then just find the catchment containining the downstream point
@@ -201,6 +214,7 @@ public class HyGraphBuilder {
 					c.setType(CatchmentType.EMPTY);
 				} else if(bankNexuses == 1) {
 					c.addDownNexus(bankNexus);
+					bankNexus.setBankCatchment(c);
 					c.setType(CatchmentType.BANK);
 				} else {
 					logger.warn("Catchment " + c.getId() + " has no flowpaths and an unexpected number of nexuses (" + totalNexuses + ").");

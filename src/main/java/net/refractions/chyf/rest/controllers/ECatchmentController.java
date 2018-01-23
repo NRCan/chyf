@@ -105,6 +105,40 @@ public class ECatchmentController {
 		return resp;
 	}
 
+	@RequestMapping(value = "/{id}/upstream", method = {RequestMethod.GET,RequestMethod.POST})
+	public ApiResponse getECatchmentsUpstream(@PathVariable("id") int id, 
+			ReverseGeocodeParameters params, BindingResult bindingResult) {
+		if(bindingResult.hasErrors()) {
+			throw new InvalidParameterException(bindingResult);
+		}
+		params.resolveAndValidate();
+		
+		StopWatch sw = new StopWatch();
+		sw.start();
+		ApiResponse resp = new ApiResponse(hyGraph.getUpstreamECatchments(hyGraph.getECatchment(id), params.getMaxFeatures()));
+		sw.stop();
+		resp.setExecutionTime(sw.getElapsedTime());
+		resp.setParams(params);
+		return resp;
+	}
+
+	@RequestMapping(value = "/{id}/downstream", method = {RequestMethod.GET,RequestMethod.POST})
+	public ApiResponse getECatchmentsDownstream(@PathVariable("id") int id, 
+			ReverseGeocodeParameters params, BindingResult bindingResult) {
+		if(bindingResult.hasErrors()) {
+			throw new InvalidParameterException(bindingResult);
+		}
+		params.resolveAndValidate();
+		
+		StopWatch sw = new StopWatch();
+		sw.start();
+		ApiResponse resp = new ApiResponse(hyGraph.getDownstreamECatchments(hyGraph.getECatchment(id), params.getMaxFeatures()));
+		sw.stop();
+		resp.setExecutionTime(sw.getElapsedTime());
+		resp.setParams(params);
+		return resp;
+	}
+
 	@RequestMapping(value = "/upstreamOf", method = {RequestMethod.GET,RequestMethod.POST})
 	public ApiResponse getECatchmentsUpstreamOf(ReverseGeocodeParameters params, BindingResult bindingResult) {
 		if(bindingResult.hasErrors()) {
@@ -119,7 +153,7 @@ public class ECatchmentController {
 
 		StopWatch sw = new StopWatch();
 		sw.start();
-		ApiResponse resp = new ApiResponse(hyGraph.getUpstreamECatchments(params.getPoint(), params.getMaxFeatures()));
+		ApiResponse resp = new ApiResponse(hyGraph.getUpstreamECatchments(hyGraph.getECatchment(params.getPoint()), params.getMaxFeatures()));
 		sw.stop();
 		resp.setExecutionTime(sw.getElapsedTime());
 		resp.setParams(params);
@@ -140,7 +174,7 @@ public class ECatchmentController {
 
 		StopWatch sw = new StopWatch();
 		sw.start();
-		ApiResponse resp = new ApiResponse(hyGraph.getDownstreamECatchments(params.getPoint(), params.getMaxFeatures()));
+		ApiResponse resp = new ApiResponse(hyGraph.getDownstreamECatchments(hyGraph.getECatchment(params.getPoint()), params.getMaxFeatures()));
 		sw.stop();
 		resp.setExecutionTime(sw.getElapsedTime());
 		resp.setParams(params);

@@ -107,6 +107,40 @@ public class EFlowpathController {
 		return resp;
 	}
 
+	@RequestMapping(value = "/{id}/upstream", method = {RequestMethod.GET,RequestMethod.POST})
+	public ApiResponse getEFlowpathsUpstream(@PathVariable("id") int id,
+			ReverseGeocodeParameters params, BindingResult bindingResult) {
+		if(bindingResult.hasErrors()) {
+			throw new InvalidParameterException(bindingResult);
+		}
+		params.resolveAndValidate();
+		
+		StopWatch sw = new StopWatch();
+		sw.start();
+		ApiResponse resp = new ApiResponse(hyGraph.getUpstreamEFlowpaths(hyGraph.getEFlowpath(id), params.getMaxFeatures()));
+		sw.stop();
+		resp.setExecutionTime(sw.getElapsedTime());
+		resp.setParams(params);
+		return resp;
+	}
+
+	@RequestMapping(value = "/{id}/downstream", method = {RequestMethod.GET,RequestMethod.POST})
+	public ApiResponse getEFlowpathsDownstream(@PathVariable("id") int id,
+			ReverseGeocodeParameters params, BindingResult bindingResult) {
+		if(bindingResult.hasErrors()) {
+			throw new InvalidParameterException(bindingResult);
+		}
+		params.resolveAndValidate();
+		
+		StopWatch sw = new StopWatch();
+		sw.start();
+		ApiResponse resp = new ApiResponse(hyGraph.getDownstreamEFlowpaths(hyGraph.getEFlowpath(id), params.getMaxFeatures()));
+		sw.stop();
+		resp.setExecutionTime(sw.getElapsedTime());
+		resp.setParams(params);
+		return resp;
+	}
+
 	@RequestMapping(value = "/upstreamOf", method = {RequestMethod.GET,RequestMethod.POST})
 	public ApiResponse getEFlowpathsUpstreamOf(ReverseGeocodeParameters params, BindingResult bindingResult) {
 		if(bindingResult.hasErrors()) {
@@ -121,7 +155,7 @@ public class EFlowpathController {
 
 		StopWatch sw = new StopWatch();
 		sw.start();
-		ApiResponse resp = new ApiResponse(hyGraph.getUpstreamEFlowpaths(params.getPoint(), params.getMaxFeatures()));
+		ApiResponse resp = new ApiResponse(hyGraph.getUpstreamEFlowpaths(hyGraph.getEFlowpath(params.getPoint()), params.getMaxFeatures()));
 		sw.stop();
 		resp.setExecutionTime(sw.getElapsedTime());
 		resp.setParams(params);
@@ -142,7 +176,7 @@ public class EFlowpathController {
 
 		StopWatch sw = new StopWatch();
 		sw.start();
-		ApiResponse resp = new ApiResponse(hyGraph.getDownstreamEFlowpaths(params.getPoint(), params.getMaxFeatures()));
+		ApiResponse resp = new ApiResponse(hyGraph.getDownstreamEFlowpaths(hyGraph.getEFlowpath(params.getPoint()), params.getMaxFeatures()));
 		sw.stop();
 		resp.setExecutionTime(sw.getElapsedTime());
 		resp.setParams(params);

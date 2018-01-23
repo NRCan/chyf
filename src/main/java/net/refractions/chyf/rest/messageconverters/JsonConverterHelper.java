@@ -7,6 +7,7 @@ import com.google.gson.stream.JsonWriter;
 import com.vividsolutions.jts.geom.CoordinateSequence;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.LineString;
+import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.Polygon;
 
@@ -125,10 +126,21 @@ public class JsonConverterHelper extends ConverterHelper {
 			case "Polygon":
 				polygon(((Polygon)g)); 
 				break;
+			case "MultiPolygon":
+				multiPolygon(((MultiPolygon)g)); 
+				break;
 			default: jw.value("Unknown geometry type");
 		}
 		jw.endObject();
 
+	}
+
+	private void multiPolygon(MultiPolygon mp) throws IOException {
+		jw.beginArray();
+		for(int i = 0; i < mp.getNumGeometries(); i++) {
+			polygon((Polygon)mp.getGeometryN(i));
+		}
+		jw.endArray();
 	}
 
 	private void polygon(Polygon p) throws IOException {

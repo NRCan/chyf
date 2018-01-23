@@ -13,6 +13,7 @@ import com.vividsolutions.jts.geom.Point;
 public class Nexus implements SpatiallyIndexable{
 	private ArrayList<EFlowpath> upFlows = new ArrayList<EFlowpath>();
 	private ArrayList<EFlowpath> downFlows = new ArrayList<EFlowpath>();
+	private ECatchment bankCatchment = null;
 	private Point point;
 	private NexusType type = NexusType.UNKNOWN;
 
@@ -34,6 +35,14 @@ public class Nexus implements SpatiallyIndexable{
 
 	public List<EFlowpath> getDownFlows() {
 		return Collections.unmodifiableList(downFlows);
+	}
+
+	public ECatchment getBankCatchment() {
+		return bankCatchment;
+	}
+
+	public void setBankCatchment(ECatchment bankCatchment) {
+		this.bankCatchment = bankCatchment;
 	}
 
 	public Point getPoint() {
