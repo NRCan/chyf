@@ -20,30 +20,24 @@
             padding: 0;
             margin: 0;
 		}
-		#container1 {
+		#container {
 			height: 100%;
             width: 100%;
 			overflow: hidden;
 			display: flex;
-			flex-direction: column;
-			flex-wrap: nowrap;
-			align-items: stretch;
-		}
-		#container2 {
-            width: 100%;
-			flex: 1 0 auto;
-			display: flex;
 			flex-direction: row;
 			flex-wrap: nowrap;
 			align-items: stretch;
-			overflow: auto;
 		}
-		#dataBar {
-			flex: 0 0 auto;
-			height: 200px;
-			border: 1px solid lightSlateGrey;
-			padding: 5px;
-		}
+		/*#container2 {
+            height: 100%;
+			flex: 1 0 auto;
+			display: flex;
+			flex-direction: column;
+			flex-wrap: nowrap;
+			align-items: stretch;
+			overflow: hidden;
+		}*/
 		#toolBar {
 			flex: 0 0 auto;
             width: 180px;
@@ -71,6 +65,16 @@
 			font-weight: bold;
 			color: #444466;
 		}
+		#dataBar {
+			position: absolute;
+			z-index: 999;
+			background-color: white;
+			bottom: 0;
+			left: 190px;
+			height: 200px;
+			border: 1px solid lightSlateGrey;
+			overflow: auto;
+		}
 		.toolCat {
 			font-family: Verdana, Arial, Helvetica, sans-serif;
 			font-size: 1em;
@@ -85,6 +89,8 @@
 			width: 60px;
 		}
 		.toolBtn {
+			font-family: Arial, Helvetica, sans-serif;
+			font-size: 13px;
 			margin: 3px;
 			border: 1px solid grey;
 			padding: 3px 8px;
@@ -99,68 +105,62 @@
 			border-color: lightBlue;
 			box-shadow: 2px 2px 5px rgba(0,0,0,.25) inset, -2px -2px 5px white inset;
 		}
-		#dataTableContainer {
-			display: inline-block;
-			height: 100%;
-			overflow: auto;
-			border: 1px solid grey;
-			margin-left: 50%; /* From parent width */
-   			transform: translateX(-50%);
-		}
-		#dataTableContainer table {
+		#dataBar table {
 			/*display: block;*/
 			max-height: 190px;
 			border: 1px solid grey;
 			border-collapse: collapse;
 			overflow-y: scroll;
 		}
-		#dataTableContainer table th, #dataTableContainer table td  {
+		#dataBar table th, #dataBar table td  {
 			border: 1px solid grey;
 			padding: 1px 8px;
 		}
-		#dataTableContainer table thead {
+		#dataBar table thead {
 		/*	display: inline-block;*/
 			background-color: #cce0ff;
 		}
-		#dataTableContainer table tbody tr:nth-last-child(even) {
+		#dataBar table tbody tr:nth-last-child(even) {
 			background-color:  #e5e5e5;
 		}
-
+		#clearSelection {
+			margin-top: 16px;
+			background-color: #cce0ff;
+		}
 	</style>
 </head>
 
 <body>
-	<div id="container1">
+	<div id="container">
 		<div id="title">ChyF Pilot Demo</div>
-		<div id="container2">
-			<div id="toolBar">
-				<div class="toolCat">Nexuses</div>
-				<button id="nexusById" type="button" class="toolBtn">Find by ID:</button>
-				<input id="nexusId" class="idInput" type="text"/>
-			 	<div class="toolCat">Flowpaths</div>
-				<button id="flowpathById" type="button" class="toolBtn">Find by ID:</button>
-				<input id="flowpathId" class="idInput" type="text"/>
-				<button id="flowpathsUpstreamOfId" type="button" class="toolBtn tool">Upstream Of ID</button>
-				<button id="flowpathsDownstreamOfId" type="button" class="toolBtn tool">Downstream Of ID</button>
-				<button id="flowpathFlowsFrom" type="button" class="toolBtn tool">Flows From Point</button>
-				<button id="flowpathsUpstreamOf" type="button" class="toolBtn tool">Upstream Of Point</button>
-				<button id="flowpathsDownstreamOf" type="button" class="toolBtn tool">Downstream Of Point</button>
-				<div class="toolCat">Catchments</div>
-				<button id="catchmentById" type="button" class="toolBtn">Find by ID:</button>
-				<input id="catchmentId" class="idInput" type="text"/>
-				<button id="catchmentsUpstreamOfId" type="button" class="toolBtn">Upstream Of ID</button>
-				<button id="catchmentsDownstreamOfId" type="button" class="toolBtn">Downstream Of ID</button>
-				<button id="catchmentContaining" type="button" class="toolBtn tool">Containing Point</button>
-				<button id="catchmentsUpstreamOf" type="button" class="toolBtn tool">Upstream Of Point</button>
-				<button id="catchmentsDownstreamOf" type="button" class="toolBtn tool">Downstream Of Point</button>
-				<div class="toolCat">Drainage Areas</div>
-				<button id="drainageAreaUpstreamOf" type="button" class="toolBtn tool">Upstream Of Point</button>
-				<button id="drainageAreaDownstreamOf" type="button" class="toolBtn tool">Downstream Of Point</button>
-			</div> <!-- toolBar -->
-			<div id="map"></div>
-		</div> <!-- container2 -->
-		<div id="dataBar"><div id="dataTableContainer"></div></div> <!-- dataBar -->
-	</div> <!-- container1 -->
+		<div id="toolBar">
+			<div class="toolCat">Nexuses</div>
+			<button id="nexusById" type="button" class="toolBtn">Find by ID:</button>
+			<input id="nexusId" class="idInput" type="text"/>
+		 	<div class="toolCat">E. Flowpaths</div>
+			<button id="flowpathById" type="button" class="toolBtn">Find by ID:</button>
+			<input id="flowpathId" class="idInput" type="text"/>
+			<button id="flowpathsUpstreamOfId" type="button" class="toolBtn tool">Upstream Of ID</button>
+			<button id="flowpathsDownstreamOfId" type="button" class="toolBtn tool">Downstream Of ID</button>
+			<button id="flowpathFlowsFrom" type="button" class="toolBtn tool">Flows From Point</button>
+			<button id="flowpathsUpstreamOf" type="button" class="toolBtn tool">Upstream Of Point</button>
+			<button id="flowpathsDownstreamOf" type="button" class="toolBtn tool">Downstream Of Point</button>
+			<div class="toolCat">E. Catchments</div>
+			<button id="catchmentById" type="button" class="toolBtn">Find by ID:</button>
+			<input id="catchmentId" class="idInput" type="text"/>
+			<button id="catchmentsUpstreamOfId" type="button" class="toolBtn">Upstream Of ID</button>
+			<button id="catchmentsDownstreamOfId" type="button" class="toolBtn">Downstream Of ID</button>
+			<button id="catchmentContaining" type="button" class="toolBtn tool">Containing Point</button>
+			<button id="catchmentsUpstreamOf" type="button" class="toolBtn tool">Upstream Of Point</button>
+			<button id="catchmentsDownstreamOf" type="button" class="toolBtn tool">Downstream Of Point</button>
+			<div class="toolCat">Drainage Areas</div>
+			<button id="drainageAreaUpstreamOf" type="button" class="toolBtn tool">Upstream Of Point</button>
+			<button id="drainageAreaDownstreamOf" type="button" class="toolBtn tool">Downstream Of Point</button>
+			<button id="clearSelection" type="button" class="toolBtn">Clear Selection</button>
+		</div> <!-- toolBar -->
+		<div id="map"></div>
+		<div id="dataBar"></div> <!-- dataBar -->
+	</div> <!-- container -->
 	<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCO2a43ItOYdAuRFcbCSLLn8AQwnMlf6sI"></script>
 	<script src="https://unpkg.com/leaflet@1.3.0/dist/leaflet.js"></script>
 	<script src='https://unpkg.com/leaflet.gridlayer.googlemutant@latest/Leaflet.GoogleMutant.js'></script>
@@ -541,6 +541,11 @@
 			selectCatchments("ecatchment/" + $('#catchmentId').val() + "/downstream.json");
 		});
 
+		$('#clearSelection').on("click", function() {
+			clearSelection();
+			$('#dataBar').empty();
+		});
+
 		var nexusCols = {
 		//	'id': 'Nexus ID',
 			'type': 'Nexus Type'
@@ -599,8 +604,8 @@
 				$tbody.append($row);
 			}
 			$table.append($tbody);
-			$('#dataTableContainer').empty();
-			$('#dataTableContainer').append($table);
+			$('#dataBar').empty();
+			$('#dataBar').append($table);
 		}
 
 		function centerMap(bounds, center = true) {
