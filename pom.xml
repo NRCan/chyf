@@ -8,7 +8,7 @@
   
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <geotools.version>18.1</geotools.version>
+    <geotools.version>14.5</geotools.version>
     <springframework.version>4.3.9.RELEASE</springframework.version>
     <springframework.security.version>4.2.3.RELEASE</springframework.security.version>
   </properties>
@@ -20,8 +20,8 @@
 		<artifactId>maven-compiler-plugin</artifactId>
 		<version>3.1</version>
 		<configuration>
-		  <source>1.8</source>
-			<target>1.8</target>
+		  <source>1.7</source>
+			<target>1.7</target>
 			</configuration>
 		</plugin>
   	</plugins>

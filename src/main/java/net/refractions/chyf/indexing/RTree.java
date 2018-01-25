@@ -85,7 +85,7 @@ public class RTree<T extends SpatiallyIndexable> {
 			maxDist = maxDistance;
 		}
 		
-		final Queue<PrioNode<T>> results = new PriorityQueue<PrioNode<T>>(
+		final Queue<PrioNode<T>> results = new PriorityQueue<PrioNode<T>>(11,
 				new Comparator<PrioNode<T>>() {
 					// Java's Priority queue is a min-heap, in that the
 					// first item in the sort order is at the top of the heap
