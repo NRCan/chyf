@@ -176,7 +176,8 @@ public class HyGraphBuilder {
 				for(EFlowpath f : n.getDownFlows()) {
 					downTypes.put(f.getType(), downTypes.get(f.getType())+1);
 				}
-				if(upTypes.get(FlowpathType.INFERRED) == n.getUpFlows().size() 
+				if(upTypes.get(FlowpathType.INFERRED) <= n.getUpFlows().size()
+						&& upTypes.get(FlowpathType.BANK) <= 1
 						&& downTypes.get(FlowpathType.INFERRED) == n.getDownFlows().size()) {
 					// all inferred
 					if(n.getUpFlows().size() == 1 && n.getDownFlows().size() == 1) {

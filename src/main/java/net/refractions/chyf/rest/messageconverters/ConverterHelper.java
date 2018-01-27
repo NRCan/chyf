@@ -13,9 +13,13 @@ import net.refractions.chyf.indexing.SpatiallyIndexable;
 import net.refractions.chyf.rest.GeotoolsGeometryReprojector;
 
 import com.vividsolutions.jts.geom.Coordinate;
+import com.vividsolutions.jts.geom.CoordinateSequence;
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.LineString;
+import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.Polygon;
+import com.vividsolutions.jts.geom.impl.CoordinateArraySequence;
 
 public abstract class ConverterHelper {
 	static final DecimalFormat DEGREE_FORMAT = new DecimalFormat("###.#####");
@@ -67,13 +71,13 @@ public abstract class ConverterHelper {
 		field("type", eCatchment.getType().toString());
 		field("subtype", eCatchment.getType().getSubType());
 		field("rank", eCatchment.getRank());
-		field("area", eCatchment.getArea());		
+		field("area", eCatchment.getArea()/10000);		
 		featureFooter();
 	}
 
 	protected void drainageArea(DrainageArea drainageArea, ApiResponse response) throws IOException {
 		featureHeader(GeotoolsGeometryReprojector.reproject(drainageArea.getGeometry(), response.getSrs()), 1);
-		field("area", drainageArea.getArea());		
+		field("area", drainageArea.getArea()/10000);		
 		featureFooter();
 	}
 
@@ -127,15 +131,6 @@ public abstract class ConverterHelper {
 			nullData();
 		}
 	}
-	
-//	writeField("executionTime", response.getExecutionTime());
-//	writeField("version", RouterConfig.VERSION);
-//	writeField("disclaimer", config.getDisclaimer());
-//	writeField("privacyStatement", config.getPrivacyStatement());
-//	writeField("copyrightNotice", config.getCopyrightNotice());
-//	writeField("copyrightLicense", config.getCopyrightLicense());
-//	writeField("srsCode", response.getSrsCode());
-
 
 	protected static String formatOrdinate(double ord) {
 		if(ord <= 180 && ord >= -180) {
@@ -144,4 +139,17 @@ public abstract class ConverterHelper {
 		return METRE_FORMAT.format(ord);
 	}
 
+	protected LineString filterCoords(LineString l, Double scale) {
+		if(scale == null) {
+			return l;
+		}
+		CoordinateSequence cs = l.getCoordinateSequence();
+		Coordinate[] coords = new Coordinate[cs.size()];
+		
+		//TODO loop over coords, copying only coords at least <scale> away from the last copied coordinate
+		// always copy start and end
+		// alter the scale filter value by the (sin|cosin?) of angle of the line between the points
+		
+		return l.getFactory().createLineString(coords);
+	}
 }

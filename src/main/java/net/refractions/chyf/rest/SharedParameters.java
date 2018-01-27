@@ -7,6 +7,7 @@ public class SharedParameters {
 	private String callback = "jsonp";
 	private int srs = 4326;
 	private Integer maxFeatures = null;
+	private Double scale = null;
 
 	public String getCallback() {
 		return callback;
@@ -35,6 +36,14 @@ public class SharedParameters {
 		}
 		this.maxFeatures = maxFeatures;
 	}	
+
+	public Double getScale() {
+		return scale;
+	}
+
+	public void setScale(Double scale) {
+		this.scale = scale;
+	}
 
 	public void resolveAndValidate() {
 		if(maxFeatures == null || maxFeatures > ChyfDatastore.MAX_RESULTS) {

@@ -16,7 +16,7 @@ public class HtmlConverterHelper extends ConverterHelper {
 	}
 	
 	public void responseHeader(ApiResponse response) throws IOException {
-		out.write(("<!DOCTYPE html><html><head><title>Router Response</title></head><body><table>"));
+		out.write(("<!DOCTYPE html><html><head><title>Response</title></head><body><table style='border: 1px solid black'>"));
 	}
 
 	public void responseFooter(ApiResponse response) throws IOException {
@@ -61,7 +61,7 @@ public class HtmlConverterHelper extends ConverterHelper {
 
 	@Override
 	protected void objectHeader() throws IOException {
-		out.write("<tr><td><table>");
+		out.write("<tr><td><table style='border: 1px solid black'>");
 	}
 	
 	@Override
@@ -71,7 +71,7 @@ public class HtmlConverterHelper extends ConverterHelper {
 	
 	@Override
 	protected void listHeader() throws IOException {
-		out.write("<table>");
+		out.write("<table style='border: 1px solid black'>");
 	}
 	
 	@Override

@@ -10,6 +10,7 @@ public class ApiResponse {
 	private long executionTime;
 	private String errorMsg;
 	private String callback = "jsonp";
+	private Double scale = null;
 
 	public ApiResponse(Object data) {
 		this.data = data;
@@ -34,6 +35,7 @@ public class ApiResponse {
 	public void setParams(SharedParameters params) {
 		callback = params.getCallback();
 		setSrs(params.getSrs());
+		setScale(params.getScale());
 	}
 	
 	public boolean isError() {
@@ -58,6 +60,14 @@ public class ApiResponse {
 
 	public long getExecutionTime() {
 		return executionTime;
+	}
+
+	public Double getScale() {
+		return scale;
+	}
+
+	public void setScale(Double scale) {
+		this.scale = scale;
 	}
 
 }

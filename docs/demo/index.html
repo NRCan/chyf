@@ -163,6 +163,7 @@
 	</div> <!-- container -->
 	<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCO2a43ItOYdAuRFcbCSLLn8AQwnMlf6sI"></script>
 	<script src="https://unpkg.com/leaflet@1.3.0/dist/leaflet.js"></script>
+	<script src="http://bbecquet.github.io/Leaflet.PolylineDecorator/dist/leaflet.polylineDecorator.js"></script>
 	<script src='https://unpkg.com/leaflet.gridlayer.googlemutant@latest/Leaflet.GoogleMutant.js'></script>
 	<script src="https://unpkg.com/esri-leaflet@2.1.1/dist/esri-leaflet.js"
 		integrity="sha512-ECQqaYZke9cSdqlFG08zSkudgrdF6I1d8ViSa7I3VIszJyVqw4ng1G8sehEXlumdMnFYfzY0tMgdQa4WCs9IUw=="
@@ -255,26 +256,30 @@
 			propertyLoc: "geometry.coordinates",
 			dataToMarker: function(data) {
 				var polygon = L.GeoJSON.geometryToLayer(data.geometry, {pane: 'catchment'});
-				var color = "DarkGreen";
-				// switch(data.properties.type) {
-				// 	case "Observed":
-				// 		color = "#2536ed";
-				// 		break;
-				// 	case "Constructed":
-				// 		color = "#b9e85b";
-				// 		break;
-				// 	case "Inferred":
-				// 		color = "#ffffff";
-				// 		break;
-				// 	case "Bank":
-				// 		color = "#faf020";
-				// 		break;
-				// }
-				polygon.setStyle({
-        			color: color,
+				var style = {
+        			color: "DarkGreen",
 					weight: 1,
 					fill: false
-				});
+				}
+				if(data.properties.type == 'Water') {
+					style.fill = true;
+					style.fillOpacity = 0.5;
+					switch(data.properties.subtype) {
+						case "Lake":
+							style.fillColor = "DarkBlue";
+							break;
+						case "River":
+							style.fillColor = "Blue";
+							break;
+						case "Pond":
+							style.fillColor = "SteelBlue";
+							break;
+						case "Canal":
+							style.fillColor = "Cyan";
+							break;
+					}
+				}
+				polygon.setStyle(style);
 				return polygon;
 			}
 		});
@@ -282,7 +287,7 @@
 		catchmentLayer.addTo(map);
 
 		var flowpathLayer = new L.layerJSON({
-			url: chyfApi + "eflowpath/within.json?bbox={lon1},{lat1},{lon2},{lat2}",
+			url: chyfApi + "eflowpath/within.json?bbox={lon1},{lat1},{lon2},{lat2}&scale={scale}",
 			minZoom: 13,
 			pane: 'flowpath',
 			caching: false,
@@ -312,10 +317,24 @@
         			color: color
 				});
 				return path;
-			}
+			}/*,
+			onEachMarker: function(data, marker) {
+				var arrowHead = L.polylineDecorator(marker, {
+			           patterns: [{
+						  offset: '100%', repeat: 0, symbol: L.Symbol.arrowHead({
+							   pixelSize: 12,
+							   headAngle: 30,
+							   minZoom: flowpathLayer.options.minZoom,
+							   pathOptions: {stroke: true, color: marker.options.color}
+						   })
+					   }]
+			       }).addTo(map);
+			}*/
 		});
 		overlays["Elementary Flowpaths"] = flowpathLayer;
 		flowpathLayer.addTo(map);
+
+
 
 		var nexusLayer = new L.layerJSON({
 			url: chyfApi + "nexus/within.json?bbox={lon1},{lat1},{lon2},{lat2}",
@@ -544,6 +563,12 @@
 		$('#clearSelection').on("click", function() {
 			clearSelection();
 			$('#dataBar').empty();
+			// deselect the tool
+			if(tool != null) {
+				$('#' + tool).removeClass('activeTool');
+				tool = null;
+				$("#map").removeClass('leaflet-crosshair');
+			}
 		});
 
 		var nexusCols = {
@@ -565,10 +590,10 @@
 			'type': 'Catchment Type',
 			'subtype': 'Catchment SubType',
 			'rank': 'Catchment Rank',
-			'area': 'Area (square metres)'
+			'area': 'Area (ha)'
 		};
 		var drainageAreaCols = {
-			'area': 'Area (square metres)'
+			'area': 'Area (ha)'
 		};
 		function fillDataTable(data, cols) {
 			if(!data) {
@@ -623,6 +648,7 @@
 				map.fitBounds(bounds.extend(map.getBounds()).pad(0.25), options);
 			}
 		}
+
 		//selectFlowpaths("eflowpath/downstreamOf.json?point=-73.27468872070314,45.464946600971466");
 	</script>
 </body>

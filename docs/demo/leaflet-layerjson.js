@@ -183,6 +183,24 @@ L.LayerJSON = L.FeatureGroup.extend({
 		return marker;
 	},
 
+	getScale: function() {
+		// Get the x,y dimensions of the map in pixels
+		var px = this._map.getSize().x;
+		var py = this._map.getSize().y;
+
+		// get the x,y dimensions of the map in degrees
+		var bounds = this._map.getBounds();
+		var dx = bounds.getEast() - bounds.getWest();
+		var dy = bounds.getNorth() - bounds.getSouth();
+
+		// calculate how many degree each pixel represents
+		var dppx = dx/px;
+		var dppy = dy/py;
+
+		// return the smaller of the two
+		return Math.round(Math.min(dppx, dppy)*10000000)/10000000;
+	},
+
 	addMarker: function(data) {
 
 		var loc, hash, propLoc = this.options.propertyLoc;
@@ -214,7 +232,7 @@ L.LayerJSON = L.FeatureGroup.extend({
 		if(typeof this._markersCache[hash] === 'undefined')
 			this._markersCache[hash] = this._dataToMarker(data, loc);
 
-		if(this.options.onEachMarker)//maybe useless
+		if(this.options.onEachMarker)
 			this.options.onEachMarker(data, this._markersCache[hash]);
 
 		if(this._markersCache[hash])
@@ -292,7 +310,8 @@ L.LayerJSON = L.FeatureGroup.extend({
 		if(this._hashUrl)							//conver bbox to url string
 			bbox = L.Util.template(this._hashUrl, {
 					lat1: bbox[0][0], lon1: bbox[0][1],
-					lat2: bbox[1][0], lon2: bbox[1][1]
+					lat2: bbox[1][0], lon2: bbox[1][1],
+					scale: this.getScale()
 				});
 
 		if(this._curReq && this._curReq.abort)
