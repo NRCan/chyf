@@ -194,7 +194,7 @@
 		var chyfApi = "https://ssl.refractions.net/chyf/";
 		if(queryParams['env'] == 'local') {
 			chyfApi = "http://localhost:8080/chyf/";
-		} queryParams['env'] == 'nfis') {
+		} else if(queryParams['env'] == 'nfis') {
 			chyfApi = "https://demo.nfis.org/chyf/";
 		}
 
