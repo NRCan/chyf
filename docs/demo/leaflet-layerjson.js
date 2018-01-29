@@ -360,6 +360,7 @@ L.LayerJSON = L.FeatureGroup.extend({
 		}
 		var request = new XMLHttpRequest();
 		request.open('GET', url);
+		request.withCredentials = true;
 		request.onreadystatechange = function() {
 			var response = {};
 		    if (request.readyState === 4 && request.status === 200) {

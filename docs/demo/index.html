@@ -471,6 +471,9 @@
 			clearSelection();
 			var selectionRequest = $.ajax({
 				url: chyfApi + path,
+				xhrFields: {
+   					withCredentials: true
+				},
 				success: function(data) {
 					fillDataTable(data.data, "nexus");
 					clearSelectionLayer();
@@ -494,6 +497,9 @@
 			clearSelection();
 			var selectionRequest = $.ajax({
 				url: chyfApi + path,
+				xhrFields: {
+   					withCredentials: true
+				},
 				success: function(data) {
 					fillDataTable(data.data, "eFlowpath");
 					clearSelectionLayer();
@@ -512,6 +518,9 @@
 			clearSelection();
 			var selectionRequest = $.ajax({
 				url: chyfApi + path,
+				xhrFields: {
+   					withCredentials: true
+				},
 				success: function(data) {
 					fillDataTable(data.data, "eCatchment");
 					clearSelectionLayer();
@@ -530,6 +539,9 @@
 			clearSelection();
 			var selectionRequest = $.ajax({
 				url: chyfApi + path,
+				xhrFields: {
+   					withCredentials: true
+				},
 				success: function(data) {
 					fillDataTable(data.data, "drainageArea");
 					clearSelectionLayer();
