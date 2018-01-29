@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/index")
-@CrossOrigin
+@CrossOrigin(allowCredentials="true",allowedHeaders="Autorization")
 public class IndexController {
 
 	@Autowired

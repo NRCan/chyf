@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/drainageArea")
-@CrossOrigin
+@CrossOrigin(allowCredentials="true",allowedHeaders="Autorization")
 public class DrainageAreaController {
 
 	@Autowired

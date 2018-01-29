@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/eflowpath")
-@CrossOrigin
+@CrossOrigin(allowCredentials="true",allowedHeaders="Autorization")
 public class EFlowpathController {
 	
 	@Autowired
