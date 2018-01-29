@@ -176,15 +176,14 @@ public class HyGraphBuilder {
 				for(EFlowpath f : n.getDownFlows()) {
 					downTypes.put(f.getType(), downTypes.get(f.getType())+1);
 				}
-				if(upTypes.get(FlowpathType.INFERRED) <= n.getUpFlows().size()
-						&& upTypes.get(FlowpathType.BANK) <= 1
-						&& downTypes.get(FlowpathType.INFERRED) == n.getDownFlows().size()) {
-					// all inferred
-					if(n.getUpFlows().size() == 1 && n.getDownFlows().size() == 1) {
-						n.setType(NexusType.WATER);
-					} else {
-						n.setType(NexusType.INFERRED);
-					}
+				if(upTypes.get(FlowpathType.INFERRED) == 1 && n.getUpFlows().size() == 1 
+						&& downTypes.get(FlowpathType.INFERRED) == 1 && n.getDownFlows().size() == 1) {
+					// just two inferred
+					n.setType(NexusType.WATER);
+				} else if(upTypes.get(FlowpathType.INFERRED) + upTypes.get(FlowpathType.BANK) == n.getUpFlows().size()
+						&& downTypes.get(FlowpathType.INFERRED) + downTypes.get(FlowpathType.BANK)== n.getDownFlows().size()) {
+					// all inferred and bank
+					n.setType(NexusType.INFERRED);
 				} else {
 					// TODO could check for other wierd/unexpected combinations of up/downflows
 					// but for now we will assume this is a regular flowpath nexus

@@ -3,6 +3,7 @@ package net.refractions.chyf.rest.messageconverters;
 import java.io.IOException;
 import java.io.Writer;
 import java.text.DecimalFormat;
+import java.util.Arrays;
 
 import net.refractions.chyf.ChyfDatastore;
 import net.refractions.chyf.hygraph.DrainageArea;
@@ -19,7 +20,6 @@ import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.Polygon;
-import com.vividsolutions.jts.geom.impl.CoordinateArraySequence;
 
 public abstract class ConverterHelper {
 	static final DecimalFormat DEGREE_FORMAT = new DecimalFormat("###.#####");
@@ -55,7 +55,7 @@ public abstract class ConverterHelper {
 		featureFooter();
 	}
 	protected void eFlowpath(EFlowpath eFlowpath, ApiResponse response) throws IOException {
-		featureHeader(GeotoolsGeometryReprojector.reproject(eFlowpath.getLineString(), response.getSrs()), eFlowpath.getId());
+		featureHeader(filterCoords(GeotoolsGeometryReprojector.reproject(eFlowpath.getLineString(), response.getSrs()), response.getScale()), eFlowpath.getId());
 		field("name", eFlowpath.getName());
 		field("type", eFlowpath.getType().toString());
 		field("rank", eFlowpath.getRank());
@@ -146,10 +146,20 @@ public abstract class ConverterHelper {
 		CoordinateSequence cs = l.getCoordinateSequence();
 		Coordinate[] coords = new Coordinate[cs.size()];
 		
-		//TODO loop over coords, copying only coords at least <scale> away from the last copied coordinate
+		// loop over coords, copying only coords at least <scale> away from the last copied coordinate
 		// always copy start and end
-		// alter the scale filter value by the (sin|cosin?) of angle of the line between the points
-		
+		int c = 0;
+		int nextCoord = 0;
+		coords[nextCoord++] = cs.getCoordinate(c++);
+		while(c < cs.size() - 1) {
+			// TODO alter the scale filter value by the (sin|cosin?) of angle of the line between the points
+			if(coords[nextCoord-1].distance(cs.getCoordinate(c)) > scale) {
+				coords[nextCoord++] = cs.getCoordinate(c);
+			}
+			c++;
+		}
+		coords[nextCoord++] = cs.getCoordinate(c++); 
+		coords = Arrays.copyOf(coords, nextCoord);
 		return l.getFactory().createLineString(coords);
 	}
 }

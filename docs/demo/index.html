@@ -75,6 +75,16 @@
 			border: 1px solid lightSlateGrey;
 			overflow: auto;
 		}
+		#dataTitle {
+			font-family: Verdana, Arial, Helvetica, sans-serif;
+			font-size: 1em;
+			font-weight: bold;
+			color: #444466;
+			margin: 2px 0px 2px 0px;
+			border: 1px solid lightSlateGrey;
+			padding: 2px;
+			background-color: #cce0ff;
+		}
 		.toolCat {
 			font-family: Verdana, Arial, Helvetica, sans-serif;
 			font-size: 1em;
@@ -183,7 +193,9 @@
 		// API URLs
 		var chyfApi = "https://ssl.refractions.net/chyf/";
 		if(queryParams['env'] == 'local') {
-			gcApi = "http://localhost:8080/chyf/";
+			chyfApi = "http://localhost:8080/chyf/";
+		} queryParams['env'] == 'nfis') {
+			chyfApi = "https://demo.nfis.org/chyf/";
 		}
 
 		var selectColor = '#FF0000';
@@ -288,7 +300,7 @@
 
 		var flowpathLayer = new L.layerJSON({
 			url: chyfApi + "eflowpath/within.json?bbox={lon1},{lat1},{lon2},{lat2}&scale={scale}",
-			minZoom: 13,
+			minZoom: 12,
 			pane: 'flowpath',
 			caching: false,
 			propertyItems: "data.features",
@@ -460,7 +472,7 @@
 			var selectionRequest = $.ajax({
 				url: chyfApi + path,
 				success: function(data) {
-					fillDataTable(data.data, nexusCols);
+					fillDataTable(data.data, "nexus");
 					clearSelectionLayer();
 					selectionLayer = L.geoJson(data.data, {
 						pointToLayer: function(geoJsonPoint, latLng) {
@@ -483,7 +495,7 @@
 			var selectionRequest = $.ajax({
 				url: chyfApi + path,
 				success: function(data) {
-					fillDataTable(data.data, flowpathCols);
+					fillDataTable(data.data, "eFlowpath");
 					clearSelectionLayer();
 					selectionLayer = L.geoJson(data.data, {
 						pane: 'selection',
@@ -501,7 +513,7 @@
 			var selectionRequest = $.ajax({
 				url: chyfApi + path,
 				success: function(data) {
-					fillDataTable(data.data, catchmentCols);
+					fillDataTable(data.data, "eCatchment");
 					clearSelectionLayer();
 					selectionLayer = L.geoJson(data.data, {
 						pane: 'selection',
@@ -519,7 +531,7 @@
 			var selectionRequest = $.ajax({
 				url: chyfApi + path,
 				success: function(data) {
-					fillDataTable(data.data, drainageAreaCols);
+					fillDataTable(data.data, "drainageArea");
 					clearSelectionLayer();
 					selectionLayer = L.geoJson(data.data, {
 						pane: 'selection',
@@ -571,31 +583,46 @@
 			}
 		});
 
-		var nexusCols = {
-		//	'id': 'Nexus ID',
-			'type': 'Nexus Type'
+		var dataMap = {
+			nexus: {
+				title: "Nexus",
+				cols: {
+					//	'id': 'Nexus ID',
+					'type': 'Type'
+				}
+			},
+			eFlowpath: {
+				title: "Elemenary Flowpaths",
+				cols: {
+					'id': 'ID',
+					'name': 'Primary Name',
+					'type': 'Type',
+					'rank': 'Rank',
+					'strahleror': 'Strahler Order',
+					'hortonor': 'Horton Order',
+					'hackor': 'Hack Order',
+					'length': 'Length (metres)'
+				}
+			},
+			eCatchment: {
+				title: "Elementary Catchments",
+				cols: {
+					'id': 'ID',
+					'type': 'Type',
+					'subtype': 'SubType',
+					'rank': 'Rank',
+					'area': 'Area (ha)'
+				}
+			},
+			drainageArea: {
+				title: "Drainage Area",
+				cols: {
+					'area': 'Area (ha)'
+				}
+			}
 		};
-		var flowpathCols = {
-			'id': 'Flowpath ID',
-			'name': 'Primary Name',
-			'type': 'Flowpath Type',
-			'rank': 'Flowpath Rank',
-			'strahleror': 'Strahler Order',
-			'hortonor': 'Horton Order',
-			'hackor': 'Hack Order',
-			'length': 'Length (metres)'
-		};
-		var catchmentCols = {
-			'id': 'Catchment ID',
-			'type': 'Catchment Type',
-			'subtype': 'Catchment SubType',
-			'rank': 'Catchment Rank',
-			'area': 'Area (ha)'
-		};
-		var drainageAreaCols = {
-			'area': 'Area (ha)'
-		};
-		function fillDataTable(data, cols) {
+
+		function fillDataTable(data, type) {
 			if(!data) {
 				return;
 			}
@@ -611,6 +638,7 @@
 			} else {
 				return;
 			}
+			var cols = dataMap[type].cols;
 			var $thead = $('<thead/>');
 			for(var i in cols) {
 				$thead.append('<th>' + cols[i] + '</th>');
@@ -630,6 +658,7 @@
 			}
 			$table.append($tbody);
 			$('#dataBar').empty();
+			$('#dataBar').append('<div id="dataTitle">' + dataMap[type].title + '</div>');
 			$('#dataBar').append($table);
 		}
 
