@@ -32,7 +32,7 @@ public class DrainageAreaController {
 		
 		StopWatch sw = new StopWatch();
 		sw.start();
-		ApiResponse resp = new ApiResponse(hyGraph.getUpstreamDrainageArea(hyGraph.getECatchment(id)));
+		ApiResponse resp = new ApiResponse(hyGraph.getUpstreamDrainageArea(hyGraph.getECatchment(id), params.getRemoveHoles()));
 		sw.stop();
 		resp.setExecutionTime(sw.getElapsedTime());
 		resp.setParams(params);
@@ -49,7 +49,7 @@ public class DrainageAreaController {
 		
 		StopWatch sw = new StopWatch();
 		sw.start();
-		ApiResponse resp = new ApiResponse(hyGraph.getDownstreamDrainageArea(hyGraph.getECatchment(id)));
+		ApiResponse resp = new ApiResponse(hyGraph.getDownstreamDrainageArea(hyGraph.getECatchment(id), params.getRemoveHoles()));
 		sw.stop();
 		resp.setExecutionTime(sw.getElapsedTime());
 		resp.setParams(params);
@@ -66,7 +66,7 @@ public class DrainageAreaController {
 		
 		StopWatch sw = new StopWatch();
 		sw.start();
-		ApiResponse resp = new ApiResponse(hyGraph.getUpstreamDrainageArea(hyGraph.getEFlowpath(id).getCatchment()));
+		ApiResponse resp = new ApiResponse(hyGraph.getUpstreamDrainageArea(hyGraph.getEFlowpath(id).getCatchment(), params.getRemoveHoles()));
 		sw.stop();
 		resp.setExecutionTime(sw.getElapsedTime());
 		resp.setParams(params);
@@ -83,7 +83,7 @@ public class DrainageAreaController {
 		
 		StopWatch sw = new StopWatch();
 		sw.start();
-		ApiResponse resp = new ApiResponse(hyGraph.getDownstreamDrainageArea(hyGraph.getEFlowpath(id).getCatchment()));
+		ApiResponse resp = new ApiResponse(hyGraph.getDownstreamDrainageArea(hyGraph.getEFlowpath(id).getCatchment(), params.getRemoveHoles()));
 		sw.stop();
 		resp.setExecutionTime(sw.getElapsedTime());
 		resp.setParams(params);
@@ -104,7 +104,7 @@ public class DrainageAreaController {
 
 		StopWatch sw = new StopWatch();
 		sw.start();
-		ApiResponse resp = new ApiResponse(hyGraph.getUpstreamDrainageArea(hyGraph.getECatchment(params.getPoint())));
+		ApiResponse resp = new ApiResponse(hyGraph.getUpstreamDrainageArea(hyGraph.getECatchment(params.getPoint()), params.getRemoveHoles()));
 		sw.stop();
 		resp.setExecutionTime(sw.getElapsedTime());
 		resp.setParams(params);
@@ -125,7 +125,7 @@ public class DrainageAreaController {
 
 		StopWatch sw = new StopWatch();
 		sw.start();
-		ApiResponse resp = new ApiResponse(hyGraph.getDownstreamDrainageArea(hyGraph.getECatchment(params.getPoint())));
+		ApiResponse resp = new ApiResponse(hyGraph.getDownstreamDrainageArea(hyGraph.getECatchment(params.getPoint()), params.getRemoveHoles()));
 		sw.stop();
 		resp.setExecutionTime(sw.getElapsedTime());
 		resp.setParams(params);

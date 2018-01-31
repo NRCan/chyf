@@ -19,6 +19,8 @@
 		body {
             padding: 0;
             margin: 0;
+			font-family: Verdana, Arial, Helvetica, sans-serif;
+			font-size: 13px;
 		}
 		#container {
 			height: 100%;
@@ -60,7 +62,6 @@
 			background-color: white;
 			border-radius: 0 0 4px 4px;
 			padding: 4px 8px 4px 8px;
-			font-family: Verdana, Arial, Helvetica, sans-serif;
 			font-size: 1.2em;
 			font-weight: bold;
 			color: #444466;
@@ -76,7 +77,6 @@
 			overflow: auto;
 		}
 		#dataTitle {
-			font-family: Verdana, Arial, Helvetica, sans-serif;
 			font-size: 1em;
 			font-weight: bold;
 			color: #444466;
@@ -86,7 +86,6 @@
 			background-color: #cce0ff;
 		}
 		.toolCat {
-			font-family: Verdana, Arial, Helvetica, sans-serif;
 			font-size: 1em;
 			font-weight: bold;
 			color: #444466;
@@ -99,7 +98,6 @@
 			width: 60px;
 		}
 		.toolBtn {
-			font-family: Arial, Helvetica, sans-serif;
 			font-size: 13px;
 			margin: 3px;
 			border: 1px solid grey;
@@ -164,6 +162,7 @@
 			<button id="catchmentsUpstreamOf" type="button" class="toolBtn tool">Upstream Of Point</button>
 			<button id="catchmentsDownstreamOf" type="button" class="toolBtn tool">Downstream Of Point</button>
 			<div class="toolCat">Drainage Areas</div>
+			<input id="removeHoles" type="checkbox"/>Remove Holes
 			<button id="drainageAreaUpstreamOf" type="button" class="toolBtn tool">Upstream Of Point</button>
 			<button id="drainageAreaDownstreamOf" type="button" class="toolBtn tool">Downstream Of Point</button>
 			<button id="clearSelection" type="button" class="toolBtn">Clear Selection</button>
@@ -173,7 +172,7 @@
 	</div> <!-- container -->
 	<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCO2a43ItOYdAuRFcbCSLLn8AQwnMlf6sI"></script>
 	<script src="https://unpkg.com/leaflet@1.3.0/dist/leaflet.js"></script>
-	<script src="http://bbecquet.github.io/Leaflet.PolylineDecorator/dist/leaflet.polylineDecorator.js"></script>
+	<!-- script src="https://bbecquet.github.io/Leaflet.PolylineDecorator/dist/leaflet.polylineDecorator.js"></script -->
 	<script src='https://unpkg.com/leaflet.gridlayer.googlemutant@latest/Leaflet.GoogleMutant.js'></script>
 	<script src="https://unpkg.com/esri-leaflet@2.1.1/dist/esri-leaflet.js"
 		integrity="sha512-ECQqaYZke9cSdqlFG08zSkudgrdF6I1d8ViSa7I3VIszJyVqw4ng1G8sehEXlumdMnFYfzY0tMgdQa4WCs9IUw=="
@@ -206,6 +205,7 @@
 			maxZoom: 21,
 			zoomControl: false
 		}).setView([45.44, -73.27], 9);
+		L.control.scale().addTo(map);
 		map.createPane('catchment');
 		map.createPane('flowpath');
 		map.createPane('nexus');
@@ -459,7 +459,8 @@
 					selectCatchments("ecatchment/downstreamOf.json?point=" + e.latlng.lng + "," + e.latlng.lat);
 					break;
 				case 'drainageAreaUpstreamOf':
-					selectDrainageArea("drainageArea/upstreamOf.json?point=" + e.latlng.lng + "," + e.latlng.lat);
+					selectDrainageArea("drainageArea/upstreamOf.json?point=" + e.latlng.lng + "," + e.latlng.lat
+										+ "&removeHoles=" + $('#removeHoles').is(":checked"));
 					break;
 				case 'drainageAreaDownstreamOf':
 					selectDrainageArea("drainageArea/downstreamOf.json?point=" + e.latlng.lng + "," + e.latlng.lat);

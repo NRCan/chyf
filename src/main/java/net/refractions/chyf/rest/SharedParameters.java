@@ -8,6 +8,7 @@ public class SharedParameters {
 	private int srs = 4326;
 	private Integer maxFeatures = null;
 	private Double scale = null;
+	private boolean removeHoles = false;
 
 	public String getCallback() {
 		return callback;
@@ -43,6 +44,14 @@ public class SharedParameters {
 
 	public void setScale(Double scale) {
 		this.scale = scale;
+	}
+
+	public boolean getRemoveHoles() {
+		return removeHoles;
+	}
+
+	public void setRemoveHoles(boolean removeHoles) {
+		this.removeHoles = removeHoles;
 	}
 
 	public void resolveAndValidate() {

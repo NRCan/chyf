@@ -19,7 +19,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Point;
+import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.operation.union.UnaryUnionOp;
 
 public class HyGraph {
@@ -238,21 +240,37 @@ public class HyGraph {
 		return results;
 	}
 
-	public DrainageArea getUpstreamDrainageArea(ECatchment eCatchment) {
-		return buildDrainageArea(getUpstreamECatchments(eCatchment, Integer.MAX_VALUE));
+	public DrainageArea getUpstreamDrainageArea(ECatchment eCatchment, boolean removeHoles) {
+		return buildDrainageArea(getUpstreamECatchments(eCatchment, Integer.MAX_VALUE), removeHoles);
 	}
 
-	public DrainageArea getDownstreamDrainageArea(ECatchment eCatchment) {
-		return buildDrainageArea(getDownstreamECatchments(eCatchment, Integer.MAX_VALUE));
+	public DrainageArea getDownstreamDrainageArea(ECatchment eCatchment, boolean removeHoles) {
+		return buildDrainageArea(getDownstreamECatchments(eCatchment, Integer.MAX_VALUE), removeHoles);
 	}
 
-	private DrainageArea buildDrainageArea(List<ECatchment> catchments) {
+	private DrainageArea buildDrainageArea(List<ECatchment> catchments, boolean removeHoles) {
 		List<Geometry> geoms = new ArrayList<Geometry>(catchments.size());
 		for(ECatchment c : catchments) {
 			geoms.add(c.getPolygon());
 		}
 		Geometry g = UnaryUnionOp.union(geoms);
+		if(removeHoles) {
+			g = removeHoles(g);
+		}
 		return new DrainageArea(g);
 	}
 
+	private Geometry removeHoles(Geometry g) {
+		if(g instanceof Polygon) {
+			return g.getFactory().createPolygon(((Polygon)g).getExteriorRing().getCoordinateSequence());
+		}
+		if(g instanceof MultiPolygon) {
+			Polygon[] polygons = new Polygon[g.getNumGeometries()];
+			for(int i = 0; i < g.getNumGeometries(); i++) {
+				polygons[i] = (Polygon)removeHoles(g.getGeometryN(i));
+			}
+			return g.getFactory().createMultiPolygon(polygons);
+		}
+		return g;
+	}
 }
