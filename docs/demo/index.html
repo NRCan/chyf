@@ -205,7 +205,7 @@
 			maxZoom: 21,
 			zoomControl: false
 		}).setView([45.44, -73.27], 9);
-		L.control.scale().addTo(map);
+		L.control.scale({position:'bottomright'}).addTo(map);
 		map.createPane('catchment');
 		map.createPane('flowpath');
 		map.createPane('nexus');
