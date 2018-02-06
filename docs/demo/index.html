@@ -135,6 +135,20 @@
 			margin-top: 16px;
 			background-color: #cce0ff;
 		}
+		.featureTitle {
+			font-weight: bold;
+		}
+		.featureTable {
+			border-collapse: collapse;
+			border: 1px solid grey;
+		}
+		.featureTable td {
+			border: 1px solid grey;
+			padding: 4px;
+		}
+		.featureTable td:first-child::first-letter {
+    		text-transform:capitalize;
+		}
 	</style>
 </head>
 
@@ -292,6 +306,7 @@
 					}
 				}
 				polygon.setStyle(style);
+				polygon.bindPopup(makeFeatureTable('eCatchment', data.properties));
 				return polygon;
 			}
 		});
@@ -328,6 +343,7 @@
 				path.setStyle({
         			color: color
 				});
+				path.bindPopup(makeFeatureTable('eFlowpath', data.properties));
 				return path;
 			}/*,
 			onEachMarker: function(data, marker) {
@@ -345,8 +361,6 @@
 		});
 		overlays["Elementary Flowpaths"] = flowpathLayer;
 		flowpathLayer.addTo(map);
-
-
 
 		var nexusLayer = new L.layerJSON({
 			url: chyfApi + "nexus/within.json?bbox={lon1},{lat1},{lon2},{lat2}",
@@ -389,11 +403,29 @@
 						options.fillColor = "#000000";
 						break;
 				}
-				return L.circleMarker(latLng, options);
+				var marker = L.circleMarker(latLng, options);
+				marker.bindPopup(makeFeatureTable('nexus', data.properties));
+				return marker;
 			}
 		});
 		overlays["Nexuses"] = nexusLayer;
 		nexusLayer.addTo(map);
+
+		var wellsLayer = new L.layerJSON({
+			url: "http://gin.gw-info.net/service/ngwds/en/data/geojson/wells?BBOX={lon1},{lat1},{lon2},{lat2}",
+			minZoom: 13,
+			pane: 'nexus',
+			caching: false,
+			propertyItems: "features",
+			propertyId: "properties.@id",
+			//propertyTitle: "ID",
+			locAsGeoJSON: true,
+			propertyLoc: "geometry.coordinates",
+			buildPopup: function(data, marker) {
+				return makeFeatureTable('Well', data.properties);
+			}
+		});
+		overlays["Wells"] = wellsLayer;
 
 		var layerControl = L.control.layers(baseLayers, overlays).addTo(map);
 
@@ -600,13 +632,15 @@
 		var dataMap = {
 			nexus: {
 				title: "Nexus",
+				titlePlural: "Nexuses",
 				cols: {
 					//	'id': 'Nexus ID',
 					'type': 'Type'
 				}
 			},
 			eFlowpath: {
-				title: "Elemenary Flowpaths",
+				title: "Elemenary Flowpath",
+				titlePlural: "Elemenary Flowpaths",
 				cols: {
 					'id': 'ID',
 					'name': 'Primary Name',
@@ -619,7 +653,8 @@
 				}
 			},
 			eCatchment: {
-				title: "Elementary Catchments",
+				title: "Elementary Catchment",
+				titlePlural: "Elementary Catchments",
 				cols: {
 					'id': 'ID',
 					'type': 'Type',
@@ -630,6 +665,7 @@
 			},
 			drainageArea: {
 				title: "Drainage Area",
+				titlePlural: "Drainage Areas",
 				cols: {
 					'area': 'Area (ha)'
 				}
@@ -672,8 +708,32 @@
 			}
 			$table.append($tbody);
 			$('#dataBar').empty();
-			$('#dataBar').append('<div id="dataTitle">' + dataMap[type].title + '</div>');
+			$('#dataBar').append('<div id="dataTitle">' + dataMap[type].titlePlural + '</div>');
 			$('#dataBar').append($table);
+		}
+
+		function makeFeatureTable(type, props) {
+			var title = type;
+			if(dataMap[type]) {
+				title = dataMap[type].title;
+			}
+			var str = '<span class="featureTitle">' + title + '</span><table class="featureTable">';
+			for(var p in props) {
+				var name = p;
+				if(dataMap[type][p]) {
+					name = dataMap[type][p];
+				}
+				str += '<tr><td>' + name + '</td><td>';
+				if(/^https?:\/\//.test(props[p])) {
+					var val = props[p].split('/').pop().split('#')[0].split('?')[0];
+				 	str += '<a target="_blank" href="' + props[p] + '">' + val + '</a>';
+				} else {
+					str += props[p];
+				}
+				str += "</td></tr>";
+			}
+			str += "</table>";
+			return str;
 		}
 
 		function centerMap(bounds, center = true) {
