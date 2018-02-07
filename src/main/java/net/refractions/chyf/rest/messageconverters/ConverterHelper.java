@@ -49,7 +49,7 @@ public abstract class ConverterHelper {
 	protected abstract void nullData() throws IOException;
 	
 	protected void nexus(Nexus nexus, ApiResponse response) throws IOException {
-		featureHeader(GeotoolsGeometryReprojector.reproject(nexus.getPoint(), response.getSrs()), null);
+		featureHeader(GeotoolsGeometryReprojector.reproject(nexus.getPoint(), response.getSrs()), nexus.getId());
 		field("type", nexus.getType().toString());
 		featureFooter();
 	}

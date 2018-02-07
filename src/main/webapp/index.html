@@ -51,6 +51,14 @@
 			flex: 1 0 auto;
 			overflow: hidden;
         }
+		#mapCover {
+			width: 100%;
+			height: 100%;
+  			position: absolute;
+			top: 0;
+			left: 0;
+			z-index: 0;
+        }
 		#title {
 			position: absolute;
 			z-index: 999;
@@ -146,6 +154,9 @@
 			border: 1px solid grey;
 			padding: 4px;
 		}
+		.featureTable td:first-child {
+			background-color: #cce0ff;
+		}
 		.featureTable td:first-child::first-letter {
     		text-transform:capitalize;
 		}
@@ -181,7 +192,7 @@
 			<button id="drainageAreaDownstreamOf" type="button" class="toolBtn tool">Downstream Of Point</button>
 			<button id="clearSelection" type="button" class="toolBtn">Clear Selection</button>
 		</div> <!-- toolBar -->
-		<div id="map"></div>
+		<div id="map"><div id="mapCover"></div></div>
 		<div id="dataBar"></div> <!-- dataBar -->
 	</div> <!-- container -->
 	<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCO2a43ItOYdAuRFcbCSLLn8AQwnMlf6sI"></script>
@@ -204,7 +215,7 @@
 		});
 
 		// API URLs
-		var chyfApi = "https://ssl.refractions.net/chyf/";
+		var chyfApi = "http://chyf.ca/chyf/";
 		if(queryParams['env'] == 'local') {
 			chyfApi = "http://localhost:8080/chyf/";
 		} else if(queryParams['env'] == 'nfis') {
@@ -285,10 +296,10 @@
 				var style = {
         			color: "DarkGreen",
 					weight: 1,
-					fill: false
+					fill: true,
+					fillOpacity: 0
 				}
 				if(data.properties.type == 'Water') {
-					style.fill = true;
 					style.fillOpacity = 0.5;
 					switch(data.properties.subtype) {
 						case "Lake":
@@ -457,49 +468,54 @@
 			if(tool == $(this).attr('id')) {
 				// there is no new tool
 				tool = null;
+				$('#mapCover').css('z-index', 0);
 				$("#map").removeClass('leaflet-crosshair');
 			} else {
 				// toggling on the new tool
 				tool = $(this).attr('id');
+				$('#mapCover').css('z-index', 800);
 				$(this).addClass('activeTool');
 				$("#map").addClass('leaflet-crosshair');
 			}
 		});
 
+		$('#mapCover').on('click', toolHandler);
+
 		// tool click handler
-		map.on('click', function(e) {
+		function toolHandler(e) {
 			if(!tool) {
-				return;
+				return true;
 			}
+			var latlng = map.layerPointToLatLng([e.offsetX, e.offsetY]);
     		switch(tool) {
 				case 'flowpathFlowsFrom':
-					selectFlowpaths("eflowpath/flowsFrom.json?point=" + e.latlng.lng + "," + e.latlng.lat);
+					selectFlowpaths("eflowpath/flowsFrom.json?point=" + latlng.lng + "," + latlng.lat);
 					break;
 				case 'flowpathsUpstreamOf':
-					selectFlowpaths("eflowpath/upstreamOf.json?point=" + e.latlng.lng + "," + e.latlng.lat);
+					selectFlowpaths("eflowpath/upstreamOf.json?point=" + latlng.lng + "," + latlng.lat);
 					break;
 				case 'flowpathsDownstreamOf':
-					selectFlowpaths("eflowpath/downstreamOf.json?point=" + e.latlng.lng + "," + e.latlng.lat);
+					selectFlowpaths("eflowpath/downstreamOf.json?point=" + latlng.lng + "," + latlng.lat);
 					break;
 				case 'catchmentContaining':
-					selectCatchments("ecatchment/containing.json?point=" + e.latlng.lng + "," + e.latlng.lat);
+					selectCatchments("ecatchment/containing.json?point=" + latlng.lng + "," + latlng.lat);
 					break;
 				case 'catchmentsUpstreamOf':
-					selectCatchments("ecatchment/upstreamOf.json?point=" + e.latlng.lng + "," + e.latlng.lat);
+					selectCatchments("ecatchment/upstreamOf.json?point=" + latlng.lng + "," + latlng.lat);
 					break;
 				case 'catchmentsDownstreamOf':
-					selectCatchments("ecatchment/downstreamOf.json?point=" + e.latlng.lng + "," + e.latlng.lat);
+					selectCatchments("ecatchment/downstreamOf.json?point=" + latlng.lng + "," + latlng.lat);
 					break;
 				case 'drainageAreaUpstreamOf':
-					selectDrainageArea("drainageArea/upstreamOf.json?point=" + e.latlng.lng + "," + e.latlng.lat
+					selectDrainageArea("drainageArea/upstreamOf.json?point=" + latlng.lng + "," + latlng.lat
 										+ "&removeHoles=" + $('#removeHoles').is(":checked"));
 					break;
 				case 'drainageAreaDownstreamOf':
-					selectDrainageArea("drainageArea/downstreamOf.json?point=" + e.latlng.lng + "," + e.latlng.lat
+					selectDrainageArea("drainageArea/downstreamOf.json?point=" + latlng.lng + "," + latlng.lat
 										+ "&removeHoles=" + $('#removeHoles').is(":checked"));
 					break;
 			}
-		});
+		};
 
 		function selectNexuses(path) {
 			clearSelection();
@@ -634,7 +650,7 @@
 				title: "Nexus",
 				titlePlural: "Nexuses",
 				cols: {
-					//	'id': 'Nexus ID',
+					'id': 'ID',
 					'type': 'Type'
 				}
 			},
@@ -720,8 +736,8 @@
 			var str = '<span class="featureTitle">' + title + '</span><table class="featureTable">';
 			for(var p in props) {
 				var name = p;
-				if(dataMap[type][p]) {
-					name = dataMap[type][p];
+				if(dataMap[type]) {
+					name = dataMap[type].cols[p];
 				}
 				str += '<tr><td>' + name + '</td><td>';
 				if(/^https?:\/\//.test(props[p])) {

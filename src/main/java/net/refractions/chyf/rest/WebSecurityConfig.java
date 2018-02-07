@@ -14,7 +14,7 @@ import org.springframework.security.web.header.writers.StaticHeadersWriter;
 @EnableWebSecurity
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	
-	private static final String CSP_POLICY = "script-src 'self' 'unsafe-eval'";
+	private static final String CSP_POLICY = "script-src * 'unsafe-eval' 'unsafe-inline'";
 	
 	@Override
 	protected void configure(HttpSecurity httpSec) throws Exception {

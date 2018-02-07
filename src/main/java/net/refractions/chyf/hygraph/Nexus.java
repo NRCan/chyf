@@ -14,11 +14,17 @@ public class Nexus implements SpatiallyIndexable{
 	private ArrayList<EFlowpath> upFlows = new ArrayList<EFlowpath>();
 	private ArrayList<EFlowpath> downFlows = new ArrayList<EFlowpath>();
 	private ECatchment bankCatchment = null;
-	private Point point;
+	private final int id;
+	private final Point point;
 	private NexusType type = NexusType.UNKNOWN;
 
-	public Nexus(Point point) {
+	public Nexus(int id, Point point) {
+		this.id = id;
 		this.point = point;
+	}
+
+	public int getId() {
+		return id;
 	}
 
 	public void addUpFlow(EFlowpath edge) {

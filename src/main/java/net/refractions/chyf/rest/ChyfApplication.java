@@ -1,5 +1,7 @@
 package net.refractions.chyf.rest;
 
+import java.io.File;
+
 import javax.annotation.PreDestroy;
 import javax.servlet.ServletContext;
 
@@ -17,7 +19,19 @@ public class ChyfApplication {
 	
     @Autowired
 	public ChyfApplication(ServletContext servletContext) {
-		chyfDatastore = new ChyfDatastore(servletContext.getInitParameter("chyfDataDir"));
+    	String[] dirs = {
+    	                 servletContext.getInitParameter("chyfDataDir"), 
+    	                 "C:\\projects\\chyf-pilot\\data\\",
+    	                 "/data/chyf/"
+    	};
+    	String dir = null;
+    	for(String d : dirs) {
+    		if(new File(d).isDirectory()) {
+    			dir = d;
+    			break;
+    		}
+    	}
+		chyfDatastore = new ChyfDatastore(dir);
 	}
 	
 	@Bean

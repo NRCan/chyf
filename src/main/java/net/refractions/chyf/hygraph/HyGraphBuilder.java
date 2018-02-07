@@ -20,6 +20,7 @@ import com.vividsolutions.jts.index.quadtree.Quadtree;
 public class HyGraphBuilder {
 	static final Logger logger = LoggerFactory.getLogger(HyGraphBuilder.class.getCanonicalName());
 
+	private int nextNexusId = 1;
 	private int nextEdgeId = 1;
 	private int nextCatchmentId = 1;
 	private List<Nexus> nexuses;
@@ -145,7 +146,7 @@ public class HyGraphBuilder {
 	}
 
 	public Nexus addNexus(Point point) {
-		Nexus node = new Nexus(point);
+		Nexus node = new Nexus(nextNexusId++, point);
 		nexuses.add(node);
 		nexusIndex.insert(node.getPoint().getEnvelopeInternal(),node);
 		return node;
