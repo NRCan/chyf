@@ -28,6 +28,6 @@
     </servlet-mapping>
     <context-param>
     	<param-name>chyfDataDir</param-name>
-    	<param-value>/data/chyf/</param-value>
+    	<param-value>C:\projects\chyf-pilot\data\</param-value>
     </context-param>
 </web-app>

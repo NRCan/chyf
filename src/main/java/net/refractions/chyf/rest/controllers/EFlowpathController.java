@@ -1,9 +1,14 @@
 package net.refractions.chyf.rest.controllers;
 
 import net.refractions.chyf.ChyfDatastore;
+import net.refractions.chyf.enumTypes.FlowpathType;
 import net.refractions.chyf.hygraph.EFlowpath;
 import net.refractions.chyf.hygraph.HyGraph;
 import net.refractions.chyf.indexing.BboxIntersectsFilter;
+import net.refractions.chyf.indexing.Filter;
+import net.refractions.chyf.indexing.PredicateFilter;
+import net.refractions.chyf.rest.FilterParameters;
+import net.refractions.chyf.rest.PredicateParameter;
 import net.refractions.chyf.rest.ReverseGeocodeParameters;
 import net.refractions.chyf.rest.SharedParameters;
 import net.refractions.chyf.rest.exceptions.InvalidParameterException;
@@ -183,6 +188,35 @@ public class EFlowpathController {
 		return resp;
 	}
 
+	@RequestMapping(value = "/filter", method = {RequestMethod.GET,RequestMethod.POST})
+	public ApiResponse getEFlowpathsByFilter(FilterParameters params, BindingResult bindingResult) {
+		if(bindingResult.hasErrors()) {
+			throw new InvalidParameterException(bindingResult);
+		}
+		
+		StopWatch sw = new StopWatch();
+		sw.start();
+		Filter<EFlowpath> filter;
+		switch(params.getProperty().toLowerCase()) {
+			case "name": filter = new PredicateFilter<EFlowpath>(EFlowpath::getName, PredicateParameter.convert(params.getPredicate()).get(), params.getValue()); break;
+			case "type": filter = new PredicateFilter<EFlowpath>(EFlowpath::getType, PredicateParameter.convert(params.getPredicate()).get(), FlowpathType.convert(params.getValue())); break;
+			case "rank": filter = new PredicateFilter<EFlowpath>(EFlowpath::getRank, PredicateParameter.convert(params.getPredicate()).get(), Integer.parseInt(params.getValue())); break;
+			case "strahleror": filter = new PredicateFilter<EFlowpath>(EFlowpath::getStrahlerOrder, PredicateParameter.convert(params.getPredicate()).get(), Integer.parseInt(params.getValue())); break;
+			case "hortonor": filter = new PredicateFilter<EFlowpath>(EFlowpath::getHortonOrder, PredicateParameter.convert(params.getPredicate()).get(), Integer.parseInt(params.getValue())); break;
+			//case "hackor": filter = new PredicateFilter<EFlowpath>(EFlowpath::getHackOrder, PredicateParameter.convert(params.getPredicate()).get(), Integer.parseInt(params.getValue())); break;
+			case "length": filter = new PredicateFilter<EFlowpath>(EFlowpath::getLength, PredicateParameter.convert(params.getPredicate()).get(), Double.parseDouble(params.getValue())); break;
+			default:
+				String errMsg = "The property parameter must be one of (name, type, rank, strahleror, hortonor, length).";
+				throw new IllegalArgumentException(errMsg);
+		}
+		
+		ApiResponse resp = new ApiResponse(hyGraph.getEFlowpaths(filter));
+		sw.stop();
+		resp.setExecutionTime(sw.getElapsedTime());
+		resp.setParams(params);
+		return resp;
+	}
+	
 }
 
 

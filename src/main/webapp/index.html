@@ -88,10 +88,13 @@
 			font-size: 1em;
 			font-weight: bold;
 			color: #444466;
-			margin: 2px 0px 2px 0px;
+			margin: 2px;
 			border: 1px solid lightSlateGrey;
 			padding: 2px;
 			background-color: #cce0ff;
+		}
+		#map.progress {
+			cursor: progress;
 		}
 		.toolCat {
 			font-size: 1em;
@@ -101,6 +104,10 @@
 			border: 1px solid lightSlateGrey;
 			padding: 2px;
 			background-color: #cce0ff;
+		}
+		.buttonGroup {
+			border: 1px solid lightSlateGrey;
+			padding: 2px;
 		}
 		.idInput {
 			width: 60px;
@@ -121,12 +128,17 @@
 			border-color: lightBlue;
 			box-shadow: 2px 2px 5px rgba(0,0,0,.25) inset, -2px -2px 5px white inset;
 		}
+		#flowpathValSel {
+			width: 170px;
+			margin: 2px;
+		}
 		#dataBar table {
 			/*display: block;*/
 			max-height: 190px;
 			border: 1px solid grey;
 			border-collapse: collapse;
 			overflow-y: scroll;
+			margin: 2px;
 		}
 		#dataBar table th, #dataBar table td  {
 			border: 1px solid grey;
@@ -173,11 +185,28 @@
 		 	<div class="toolCat">E. Flowpaths</div>
 			<button id="flowpathById" type="button" class="toolBtn">Find by ID:</button>
 			<input id="flowpathId" class="idInput" type="text"/>
-			<button id="flowpathsUpstreamOfId" type="button" class="toolBtn tool">Upstream Of ID</button>
-			<button id="flowpathsDownstreamOfId" type="button" class="toolBtn tool">Downstream Of ID</button>
+			<button id="flowpathsUpstreamOfId" type="button" class="toolBtn">Upstream Of ID</button>
+			<button id="flowpathsDownstreamOfId" type="button" class="toolBtn">Downstream Of ID</button>
 			<button id="flowpathFlowsFrom" type="button" class="toolBtn tool">Flows From Point</button>
 			<button id="flowpathsUpstreamOf" type="button" class="toolBtn tool">Upstream Of Point</button>
 			<button id="flowpathsDownstreamOf" type="button" class="toolBtn tool">Downstream Of Point</button>
+			<div class="buttonGroup">
+				<select id="flowpathPropSel">
+					<option value="name">Name</option>
+					<option value="type">Type</option>
+					<option value="rank">Rank</option>
+					<option value="strahleror">Strahler Order</option>
+					<option value="hortonor">Horton Order</option>
+					<option value="length">Length (m)</option>
+				</select>
+				<select id="flowpathPredSel">
+					<option value="equals">=</option>
+					<option value="lessThan">&lt;</option>
+					<option value="greaterThan">&gt;</option>
+				</select>
+				<select id="flowpathValSel"></select><br/>
+				<button id="flowpathFilter" type="button" class="toolBtn">Find by Filter</button>
+			</div>
 			<div class="toolCat">E. Catchments</div>
 			<button id="catchmentById" type="button" class="toolBtn">Find by ID:</button>
 			<input id="catchmentId" class="idInput" type="text"/>
@@ -195,6 +224,7 @@
 		<div id="map"><div id="mapCover"></div></div>
 		<div id="dataBar"></div> <!-- dataBar -->
 	</div> <!-- container -->
+	<script src="https://unpkg.com/clipboard@1.7.1/dist/clipboard.min.js"></script>
 	<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCO2a43ItOYdAuRFcbCSLLn8AQwnMlf6sI"></script>
 	<script src="https://unpkg.com/leaflet@1.3.0/dist/leaflet.js"></script>
 	<!-- script src="https://bbecquet.github.io/Leaflet.PolylineDecorator/dist/leaflet.polylineDecorator.js"></script -->
@@ -282,11 +312,16 @@
 		var esriStreetsLayer = L.esri.basemapLayer('Topographic');
 		baseLayers['ESRI Topographic'] = esriStreetsLayer;
 
+		var demLayer = L.tileLayer.wms('http://cartes.geogratis.gc.ca/wms/elevation_fr', {
+			layers: 'cdem.color-shaded-relief'
+		});
+		baseLayers['GeoGratis DEM'] = demLayer;
+
 		var catchmentLayer = new L.layerJSON({
 			url: chyfApi + "ecatchment/within.json?bbox={lon1},{lat1},{lon2},{lat2}",
 			minZoom: 13,
 			caching: false,
-			propertyItems: "data.features",
+			propertyItems: "features",
 			propertyId: "ID",
 			propertyTitle: "ID",
 			locAsGeoJSON: true,
@@ -294,7 +329,7 @@
 			dataToMarker: function(data) {
 				var polygon = L.GeoJSON.geometryToLayer(data.geometry, {pane: 'catchment'});
 				var style = {
-        			color: "DarkGreen",
+        			color: "#a7110a",
 					weight: 1,
 					fill: true,
 					fillOpacity: 0
@@ -317,7 +352,7 @@
 					}
 				}
 				polygon.setStyle(style);
-				polygon.bindPopup(makeFeatureTable('eCatchment', data.properties));
+				polygon.bindPopup(makeFeatureTable('eCatchment', data));
 				return polygon;
 			}
 		});
@@ -329,7 +364,7 @@
 			minZoom: 12,
 			pane: 'flowpath',
 			caching: false,
-			propertyItems: "data.features",
+			propertyItems: "features",
 			propertyId: "ID",
 			propertyTitle: "ID",
 			locAsGeoJSON: true,
@@ -354,7 +389,7 @@
 				path.setStyle({
         			color: color
 				});
-				path.bindPopup(makeFeatureTable('eFlowpath', data.properties));
+				path.bindPopup(makeFeatureTable('eFlowpath', data));
 				return path;
 			}/*,
 			onEachMarker: function(data, marker) {
@@ -378,7 +413,7 @@
 			minZoom: 13,
 			pane: 'nexus',
 			caching: false,
-			propertyItems: "data.features",
+			propertyItems: "features",
 			propertyId: false,
 			//propertyTitle: "ID",
 			locAsGeoJSON: true,
@@ -415,7 +450,7 @@
 						break;
 				}
 				var marker = L.circleMarker(latLng, options);
-				marker.bindPopup(makeFeatureTable('nexus', data.properties));
+				marker.bindPopup(makeFeatureTable('nexus', data));
 				return marker;
 			}
 		});
@@ -433,7 +468,7 @@
 			locAsGeoJSON: true,
 			propertyLoc: "geometry.coordinates",
 			buildPopup: function(data, marker) {
-				return makeFeatureTable('Well', data.properties);
+				return makeFeatureTable('Well', data);
 			}
 		});
 		overlays["Wells"] = wellsLayer;
@@ -458,25 +493,29 @@
 			}
 		}
 
-		// tool picker
-		var tool;
-		$('.tool').on("click", function() {
+		function switchTool(newTool) {
 			if(tool) {
 				// toggling off the active tool
 				$('#' + tool).removeClass('activeTool');
 			}
-			if(tool == $(this).attr('id')) {
+			if(!newTool || tool == newTool) {
 				// there is no new tool
 				tool = null;
 				$('#mapCover').css('z-index', 0);
 				$("#map").removeClass('leaflet-crosshair');
 			} else {
 				// toggling on the new tool
-				tool = $(this).attr('id');
+				tool = newTool;
 				$('#mapCover').css('z-index', 800);
-				$(this).addClass('activeTool');
+				$('#' + newTool).addClass('activeTool');
 				$("#map").addClass('leaflet-crosshair');
 			}
+		}
+
+		// tool picker
+		var tool;
+		$('.tool').on("click", function() {
+			switchTool($(this).attr('id'));
 		});
 
 		$('#mapCover').on('click', toolHandler);
@@ -486,8 +525,10 @@
 			if(!tool) {
 				return true;
 			}
-			var latlng = map.layerPointToLatLng([e.offsetX, e.offsetY]);
-    		switch(tool) {
+			var latlng = map.containerPointToLatLng([e.offsetX, e.offsetY]);
+			var theTool = tool;
+			switchTool(false);
+    		switch(theTool) {
 				case 'flowpathFlowsFrom':
 					selectFlowpaths("eflowpath/flowsFrom.json?point=" + latlng.lng + "," + latlng.lat);
 					break;
@@ -517,19 +558,22 @@
 			}
 		};
 
-		function selectNexuses(path) {
+		function selectNexuses(path, center = 0) {
 			clearSelection();
+			$('#mapCover').css('z-index', 800);
+			$("#map").addClass('progress');
 			var selectionRequest = $.ajax({
 				url: chyfApi + path,
 				xhrFields: {
    					withCredentials: true
 				},
 				success: function(data) {
-					fillDataTable(data.data, "nexus");
+					fillDataTable(data, "nexus", chyfApi + path);
 					clearSelectionLayer();
-					selectionLayer = L.geoJson(data.data, {
+					selectionLayer = L.geoJson(data, {
 						pointToLayer: function(geoJsonPoint, latLng) {
 							return L.circleMarker(latLng, {
+								interactive: false,
 								pane: 'selection',
 								color: selectColor,
 								radius: 7,
@@ -538,112 +582,562 @@
 							});
 						}
 					}).addTo(map);
-					centerMap(selectionLayer.getBounds());
+					if(center > 0) {
+						var bounds = selectionLayer.getBounds();
+						if(data.type == 'FeatureCollection' && data.features[0] && center == 1) {
+							bounds = L.GeoJSON.geometryToLayer(data.features[0]).getBounds();
+						}
+						centerMap(bounds);
+					}
+				},
+				complete: function() {
+					$('#mapCover').css('z-index', 0);
+					$("#map").removeClass('progress');
 				}
 			});
 		}
 
-		function selectFlowpaths(path) {
+		function selectFlowpaths(path, center = 0) {
 			clearSelection();
+			$('#mapCover').css('z-index', 800);
+			$('#map').addClass('progress');
 			var selectionRequest = $.ajax({
 				url: chyfApi + path,
 				xhrFields: {
    					withCredentials: true
 				},
 				success: function(data) {
-					fillDataTable(data.data, "eFlowpath");
+					fillDataTable(data, "eFlowpath", chyfApi + path);
 					clearSelectionLayer();
-					selectionLayer = L.geoJson(data.data, {
+					selectionLayer = L.geoJson(data, {
+						interactive: false,
 						pane: 'selection',
 						style: function(feature) {
 							return {color:selectColor, weight:4};
 						}
 					}).addTo(map);
-					centerMap(selectionLayer.getBounds());
+					if(center > 0) {
+						var bounds = selectionLayer.getBounds();
+						if(data.type == 'FeatureCollection' && data.features[0] && center == 1) {
+							bounds = L.GeoJSON.geometryToLayer(data.features[0]).getBounds();
+						}
+						centerMap(bounds);
+					}
+				},
+				complete: function() {
+					$('#mapCover').css('z-index', 0);
+					$("#map").removeClass('progress');
 				}
 			});
 		}
 
-		function selectCatchments(path) {
+		function selectCatchments(path, center = 0) {
 			clearSelection();
+			$('#mapCover').css('z-index', 800);
+			$("#map").addClass('progress');
 			var selectionRequest = $.ajax({
 				url: chyfApi + path,
 				xhrFields: {
    					withCredentials: true
 				},
 				success: function(data) {
-					fillDataTable(data.data, "eCatchment");
+					fillDataTable(data, "eCatchment", chyfApi + path);
 					clearSelectionLayer();
-					selectionLayer = L.geoJson(data.data, {
+					selectionLayer = L.geoJson(data, {
+						interactive: false,
 						pane: 'selection',
 						style: function(feature) {
 							return {color:selectColor, weight:4};
 						}
 					}).addTo(map);
-					centerMap(selectionLayer.getBounds());
+					if(center > 0) {
+						var bounds = selectionLayer.getBounds();
+						if(data.type == 'FeatureCollection' && data.features[0] && center == 1) {
+							bounds = L.GeoJSON.geometryToLayer(data.features[0]).getBounds();
+						}
+						centerMap(bounds);
+					}
+				},
+				complete: function() {
+					$('#mapCover').css('z-index', 0);
+					$("#map").removeClass('progress');
 				}
 			});
 		}
 
-		function selectDrainageArea(path) {
+		function selectDrainageArea(path, center = 0) {
 			clearSelection();
+			$('#mapCover').css('z-index', 800);
+			$("#map").addClass('progress');
 			var selectionRequest = $.ajax({
 				url: chyfApi + path,
 				xhrFields: {
    					withCredentials: true
 				},
 				success: function(data) {
-					fillDataTable(data.data, "drainageArea");
+					fillDataTable(data, "drainageArea", chyfApi + path);
 					clearSelectionLayer();
-					selectionLayer = L.geoJson(data.data, {
+					selectionLayer = L.geoJson(data, {
+						interactive: false,
 						pane: 'selection',
 						style: function(feature) {
 							return {color:selectColor, weight:4};
 						}
 					}).addTo(map);
-					centerMap(selectionLayer.getBounds());
+					if(center > 0) {
+						centerMap(selectionLayer.getBounds());
+					}
+				},
+				complete: function() {
+					$('#mapCover').css('z-index', 0);
+					$("#map").removeClass('progress');
 				}
 			});
 		}
 
 		$('#nexusById').on("click", function() {
-			selectNexuses("nexus/" + $('#nexusId').val() + ".json");
+			selectNexuses("nexus/" + $('#nexusId').val() + ".json", 2);
 		});
 
 		$('#flowpathById').on("click", function() {
-			selectFlowpaths("eflowpath/" + $('#flowpathId').val() + ".json");
+			selectFlowpaths("eflowpath/" + $('#flowpathId').val() + ".json", 2);
 		});
 
 		$('#flowpathsUpstreamOfId').on("click", function() {
-			selectFlowpaths("eflowpath/" + $('#flowpathId').val() + "/upstream.json");
+			selectFlowpaths("eflowpath/" + $('#flowpathId').val() + "/upstream.json", 1);
 		});
 
 		$('#flowpathsDownstreamOfId').on("click", function() {
-			selectFlowpaths("eflowpath/" + $('#flowpathId').val() + "/downstream.json");
+			selectFlowpaths("eflowpath/" + $('#flowpathId').val() + "/downstream.json", 1);
+		});
+
+		$('#flowpathFilter').on("click", function() {
+			selectFlowpaths("eflowpath/filter.json?property=" + $('#flowpathPropSel').val()
+					+ "&predicate=" + $('#flowpathPredSel').val() + "&value=" + $('#flowpathValSel').val(), 2);
 		});
 
 		$('#catchmentById').on("click", function() {
-			selectCatchments("ecatchment/" + $('#catchmentId').val() + ".json");
+			selectCatchments("ecatchment/" + $('#catchmentId').val() + ".json", 2);
 		});
 
 		$('#catchmentsUpstreamOfId').on("click", function() {
-			selectCatchments("ecatchment/" + $('#catchmentId').val() + "/upstream.json");
+			selectCatchments("ecatchment/" + $('#catchmentId').val() + "/upstream.json", 1);
 		});
 
 		$('#catchmentsDownstreamOfId').on("click", function() {
-			selectCatchments("ecatchment/" + $('#catchmentId').val() + "/downstream.json");
+			selectCatchments("ecatchment/" + $('#catchmentId').val() + "/downstream.json", 1);
 		});
 
 		$('#clearSelection').on("click", function() {
 			clearSelection();
 			$('#dataBar').empty();
 			// deselect the tool
-			if(tool != null) {
-				$('#' + tool).removeClass('activeTool');
-				tool = null;
-				$("#map").removeClass('leaflet-crosshair');
-			}
+			switchTool(false);
 		});
+
+		var filterDataMap = {
+			'name': [
+				"Branche Est du Ruisseau Hébert",
+				"Branche Henshaw",
+				"Branche Lacroix-Messier",
+				"Branche Martin",
+				"Branche Ouest du Ruisseau Hébert",
+				"Branche Saint-Jacques",
+				"Branche de la Savane",
+				"Branche des Quinze Arpents",
+				"Branche des Trente",
+				"Branche du Grand Tronc",
+				"Branche du Milieu",
+				"Bras Sainte-Julie",
+				"Canal Saint-Bruno",
+				"Coulée d'en Bas",
+				"Coulée d'en Haut",
+				"Cours d'eau Barrière",
+				"Cours d'eau Benoît",
+				"Cours d'eau Bonneau",
+				"Cours d'eau Boyce-Gervais",
+				"Cours d'eau Chicoine",
+				"Cours d'eau Cresta",
+				"Cours d'eau Ferguson",
+				"Cours d'eau Galipeau-Ménard",
+				"Cours d'eau Guertin",
+				"Cours d'eau Lemieux",
+				"Cours d'eau Lécuyer",
+				"Cours d'eau Martel-Bessette",
+				"Cours d'eau Molleur-Leduc",
+				"Cours d'eau Poulette Nord",
+				"Cours d'eau Robert",
+				"Cours d'eau Rémillard",
+				"Cours d'eau Saint-Louis?Sainte-Marguerite",
+				"Cours d'eau Smith",
+				"Cours d'eau Smith-Wallace",
+				"Cours d'eau Sorel",
+				"Cours d'eau Trahan",
+				"Décharge Alix",
+				"Décharge Crevier",
+				"Décharge Lacroix",
+				"Décharge Neuve",
+				"Décharge Saint-Pierre",
+				"Décharge Toupin",
+				"Décharge Tétrault-Blanchet",
+				"Décharge de la Côte Double",
+				"Décharge de la Fabrique",
+				"Décharge de la Pointe de Chemise",
+				"Décharge des Cinq",
+				"Décharge des Dix-Huit",
+				"Décharge des Douze",
+				"Décharge des Onze",
+				"Décharge des Quatorze",
+				"Décharge des Quinze",
+				"Décharge des Quinze Saint-Simon Côté Nord",
+				"Décharge des Quinze Saint-Simon Côté Sud",
+				"Décharge des Quinze d'Argenteuil Côté Nord",
+				"Décharge des Six",
+				"Décharge des Soixante",
+				"Décharge des Swell",
+				"Décharge des Trente",
+				"Décharge des Trente Saint-Simon Côté Sud",
+				"Décharge des Trente d'Argenteuil",
+				"Décharge des Trois",
+				"Décharge des Vingt",
+				"Décharge des Vingt de la Rivière Chambly",
+				"Décharge des Vingt-Quatre",
+				"Décharge du Bas des Vingt",
+				"Décharge du Cordon",
+				"Décharge du Derrière du Troisième Rang",
+				"Décharge du Devant du Troisième Rang",
+				"Décharge du Haut des Quarante",
+				"Décharge du Haut des Vingt",
+				"Décharge du Nord de la Côte Double",
+				"Décharge du Rang des Vingt",
+				"Décharge du Trait Carré",
+				"Décharge du Vieux Chemin",
+				"Embranchement Boston",
+				"Embranchement Fréchette",
+				"Embranchement Maurier",
+				"Embranchement McKee",
+				"Embranchement Ostiguy",
+				"Embranchement de la Deuxième Concession Foucault",
+				"Grand ruisseau des Trente",
+				"Grande décharge Mailloux",
+				"Grande décharge O'Connor",
+				"Grande décharge de la Terre Noire",
+				"Grande décharge des Terres Noires",
+				"La Décharge",
+				"La Grande Décharge",
+				"La Petite Décharge",
+				"Le Grand Ruisseau",
+				"Le Ruisseau",
+				"Petit ruisseau Leboeuf",
+				"Petite décharge Noire",
+				"Petite décharge des Quinze",
+				"Petite décharge des Trente",
+				"Richelieu River",
+				"Rivière Amyot",
+				"Rivière Bernier",
+				"Rivière Bleury",
+				"Rivière L'Acadie",
+				"Rivière Lacolle",
+				"Rivière Richelieu",
+				"Rivière des Hurons",
+				"Rivière des Iroquois",
+				"Rivière du Sud",
+				"Ruisseau Adams",
+				"Ruisseau Albert-Tourigny",
+				"Ruisseau Allaire",
+				"Ruisseau André-Bernard",
+				"Ruisseau Antoine-Lacombe",
+				"Ruisseau Arcand",
+				"Ruisseau Archambault",
+				"Ruisseau Archambeault-Lussier",
+				"Ruisseau Archille-Hébert",
+				"Ruisseau Arès",
+				"Ruisseau Babeu",
+				"Ruisseau Barrière",
+				"Ruisseau Barré",
+				"Ruisseau Barsalou",
+				"Ruisseau Beauchemin",
+				"Ruisseau Beaudin-Dumouchel",
+				"Ruisseau Beaudoin",
+				"Ruisseau Beauregard",
+				"Ruisseau Beauvais-Davignon",
+				"Ruisseau Beaver Meadow",
+				"Ruisseau Beloeil",
+				"Ruisseau Benoît-Richer",
+				"Ruisseau Bergeron",
+				"Ruisseau Bernard",
+				"Ruisseau Bernard Est",
+				"Ruisseau Bernard Ouest",
+				"Ruisseau Bessette",
+				"Ruisseau Bessette-Charbonneau",
+				"Ruisseau Bisaillon",
+				"Ruisseau Bissonnette",
+				"Ruisseau Blanc",
+				"Ruisseau Blanchette",
+				"Ruisseau Bleury",
+				"Ruisseau Blueberry",
+				"Ruisseau Boire-Fortin",
+				"Ruisseau Bombardier",
+				"Ruisseau Boulais",
+				"Ruisseau Boulerice",
+				"Ruisseau Bourassa",
+				"Ruisseau Brais-Davignon",
+				"Ruisseau Brault-Gagnon",
+				"Ruisseau Breault",
+				"Ruisseau Breton",
+				"Ruisseau Brière-Lafrance",
+				"Ruisseau Brodeur",
+				"Ruisseau Brosseau",
+				"Ruisseau Brunet",
+				"Ruisseau Bédard",
+				"Ruisseau Caille",
+				"Ruisseau Campbell",
+				"Ruisseau Cardinal",
+				"Ruisseau Carreau",
+				"Ruisseau Carreau-Gosselin",
+				"Ruisseau Chagnon",
+				"Ruisseau Charbonneau",
+				"Ruisseau Charbonneau-Mailloux-Guidotti",
+				"Ruisseau Chartier",
+				"Ruisseau Chaume-Charron",
+				"Ruisseau Choquette",
+				"Ruisseau Cloutier",
+				"Ruisseau Cloutier-Perrier",
+				"Ruisseau Clouâtre",
+				"Ruisseau Cochon",
+				"Ruisseau Coderre",
+				"Ruisseau Comeau-Lecompte",
+				"Ruisseau Cordon Savane",
+				"Ruisseau Courtemanche",
+				"Ruisseau Cusson",
+				"Ruisseau Cyr",
+				"Ruisseau Daigneault-Breton",
+				"Ruisseau Dalpé",
+				"Ruisseau Darsi-Auclair",
+				"Ruisseau Denault-Granger",
+				"Ruisseau Deneault-Béland",
+				"Ruisseau Derick",
+				"Ruisseau Derick-Dupont",
+				"Ruisseau Desgranges",
+				"Ruisseau Deslauriers",
+				"Ruisseau Desnoyers",
+				"Ruisseau Desrosiers",
+				"Ruisseau Didace-Nadeau",
+				"Ruisseau Ducharme",
+				"Ruisseau Ducharme-Noël",
+				"Ruisseau Ducharme-Piché",
+				"Ruisseau Ducharme-Vary",
+				"Ruisseau Duclos-Casavant",
+				"Ruisseau Dupont",
+				"Ruisseau Duquette",
+				"Ruisseau Faddentown",
+				"Ruisseau Faddentown Ouest",
+				"Ruisseau Fairbanks",
+				"Ruisseau Fidèle-Giroux",
+				"Ruisseau Fontaine",
+				"Ruisseau Fournier",
+				"Ruisseau François-Morin",
+				"Ruisseau Fryer",
+				"Ruisseau Gadbois",
+				"Ruisseau Gagné",
+				"Ruisseau Gamache",
+				"Ruisseau Gariépy",
+				"Ruisseau Gauthier-Blain",
+				"Ruisseau Gemme",
+				"Ruisseau Gingras-Lebeau",
+				"Ruisseau Godin-Desranleau",
+				"Ruisseau Goyette",
+				"Ruisseau Grand Tronc",
+				"Ruisseau Grégoire",
+				"Ruisseau Guay",
+				"Ruisseau Guillet",
+				"Ruisseau Hamel",
+				"Ruisseau Hauver-Métivier",
+				"Ruisseau Henri-Bessette",
+				"Ruisseau Honoré-Martin",
+				"Ruisseau Hood",
+				"Ruisseau Hébert",
+				"Ruisseau Inconnu",
+				"Ruisseau Jackson",
+				"Ruisseau Jodoin",
+				"Ruisseau Joseph-Lebeau",
+				"Ruisseau Kyle",
+				"Ruisseau L'Écuyer",
+				"Ruisseau L'Écuyer-Taubel",
+				"Ruisseau Lahaise",
+				"Ruisseau Lalanne",
+				"Ruisseau Lamarre",
+				"Ruisseau Lamoureux",
+				"Ruisseau Langlois-Palardy",
+				"Ruisseau Laplante",
+				"Ruisseau Laporte",
+				"Ruisseau Larivière",
+				"Ruisseau Larochelle",
+				"Ruisseau Larue",
+				"Ruisseau Laurent-Noiseux",
+				"Ruisseau Lavigne",
+				"Ruisseau Lavoie",
+				"Ruisseau Lebeau-Benjamin",
+				"Ruisseau Leblanc-Béchard",
+				"Ruisseau Lecours",
+				"Ruisseau Lefebvre",
+				"Ruisseau Lemieux",
+				"Ruisseau Little",
+				"Ruisseau Longeant",
+				"Ruisseau Lord-Oligny",
+				"Ruisseau Lussier",
+				"Ruisseau Léonard",
+				"Ruisseau Léonide-Tétreault",
+				"Ruisseau Mailloux",
+				"Ruisseau Maillé",
+				"Ruisseau Marcil",
+				"Ruisseau Marcoux",
+				"Ruisseau Martel",
+				"Ruisseau Massé",
+				"Ruisseau McDuff",
+				"Ruisseau Menier-Borduas",
+				"Ruisseau Mercier",
+				"Ruisseau Meunier",
+				"Ruisseau Moreau",
+				"Ruisseau Morin",
+				"Ruisseau Morissey",
+				"Ruisseau Morneau",
+				"Ruisseau Mosher-Daignault",
+				"Ruisseau Ménard",
+				"Ruisseau Méthé",
+				"Ruisseau Méthé-Fournier",
+				"Ruisseau Narbonne",
+				"Ruisseau Noiseux",
+				"Ruisseau Normandin",
+				"Ruisseau Normandin-Desranleau",
+				"Ruisseau Odell",
+				"Ruisseau Paquette",
+				"Ruisseau Paradis",
+				"Ruisseau Parent",
+				"Ruisseau Patenaude",
+				"Ruisseau Pelletier",
+				"Ruisseau Petite Bagnole",
+				"Ruisseau Philias-Bissonette",
+				"Ruisseau Pierre-Dextraze",
+				"Ruisseau Pierre-Lalanne",
+				"Ruisseau Pir-Vir",
+				"Ruisseau Poirier",
+				"Ruisseau Poulin",
+				"Ruisseau Principal",
+				"Ruisseau Provost",
+				"Ruisseau Prud'homme",
+				"Ruisseau Préfontaine",
+				"Ruisseau Pétrimoulx",
+				"Ruisseau Quintin",
+				"Ruisseau Quintin-Pelletier",
+				"Ruisseau Raimbault",
+				"Ruisseau Richard-Gervais",
+				"Ruisseau Richer",
+				"Ruisseau Riendeau-Savaria",
+				"Ruisseau Robert",
+				"Ruisseau Roman-Moreau",
+				"Ruisseau Rondeau-Larivière",
+				"Ruisseau Rondeau-Marcoux",
+				"Ruisseau Rouillé",
+				"Ruisseau Roy",
+				"Ruisseau Roy-Lamarre",
+				"Ruisseau Rémi-Lusignant",
+				"Ruisseau Rémillard",
+				"Ruisseau Saint-Denis?Saint-Bernard",
+				"Ruisseau Saint-Louis",
+				"Ruisseau Saint-Pierre",
+				"Ruisseau Samoisette",
+				"Ruisseau Samson",
+				"Ruisseau Sarasteau",
+				"Ruisseau Sauvage",
+				"Ruisseau Savage",
+				"Ruisseau Simioni",
+				"Ruisseau Smith-Bonneville",
+				"Ruisseau Standish",
+				"Ruisseau Struthers",
+				"Ruisseau Séguin",
+				"Ruisseau Séraphin-Choquette",
+				"Ruisseau Tessier",
+				"Ruisseau Théberge",
+				"Ruisseau Théodore",
+				"Ruisseau Touchette",
+				"Ruisseau Tougas",
+				"Ruisseau Tremblay",
+				"Ruisseau Tétreault",
+				"Ruisseau Vary-Jodoin",
+				"Ruisseau Viens-Lussier",
+				"Ruisseau Viens-Riendeau",
+				"Ruisseau Voghel",
+				"Ruisseau Voghel-Blanchard",
+				"Ruisseau Voghel-Lusignan",
+				"Ruisseau Williams",
+				"Ruisseau Wilson",
+				"Ruisseau Young-Walte",
+				"Ruisseau d'en Haut",
+				"Ruisseau de Misère",
+				"Ruisseau de l'Église",
+				"Ruisseau de la Barbotte",
+				"Ruisseau de la Boue",
+				"Ruisseau de la Branche du Rapide",
+				"Ruisseau de la Loutre",
+				"Ruisseau de la Première Concession Foucault",
+				"Ruisseau de la Rouchière",
+				"Ruisseau de la Tempête",
+				"Ruisseau de la Troisième Concession",
+				"Ruisseau des Atocas",
+				"Ruisseau des Chênes",
+				"Ruisseau des Dix Terres",
+				"Ruisseau des Douze",
+				"Ruisseau des Frères",
+				"Ruisseau des Noyers",
+				"Ruisseau des Ormes",
+				"Ruisseau des Prairies",
+				"Ruisseau des Quarante",
+				"Ruisseau des Quinze",
+				"Ruisseau des Sept Arpents",
+				"Ruisseau des Soeurs Grises",
+				"Ruisseau des Soixante Nord",
+				"Ruisseau des Terres Noires",
+				"Ruisseau des Trente",
+				"Ruisseau des Vingt",
+				"Ruisseau des Étangs",
+				"Ruisseau du Bas des Quarante",
+				"Ruisseau du Bord de l'Eau",
+				"Ruisseau du Coteau",
+				"Ruisseau du Deuxième Rang",
+				"Ruisseau du Haut des Terres",
+				"Ruisseau du Milieu",
+				"Ruisseau du Milieu et du Trait Carré",
+				"Ruisseau du Moulin",
+				"Ruisseau du Nord",
+				"Ruisseau du Pin Rouge",
+				"Ruisseau du Trait Carré",
+				"Ruisseau la Petite France",
+				"Ruisseau la Savane",
+				"Ruisseau Éphrem-Chaput",
+				"Ruisseau Éthier-Fortin",
+				"Ruisseau à l'Ours",
+				"Second Ruisseau",
+				"Troisième Ruisseau"
+			],
+			'type': ['Observed','Constructed','Inferred','Bank','Unknown'],
+			'rank': [1,2],
+			'strahleror': [1,2,3,4,5,6,7,8],
+			'hortonor': [1,2,3,4,5,6,7,8],
+			'length': [10, 100, 250, 500, 1000, 2500, 5000]
+		};
+
+		function flowpathPropSelChange() {
+			var selected = $('#flowpathPropSel').val();
+			var $valSel = $('#flowpathValSel');
+			$valSel.empty();
+			$.each(filterDataMap[selected], function(index, item) {
+				$valSel.append($("<option></option>").text(item));
+			});
+		}
+		// call to initialize values
+		flowpathPropSelChange();
+		$('#flowpathPropSel').on('change', flowpathPropSelChange);
 
 		var dataMap = {
 			nexus: {
@@ -655,8 +1149,8 @@
 				}
 			},
 			eFlowpath: {
-				title: "Elemenary Flowpath",
-				titlePlural: "Elemenary Flowpaths",
+				title: "Elementary Flowpath",
+				titlePlural: "Elementary Flowpaths",
 				cols: {
 					'id': 'ID',
 					'name': 'Primary Name',
@@ -664,7 +1158,7 @@
 					'rank': 'Rank',
 					'strahleror': 'Strahler Order',
 					'hortonor': 'Horton Order',
-					'hackor': 'Hack Order',
+					//'hackor': 'Hack Order',
 					'length': 'Length (metres)'
 				}
 			},
@@ -673,9 +1167,13 @@
 				titlePlural: "Elementary Catchments",
 				cols: {
 					'id': 'ID',
+					'name': 'Primary Name',
 					'type': 'Type',
 					'subtype': 'SubType',
 					'rank': 'Rank',
+					'strahleror': 'Strahler Order',
+					'hortonor': 'Horton Order',
+					//'hackor': 'Hack Order',
 					'area': 'Area (ha)'
 				}
 			},
@@ -688,7 +1186,7 @@
 			}
 		};
 
-		function fillDataTable(data, type) {
+		function fillDataTable(data, type, url) {
 			if(!data) {
 				return;
 			}
@@ -724,29 +1222,39 @@
 			}
 			$table.append($tbody);
 			$('#dataBar').empty();
-			$('#dataBar').append('<div id="dataTitle">' + dataMap[type].titlePlural + '</div>');
+			$('#dataBar').append('<div id="dataTitle" title="' + url + '">' + dataMap[type].titlePlural
+					+ ' <button id="urlButton" type="button" data-clipboard-text="' + url + '">Copy Url</button></div>');
+			//$('#dataBar').append('<div id="dataUrl">' + url + '</div>');
 			$('#dataBar').append($table);
+			new Clipboard('#urlButton');
 		}
 
-		function makeFeatureTable(type, props) {
+		function makeFeatureTable(type, feature) {
 			var title = type;
+			var props = feature.properties;
+			var cols = props;
 			if(dataMap[type]) {
 				title = dataMap[type].title;
+				var cols = dataMap[type].cols;
 			}
 			var str = '<span class="featureTitle">' + title + '</span><table class="featureTable">';
-			for(var p in props) {
-				var name = p;
+			for(var c in cols) {
+				var name = c;
 				if(dataMap[type]) {
-					name = dataMap[type].cols[p];
+					name = cols[c];
 				}
-				str += '<tr><td>' + name + '</td><td>';
-				if(/^https?:\/\//.test(props[p])) {
-					var val = props[p].split('/').pop().split('#')[0].split('?')[0];
-				 	str += '<a target="_blank" href="' + props[p] + '">' + val + '</a>';
-				} else {
-					str += props[p];
+				if(c == 'id') {
+					str += '<tr><td>' + name + '</td><td>' + feature.ID + '</td></tr>';
+				} else if(props[c]) {
+					str += '<tr><td>' + name + '</td><td>';
+					if(/^https?:\/\//.test(props[c])) {
+						var val = props[c].split('/').pop().split('#')[0].split('?')[0];
+			 			str += '<a target="_blank" href="' + props[c] + '">' + val + '</a>';
+					} else {
+						str += props[c];
+					}
+					str += "</td></tr>";
 				}
-				str += "</td></tr>";
 			}
 			str += "</table>";
 			return str;

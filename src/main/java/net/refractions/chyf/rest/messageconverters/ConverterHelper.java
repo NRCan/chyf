@@ -32,9 +32,9 @@ public abstract class ConverterHelper {
 
 	protected abstract void responseHeader(ApiResponse response) throws IOException;
 	protected abstract void responseFooter(ApiResponse response) throws IOException;
-	protected abstract void featureCollectionHeader() throws IOException;
+	protected abstract void featureCollectionHeader(ApiResponse response) throws IOException;
 	protected abstract void featureCollectionFooter() throws IOException;
-	protected abstract void featureHeader(Geometry g, Integer id) throws IOException;
+	protected abstract void featureHeader(Geometry g, Integer id, ApiResponse response) throws IOException;
 	protected abstract void featureFooter() throws IOException;
 	protected abstract void objectHeader() throws IOException;
 	protected abstract void objectFooter() throws IOException;
@@ -43,44 +43,50 @@ public abstract class ConverterHelper {
 	protected abstract void nestedFieldHeader(String fieldName) throws IOException;
 	protected abstract void nestedFieldFooter() throws IOException;
 	
+	protected abstract void field(String fieldName, boolean fieldValue) throws IOException;
 	protected abstract void field(String fieldName, long fieldValue) throws IOException;
 	protected abstract void field(String fieldName, double fieldValue) throws IOException;
 	protected abstract void field(String fieldName, String fieldValue) throws IOException;
 	protected abstract void nullData() throws IOException;
 	
-	protected void nexus(Nexus nexus, ApiResponse response) throws IOException {
-		featureHeader(GeotoolsGeometryReprojector.reproject(nexus.getPoint(), response.getSrs()), nexus.getId());
+	protected void nexus(Nexus nexus, ApiResponse response, ApiResponse responseMetadata) throws IOException {
+		featureHeader(GeotoolsGeometryReprojector.reproject(nexus.getPoint(), response.getSrs()), nexus.getId(), responseMetadata);
 		field("type", nexus.getType().toString());
 		featureFooter();
 	}
-	protected void eFlowpath(EFlowpath eFlowpath, ApiResponse response) throws IOException {
-		featureHeader(filterCoords(GeotoolsGeometryReprojector.reproject(eFlowpath.getLineString(), response.getSrs()), response.getScale()), eFlowpath.getId());
+	protected void eFlowpath(EFlowpath eFlowpath, ApiResponse response, ApiResponse responseMetadata) throws IOException {
+		featureHeader(filterCoords(GeotoolsGeometryReprojector.reproject(eFlowpath.getLineString(), response.getSrs()), response.getScale()), eFlowpath.getId(), responseMetadata);
 		field("name", eFlowpath.getName());
 		field("type", eFlowpath.getType().toString());
 		field("rank", eFlowpath.getRank());
 		field("strahleror", eFlowpath.getStrahlerOrder());
 		field("hortonor", eFlowpath.getHortonOrder());
-		field("hackor", eFlowpath.getHackOrder());
+		//field("hackor", eFlowpath.getHackOrder());
 		field("length", eFlowpath.getLength());
 		featureFooter();
 	}
 
-	protected void eCatchment(ECatchment eCatchment, ApiResponse response) throws IOException {
-		featureHeader(GeotoolsGeometryReprojector.reproject(eCatchment.getPolygon(), response.getSrs()), eCatchment.getId());
+	protected void eCatchment(ECatchment eCatchment, ApiResponse response, ApiResponse responseMetadata) throws IOException {
+		featureHeader(GeotoolsGeometryReprojector.reproject(eCatchment.getPolygon(), response.getSrs()), eCatchment.getId(), responseMetadata);
+		field("name", eCatchment.getName());
 		field("type", eCatchment.getType().toString());
 		field("subtype", eCatchment.getType().getSubType());
 		field("rank", eCatchment.getRank());
+		field("isTerminal", eCatchment.isTerminal());
+		field("strahleror", eCatchment.getStrahlerOrder());
+		field("hortonor", eCatchment.getHortonOrder());
+		//field("hackor", eCatchment.getHackOrder());
 		field("area", eCatchment.getArea()/10000);		
 		featureFooter();
 	}
 
-	protected void drainageArea(DrainageArea drainageArea, ApiResponse response) throws IOException {
-		featureHeader(GeotoolsGeometryReprojector.reproject(drainageArea.getGeometry(), response.getSrs()), 1);
+	protected void drainageArea(DrainageArea drainageArea, ApiResponse response, ApiResponse responseMetadata) throws IOException {
+		featureHeader(GeotoolsGeometryReprojector.reproject(drainageArea.getGeometry(), response.getSrs()), 1, responseMetadata);
 		field("area", drainageArea.getArea()/10000);		
 		featureFooter();
 	}
 
-	protected void spatiallyIndexable(SpatiallyIndexable spatiallyIndexable, ApiResponse response) throws IOException {
+	protected void spatiallyIndexable(SpatiallyIndexable spatiallyIndexable, ApiResponse response, ApiResponse responseMetadata) throws IOException {
 		Envelope e = spatiallyIndexable.getEnvelope();
 		Coordinate[] coords = {
 				new Coordinate(e.getMinX(), e.getMinY()), 
@@ -90,42 +96,50 @@ public abstract class ConverterHelper {
 				new Coordinate(e.getMinX(), e.getMinY())
 		};
 		Polygon polygon = ChyfDatastore.GEOMETRY_FACTORY.createPolygon(coords);
-		featureHeader(GeotoolsGeometryReprojector.reproject(polygon, response.getSrs()), null);
+		featureHeader(GeotoolsGeometryReprojector.reproject(polygon, response.getSrs()), null, responseMetadata);
 		featureFooter();
+	}
+
+	protected void responseMetadata(ApiResponse response) throws IOException {
+		if(response != null) {
+			nestedFieldHeader("responseMetadata");
+			objectHeader();
+			field("executionTime", response.getExecutionTime());
+			objectFooter();
+			nestedFieldFooter();
+		}
 	}
 
 	public void convertResponse(ApiResponse response) 
 			throws IOException {
 		responseHeader(response);
-		field("executionTime", response.getExecutionTime());
 		Object data = response.getData();
-		if(data instanceof Iterable<?>) {
-			nestedFieldHeader("data");
-			featureCollectionHeader();
+		if(data == null) {
+			featureCollectionHeader(response);
+			featureCollectionFooter();			
+		} else if(data instanceof Iterable<?>) {
+			featureCollectionHeader(response);
 			for(Object o : ((Iterable<?>)data)) {
-				dataObject(o, response);
+				dataObject(o, response, null);
 			}
 			featureCollectionFooter();
-			nestedFieldFooter();
 		} else {
-			nestedFieldHeader("data");
-			dataObject(data,response);
-			nestedFieldFooter();
+			dataObject(data, response, response);
 		}
 		responseFooter(response);
 	}
 	
-	private void dataObject(Object data, ApiResponse response) throws IOException {
+	private void dataObject(Object data, ApiResponse response, ApiResponse responseMetadata) throws IOException {
 		if(data instanceof Nexus) {
-			nexus((Nexus)data, response);
+			nexus((Nexus)data, response, responseMetadata);
 		} else if(data instanceof EFlowpath) {
-			eFlowpath((EFlowpath)data, response);
+			eFlowpath((EFlowpath)data, response, responseMetadata);
 		} else if(data instanceof ECatchment) {
-			eCatchment((ECatchment)data, response);
+			eCatchment((ECatchment)data, response, responseMetadata);
 		} else if(data instanceof DrainageArea) {
-			drainageArea((DrainageArea)data, response);
+			drainageArea((DrainageArea)data, response, responseMetadata);
 		} else if(data instanceof SpatiallyIndexable) {
-			spatiallyIndexable((SpatiallyIndexable)data, response);
+			spatiallyIndexable((SpatiallyIndexable)data, response, responseMetadata);
 		} else {
 			nullData();
 		}

@@ -22,17 +22,20 @@ public class JsonConverterHelper extends ConverterHelper {
 	
 	@Override
 	protected void responseHeader(ApiResponse response) throws IOException {
-		jw.beginObject();
 	}
 	
 	@Override
 	protected void responseFooter(ApiResponse response) throws IOException {
-		jw.endObject();
 	}
 
 	@Override
 	protected void nullData() throws IOException {
 		jw.nullValue();
+	}
+
+	@Override
+	protected void field(String fieldName, boolean fieldValue) throws IOException {
+		jw.name(fieldName).value(fieldValue);
 	}
 
 	@Override
@@ -51,9 +54,10 @@ public class JsonConverterHelper extends ConverterHelper {
 	}
 	
 	@Override
-	protected void featureCollectionHeader() throws IOException {
+	protected void featureCollectionHeader(ApiResponse responseMetadata) throws IOException {
 		jw.beginObject();
 		jw.name("type").value("FeatureCollection");
+		responseMetadata(responseMetadata);
 		jw.name("features");
 		jw.beginArray();
 	}
@@ -65,9 +69,10 @@ public class JsonConverterHelper extends ConverterHelper {
 	}
 
 	@Override
-	protected void featureHeader(Geometry g, Integer id) throws IOException {
+	protected void featureHeader(Geometry g, Integer id, ApiResponse responseMetadata) throws IOException {
 		jw.beginObject();
 		jw.name("type").value("Feature");
+		responseMetadata(responseMetadata);
 		if(id != null) {
 			jw.name("ID").value(id);
 		}

@@ -3,7 +3,6 @@ package net.refractions.chyf.hygraph;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 
@@ -40,19 +39,20 @@ public class HyGraph {
 		this.eCatchments = eCatchments;
 
 		// Sort the terminal nodes first for easy access
-		Arrays.sort(nexuses, new Comparator<Nexus>(){
-			@Override
-			public int compare(Nexus n1, Nexus n2) {
-				if(n1.getType().equals(NexusType.TERMINAL)
-						&& !n2.getType().equals(NexusType.TERMINAL)) {
-					return -1;
-				} else if(!n1.getType().equals(NexusType.TERMINAL)
-						&& n2.getType().equals(NexusType.TERMINAL)) {
-					return 1;
-				}
-				return 0;
-			}
-		});
+		// Actually don't as this ruins the id-based array access 
+//		Arrays.sort(nexuses, new Comparator<Nexus>(){
+//			@Override
+//			public int compare(Nexus n1, Nexus n2) {
+//				if(n1.getType().equals(NexusType.TERMINAL)
+//						&& !n2.getType().equals(NexusType.TERMINAL)) {
+//					return -1;
+//				} else if(!n1.getType().equals(NexusType.TERMINAL)
+//						&& n2.getType().equals(NexusType.TERMINAL)) {
+//					return 1;
+//				}
+//				return 0;
+//			}
+//		});
 
 		nexusIndex = new RTree<Nexus>(Arrays.asList(nexuses));
 		eFlowpathIndex = new RTree<EFlowpath>(Arrays.asList(eFlowpaths));
@@ -60,11 +60,17 @@ public class HyGraph {
 	}
 	
 	public Nexus getNexus(int nexusId) {
-		return nexuses[nexusId-1];
+		if(nexusId > 0 && nexusId <= nexuses.length) {
+			return nexuses[nexusId-1];
+		}
+		return null;
 	}
 
 	public EFlowpath getEFlowpath(int eflowpathId) {
-		return eFlowpaths[eflowpathId-1];
+		if(eflowpathId > 0 && eflowpathId <= eFlowpaths.length) {
+			return eFlowpaths[eflowpathId-1];
+		}
+		return null;
 	}
 
 	/*
@@ -107,12 +113,25 @@ public class HyGraph {
 		return flowpath;
 	}
 	
+	public List<EFlowpath> getEFlowpaths(Filter<EFlowpath> filter) {
+		List<EFlowpath> results = new ArrayList<EFlowpath>();
+		for(EFlowpath f : eFlowpaths) {
+			if(filter.pass(f)) {
+				results.add(f);
+			}
+		}
+		return results;
+	}
+
 	public List<EFlowpath> findEFlowpaths(Point p, int maxResults, Integer maxDistance, Filter<EFlowpath> f) {
 		return eFlowpathIndex.search(p, maxResults, maxDistance, f);
 	}
 
-	public ECatchment getECatchment(int id) {
-		return eCatchments[id-1];
+	public ECatchment getECatchment(int ecatchmentId) {
+		if(ecatchmentId > 0 && ecatchmentId <= eCatchments.length) {
+			return eCatchments[ecatchmentId];
+		}
+		return null;	
 	}
 
 	public ECatchment getECatchment(Point point) {
@@ -273,4 +292,5 @@ public class HyGraph {
 		}
 		return g;
 	}
+
 }

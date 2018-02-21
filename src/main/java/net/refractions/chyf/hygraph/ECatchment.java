@@ -16,7 +16,12 @@ public class ECatchment implements SpatiallyIndexable {
 	private final double area;
 	private final Polygon polygon;
 	private CatchmentType type;
+	private boolean terminal;
 	private int rank = -1;
+	private String name = null;
+	private int strahlerOrder = -1;
+	private int hortonOrder = -1;
+	//private int hackOrder = -1;
 	private List<EFlowpath> flowpaths;
 	private List<Nexus> upNexuses; 
 	private List<Nexus> downNexuses; 
@@ -47,9 +52,45 @@ public class ECatchment implements SpatiallyIndexable {
 		this.type = type;
 	}
 
+	public boolean isTerminal() {
+		return terminal;
+	}
+
+	public void setTerminal(boolean terminal) {
+		this.terminal = terminal;
+	}
+
 	public int getRank() {
 		return rank;
 	}
+
+	public String getName() {
+		return name;
+	}
+
+	public int getStrahlerOrder() {
+		return strahlerOrder;
+	}
+
+	public void setStrahlerOrder(int strahlerOrder) {
+		this.strahlerOrder = strahlerOrder;
+	}
+
+	public int getHortonOrder() {
+		return hortonOrder;
+	}
+
+	public void setHortonOrder(int hortonOrder) {
+		this.hortonOrder = hortonOrder;
+	}
+
+//	public int getHackOrder() {
+//		return hackOrder;
+//	}
+//
+//	public void setHackOrder(int hackOrder) {
+//		this.hackOrder = hackOrder;
+//	}
 
 	public Polygon getPolygon() {
 		return polygon;
@@ -69,6 +110,24 @@ public class ECatchment implements SpatiallyIndexable {
 		if(flowpath.getRank() > 0 
 				&& (rank < 0 || (flowpath.getRank() < rank))) {
 			rank = flowpath.getRank();
+		}
+		if(flowpath.getStrahlerOrder() > strahlerOrder) {
+			strahlerOrder = flowpath.getStrahlerOrder();
+		}
+		if(flowpath.getHortonOrder() > hortonOrder) {
+			hortonOrder = flowpath.getHortonOrder();
+		}
+//		if(flowpath.getHackOrder() < hackOrder) {
+//			hackOrder = flowpath.getHackOrder();
+//		}
+		if(flowpath.getName() != null && !flowpath.getName().isEmpty()) {
+			if(name == null) {
+				name = flowpath.getName();
+			} else if(!name.equals(flowpath.getName())) {
+				// empty string is a special value to mean we aren't going to assign a name 
+				// because flowpaths with different names are contained by this eCatchment
+				name = ""; 
+			}
 		}
 		flowpaths.add(flowpath);
 	}

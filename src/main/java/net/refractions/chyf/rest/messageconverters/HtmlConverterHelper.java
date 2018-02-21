@@ -15,12 +15,20 @@ public class HtmlConverterHelper extends ConverterHelper {
 		super(out);
 	}
 	
+	private void startTable() throws IOException {
+		out.write("<table style='border: 1px solid black'>");
+	}
+
+	private void endTable() throws IOException {
+		out.write("</table>");
+	}
+
 	public void responseHeader(ApiResponse response) throws IOException {
-		out.write(("<!DOCTYPE html><html><head><title>Response</title></head><body><table style='border: 1px solid black'>"));
+		out.write(("<!DOCTYPE html><html><head><title>Response</title><meta charset=\"UTF-8\"></head><body>"));
 	}
 
 	public void responseFooter(ApiResponse response) throws IOException {
-		out.write("</table></body></html>");
+		out.write("</body></html>");
 	}
 
 	@Override
@@ -29,14 +37,21 @@ public class HtmlConverterHelper extends ConverterHelper {
 	}
 
 	@Override
+	protected void field(String fieldName, boolean fieldValue) throws IOException {
+		field(fieldName, Boolean.toString(fieldValue));
+	}
+
+	@Override
 	protected void field(String fieldName, double fieldValue) throws IOException {
 		field(fieldName, METRE_FORMAT.format(fieldValue));
 	}
 
+	@Override
 	protected void field(String fieldName, long fieldValue) throws IOException {
 		field(fieldName, Long.toString(fieldValue));
 	}
 
+	@Override
 	protected void field(String fieldName, String fieldValue) throws IOException {
 		out.write("<tr><td>" + fieldName + ":</td>");		
 		out.write("<td>" + escape(fieldValue) + "</td></tr>\n");
@@ -61,27 +76,25 @@ public class HtmlConverterHelper extends ConverterHelper {
 
 	@Override
 	protected void objectHeader() throws IOException {
-		out.write("<tr><td><table style='border: 1px solid black'>");
+		startTable();
 	}
 	
 	@Override
 	protected void objectFooter() throws IOException {
-		out.write("</table></td></tr>");	
+		endTable();	
 	}
 	
 	@Override
 	protected void listHeader() throws IOException {
-		out.write("<table style='border: 1px solid black'>");
 	}
 	
 	@Override
 	protected void listFooter() throws IOException {
-		out.write("</table>");
 	}
 	
 	@Override
 	protected void nestedFieldHeader(String fieldName) throws IOException {
-		out.write("<tr><td>" + fieldName + "</td><td>");
+		out.write("<tr><td>" + fieldName + ":</td><td>");
 	}
 	
 	@Override
@@ -90,18 +103,24 @@ public class HtmlConverterHelper extends ConverterHelper {
 	}
 
 	@Override
-	protected void featureCollectionHeader() throws IOException {
+	protected void featureCollectionHeader(ApiResponse responseMetadata) throws IOException {
+		objectHeader();
+		responseMetadata(responseMetadata);
+		nestedFieldHeader("Features");
 		listHeader();
 	}
 
 	@Override
 	protected void featureCollectionFooter() throws IOException {
 		listFooter();
+		nestedFieldFooter();
+		objectFooter();
 	}
 
 	@Override
-	protected void featureHeader(Geometry g, Integer id) throws IOException {
+	protected void featureHeader(Geometry g, Integer id, ApiResponse responseMetadata) throws IOException {
 		objectHeader();
+		responseMetadata(responseMetadata);
 		if(id != null) {
 			field("ID", id);
 		}

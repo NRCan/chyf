@@ -1,7 +1,10 @@
 package net.refractions.chyf.hygraph;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.EnumMap;
+import java.util.HashSet;
 import java.util.List;
 
 import net.refractions.chyf.enumTypes.CatchmentType;
@@ -42,7 +45,10 @@ public class HyGraphBuilder {
 	}
 	
 	public HyGraph build() {
+		//outputUniqueNames();
 		classifyNexuses();
+		//findCycles();
+		calcStrahlerOrders();
 		classifyCatchments();
 		return new HyGraph(nexuses.toArray(new Nexus[nexuses.size()]), 
 				eFlowpaths.toArray(new EFlowpath[eFlowpaths.size()]),
@@ -58,7 +64,7 @@ public class HyGraphBuilder {
 			FlowpathType type, int rank, String name, int strahlerOrder, int hortonOrder, int hackOrder, 
 			ECatchment catchment, LineString lineString) {
 		EFlowpath eFlowpath = new EFlowpath(nextEdgeId++, fromNexus, toNexus, length, type, rank, name, 
-				strahlerOrder, hortonOrder, hackOrder, catchment, lineString);
+				strahlerOrder, hortonOrder, /*hackOrder,*/ catchment, lineString);
 		eFlowpaths.add(eFlowpath);
 		fromNexus.addDownFlow(eFlowpath);
 		toNexus.addUpFlow(eFlowpath);
@@ -227,6 +233,106 @@ public class HyGraphBuilder {
 					c.setType(CatchmentType.REACH);
 				}
 			}
+			for(Nexus n : c.getDownNexuses()) {
+				if(n.getType() == NexusType.TERMINAL) {
+					c.setTerminal(true);
+				}
+			}
+		}
+	}
+	
+	private boolean findCycles() {
+		System.out.print("Finding cycles...");
+		boolean[] checked = new boolean[eFlowpaths.size()];
+		for(int i = 0; i < checked.length; i++) {
+			checked[i] = false;
+		}
+		for(EFlowpath f : eFlowpaths) {
+			if(f.getId() % 100 == 0) {
+				System.out.print(f.getId() + "..");
+			}
+			if(findCycles(f, new HashSet<EFlowpath>(), checked)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	private boolean findCycles(EFlowpath f, HashSet<EFlowpath> visited, boolean[] checked) {
+		if(checked[f.getId()-1]) return false;
+		if(visited.contains(f)) {
+			System.out.println("Cycle found: " + f.getId());
+			return true;
+		}
+		visited.add(f);
+		for(EFlowpath u: f.getFromNode().getUpFlows()) {
+			if(findCycles(u, visited, checked)) {
+				return true;
+			}
+		}
+		checked[f.getId()-1] = true;
+		visited.remove(f);
+		return false;
+	}	
+	
+	private void calcStrahlerOrders() {
+		System.out.print("Calculating Strahler Order...");
+		for(EFlowpath f: eFlowpaths) {
+			f.setStrahlerOrder(-1);
+		}
+		// every eFlowpath in the q still needs to have its order calculated
+		Deque<EFlowpath> q = new ArrayDeque<EFlowpath>(eFlowpaths);
+		queue:
+		while(!q.isEmpty()) {
+			if(q.size() % 100 == 0) {
+				System.out.print(q.size() + "..");
+			}
+			EFlowpath f = q.poll();
+			if(f.getRank() > 1) {
+				continue;
+			}
+			List<EFlowpath> upflows = f.getFromNode().getUpFlows();
+			if(upflows.size() == 0) {
+				f.setStrahlerOrder(1);
+				continue;
+			} 
+			int maxUpflow = -1;
+			int order = 1;
+			for(EFlowpath u : upflows) {
+				if(u.getRank() > 1) {
+					continue;
+				}
+				int upOrder = u.getStrahlerOrder();
+				if(upOrder == -1) {
+					q.add(f);
+					continue queue;
+				}
+				if(upOrder > maxUpflow) {
+					maxUpflow = upOrder; 
+				} else if(maxUpflow == upOrder) {
+					order = maxUpflow + 1;
+				}
+			}
+			if(maxUpflow > order) {
+				order = maxUpflow;
+			}
+			f.setStrahlerOrder(order);
+		}
+		System.out.println("done.");
+	}
+	
+	private void outputUniqueNames() {
+		HashSet<String> names = new HashSet<String>();
+		for(EFlowpath f : eFlowpaths) {
+			String name = f.getName();
+			if(name != null && !name.isEmpty()) {
+				names.add(name);
+			}
+		}
+		List<String> sortedNames = new ArrayList<String>(names);
+		sortedNames.sort(null);
+		for(String name : sortedNames) {
+			System.out.println("\"" + name + "\",");
 		}
 	}
 }

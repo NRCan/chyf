@@ -64,7 +64,7 @@ public class WebConfig extends WebMvcConfigurerAdapter {
 		configurer
 				.favorPathExtension(true)
 				.favorParameter(false)
-				.ignoreAcceptHeader(true)
+				//.ignoreAcceptHeader(true)
 				.useJaf(false)
 				.defaultContentType(MediaType.APPLICATION_XHTML_XML)
 				.mediaType("xhtml", MediaType.APPLICATION_XHTML_XML)

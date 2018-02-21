@@ -59,19 +59,20 @@ public class RTree<T extends SpatiallyIndexable> {
 		}
 	}
 
-	// unfiltered query just passes an anonymous always-pass filter
 	public List<T> search(Point query, int nResults, Integer maxDistance) {
-		return search(query, nResults, maxDistance,
-				new Filter<T>() {
-					@Override
-					public boolean pass(T item) {
-						return true;
-					}
-				});
+		return search(query, nResults, maxDistance, null);
 	}
 	
 	public List<T> search(Point query, int nResults, Integer maxDistance,
 			Filter<? super T> filter) {
+		if(filter == null) {
+			filter = new Filter<T>() {
+				@Override
+				public boolean pass(T item) {
+					return true;
+				}
+			};
+		}
 		return queueToOrderedList(searchInternal(query, nResults, maxDistance, filter));
 	}
 	
