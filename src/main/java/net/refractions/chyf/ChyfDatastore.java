@@ -21,6 +21,8 @@ import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.FeatureIterator;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.LineString;
@@ -30,6 +32,7 @@ import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.geom.PrecisionModel;
 
 public class ChyfDatastore {
+	static final Logger logger = LoggerFactory.getLogger(ChyfDatastore.class.getCanonicalName());
 	
 	public static final int BASE_SRS = 6624; // Quebec Albers
 	public static final GeometryFactory GEOMETRY_FACTORY = new GeometryFactory(new PrecisionModel(), BASE_SRS);
@@ -57,6 +60,7 @@ public class ChyfDatastore {
 		    HyGraphBuilder gb = new HyGraphBuilder();
 
 			// read and add Waterbodies
+		    logger.info("Reading waterbodies shapefile");
 			DataStore waterbodyDataStore = getShapeFileDataStore(dataDir + "Waterbody.shp");
 		    String waterbodyTypeName = waterbodyDataStore.getTypeNames()[0];
 		    FeatureSource<SimpleFeatureType, SimpleFeature> waterbodyFeatureSource = waterbodyDataStore.getFeatureSource(waterbodyTypeName);
@@ -89,6 +93,7 @@ public class ChyfDatastore {
 		    waterbodyDataStore.dispose();
 
 			// read and add Catchments
+		    logger.info("Reading catchments shapefile");
 			DataStore catchmentDataStore = getShapeFileDataStore(dataDir + "Catchment.shp");
 		    String catchmentTypeName = catchmentDataStore.getTypeNames()[0];
 		    FeatureSource<SimpleFeatureType, SimpleFeature> catchmentFeatureSource = catchmentDataStore.getFeatureSource(catchmentTypeName);
@@ -106,6 +111,7 @@ public class ChyfDatastore {
 		    catchmentDataStore.dispose();
 
 		    // read and add Flowpaths
+		    logger.info("Reading flowpaths shapefile");
 			DataStore flowPathDataStore = getShapeFileDataStore(dataDir + "Flowpath.shp");
 		    String flowPathTypeName = flowPathDataStore.getTypeNames()[0];
 		    FeatureSource<SimpleFeatureType, SimpleFeature> flowpathFeatureSource = flowPathDataStore.getFeatureSource(flowPathTypeName);
@@ -126,6 +132,7 @@ public class ChyfDatastore {
 		            	rank = 2;
 		            } 
 		            String name = ((String)feature.getAttribute("NAME")).intern();
+		            Integer certainty = (Integer)feature.getAttribute("DIRECTION");
 		            Integer strahlerOrder = (Integer)feature.getAttribute("STRAHLEROR");
 		            if(strahlerOrder == null) {
 		            	strahlerOrder = -1;
@@ -138,7 +145,7 @@ public class ChyfDatastore {
 		            if(hackOrder == null) {
 		            	hackOrder = -1;
 		            }
-		            gb.addEFlowpath(type, rank, name, strahlerOrder, hortonOrder, hackOrder, flowPath);
+		            gb.addEFlowpath(type, rank, name, certainty, strahlerOrder, hortonOrder, hackOrder, flowPath);
 		        }
 		    }
 		    flowPathDataStore.dispose();

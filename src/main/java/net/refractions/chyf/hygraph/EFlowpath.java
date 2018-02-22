@@ -15,14 +15,15 @@ public class EFlowpath implements SpatiallyIndexable {
 	private final FlowpathType type;
 	private final int rank;
 	private final String name;
-	private int strahlerOrder;
-	private int hortonOrder;
-	//private int hackOrder;
+	private final int certainty;
+	private Integer strahlerOrder;
+	private Integer hortonOrder;
+	private Integer hackOrder;
 	private final ECatchment catchment;
 	private final LineString lineString;
 	
 	public EFlowpath(int id, Nexus fromNode, Nexus toNode, double length, FlowpathType type, int rank, String name, 
-			int strahlerOrder, int hortonOrder, /*int hackOrder,*/ ECatchment catchment, LineString lineString) {
+			int certainty, int strahlerOrder, int hortonOrder, int hackOrder, ECatchment catchment, LineString lineString) {
 		this.id = id;
 		this.fromNode = fromNode;
 		this.toNode = toNode;
@@ -30,9 +31,10 @@ public class EFlowpath implements SpatiallyIndexable {
 		this.type = type;
 		this.rank = rank;
 		this.name = name;
-		this.setStrahlerOrder(strahlerOrder);
-		this.setHortonOrder(hortonOrder);
-		//this.setHackOrder(hackOrder);
+		this.certainty = certainty;
+		this.strahlerOrder = strahlerOrder;
+		this.hortonOrder = hortonOrder;
+		this.hackOrder =hackOrder;
 		this.catchment = catchment;
 		this.lineString = lineString;
 	}
@@ -69,29 +71,33 @@ public class EFlowpath implements SpatiallyIndexable {
 		return name;
 	}
 
-	public int getStrahlerOrder() {
+	public int getCertainty() {
+		return certainty;
+	}
+
+	public Integer getStrahlerOrder() {
 		return strahlerOrder;
 	}
 
-	public void setStrahlerOrder(int strahlerOrder) {
+	public void setStrahlerOrder(Integer strahlerOrder) {
 		this.strahlerOrder = strahlerOrder;
 	}
 
-	public int getHortonOrder() {
+	public Integer getHortonOrder() {
 		return hortonOrder;
 	}
 
-	public void setHortonOrder(int hortonOrder) {
+	public void setHortonOrder(Integer hortonOrder) {
 		this.hortonOrder = hortonOrder;
 	}
 
-//	public int getHackOrder() {
-//		return hackOrder;
-//	}
-//
-//	public void setHackOrder(int hackOrder) {
-//		this.hackOrder = hackOrder;
-//	}
+	public Integer getHackOrder() {
+		return hackOrder;
+	}
+
+	public void setHackOrder(Integer hackOrder) {
+		this.hackOrder = hackOrder;
+	}
 
 	public ECatchment getCatchment() {
 		return catchment;

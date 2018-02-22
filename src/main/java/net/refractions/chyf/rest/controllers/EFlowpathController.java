@@ -201,12 +201,13 @@ public class EFlowpathController {
 			case "name": filter = new PredicateFilter<EFlowpath>(EFlowpath::getName, PredicateParameter.convert(params.getPredicate()).get(), params.getValue()); break;
 			case "type": filter = new PredicateFilter<EFlowpath>(EFlowpath::getType, PredicateParameter.convert(params.getPredicate()).get(), FlowpathType.convert(params.getValue())); break;
 			case "rank": filter = new PredicateFilter<EFlowpath>(EFlowpath::getRank, PredicateParameter.convert(params.getPredicate()).get(), Integer.parseInt(params.getValue())); break;
+			case "certainty": filter = new PredicateFilter<EFlowpath>(EFlowpath::getCertainty, PredicateParameter.convert(params.getPredicate()).get(), Integer.parseInt(params.getValue())); break;
 			case "strahleror": filter = new PredicateFilter<EFlowpath>(EFlowpath::getStrahlerOrder, PredicateParameter.convert(params.getPredicate()).get(), Integer.parseInt(params.getValue())); break;
 			case "hortonor": filter = new PredicateFilter<EFlowpath>(EFlowpath::getHortonOrder, PredicateParameter.convert(params.getPredicate()).get(), Integer.parseInt(params.getValue())); break;
-			//case "hackor": filter = new PredicateFilter<EFlowpath>(EFlowpath::getHackOrder, PredicateParameter.convert(params.getPredicate()).get(), Integer.parseInt(params.getValue())); break;
+			case "hackor": filter = new PredicateFilter<EFlowpath>(EFlowpath::getHackOrder, PredicateParameter.convert(params.getPredicate()).get(), Integer.parseInt(params.getValue())); break;
 			case "length": filter = new PredicateFilter<EFlowpath>(EFlowpath::getLength, PredicateParameter.convert(params.getPredicate()).get(), Double.parseDouble(params.getValue())); break;
 			default:
-				String errMsg = "The property parameter must be one of (name, type, rank, strahleror, hortonor, length).";
+				String errMsg = "The property parameter must be one of (name, type, rank, certainty, strahleror, hortonor, hackor, length).";
 				throw new IllegalArgumentException(errMsg);
 		}
 		

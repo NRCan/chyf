@@ -47,8 +47,12 @@ public class HtmlConverterHelper extends ConverterHelper {
 	}
 
 	@Override
-	protected void field(String fieldName, long fieldValue) throws IOException {
-		field(fieldName, Long.toString(fieldValue));
+	protected void field(String fieldName, Long fieldValue) throws IOException {
+		if(fieldValue == null) {
+			field(fieldName, "null");
+		} else {
+			field(fieldName, fieldValue.toString());
+		}
 	}
 
 	@Override

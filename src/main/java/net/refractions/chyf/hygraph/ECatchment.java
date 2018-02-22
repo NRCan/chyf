@@ -19,9 +19,9 @@ public class ECatchment implements SpatiallyIndexable {
 	private boolean terminal;
 	private int rank = -1;
 	private String name = null;
-	private int strahlerOrder = -1;
-	private int hortonOrder = -1;
-	//private int hackOrder = -1;
+	private Integer strahlerOrder = null;
+	private Integer hortonOrder = null;
+	private Integer hackOrder = null;
 	private List<EFlowpath> flowpaths;
 	private List<Nexus> upNexuses; 
 	private List<Nexus> downNexuses; 
@@ -68,29 +68,29 @@ public class ECatchment implements SpatiallyIndexable {
 		return name;
 	}
 
-	public int getStrahlerOrder() {
+	public Integer getStrahlerOrder() {
 		return strahlerOrder;
 	}
 
-	public void setStrahlerOrder(int strahlerOrder) {
+	public void setStrahlerOrder(Integer strahlerOrder) {
 		this.strahlerOrder = strahlerOrder;
 	}
 
-	public int getHortonOrder() {
+	public Integer getHortonOrder() {
 		return hortonOrder;
 	}
 
-	public void setHortonOrder(int hortonOrder) {
+	public void setHortonOrder(Integer hortonOrder) {
 		this.hortonOrder = hortonOrder;
 	}
 
-//	public int getHackOrder() {
-//		return hackOrder;
-//	}
-//
-//	public void setHackOrder(int hackOrder) {
-//		this.hackOrder = hackOrder;
-//	}
+	public Integer getHackOrder() {
+		return hackOrder;
+	}
+
+	public void setHackOrder(Integer hackOrder) {
+		this.hackOrder = hackOrder;
+	}
 
 	public Polygon getPolygon() {
 		return polygon;
@@ -111,15 +111,6 @@ public class ECatchment implements SpatiallyIndexable {
 				&& (rank < 0 || (flowpath.getRank() < rank))) {
 			rank = flowpath.getRank();
 		}
-		if(flowpath.getStrahlerOrder() > strahlerOrder) {
-			strahlerOrder = flowpath.getStrahlerOrder();
-		}
-		if(flowpath.getHortonOrder() > hortonOrder) {
-			hortonOrder = flowpath.getHortonOrder();
-		}
-//		if(flowpath.getHackOrder() < hackOrder) {
-//			hackOrder = flowpath.getHackOrder();
-//		}
 		if(flowpath.getName() != null && !flowpath.getName().isEmpty()) {
 			if(name == null) {
 				name = flowpath.getName();

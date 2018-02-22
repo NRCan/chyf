@@ -1,8 +1,6 @@
 package net.refractions.chyf.hygraph;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Deque;
 import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.List;
@@ -48,23 +46,24 @@ public class HyGraphBuilder {
 		//outputUniqueNames();
 		classifyNexuses();
 		//findCycles();
-		calcStrahlerOrders();
+		StreamOrderCalculator.calcOrders(eFlowpaths, nexuses);
+
 		classifyCatchments();
 		return new HyGraph(nexuses.toArray(new Nexus[nexuses.size()]), 
 				eFlowpaths.toArray(new EFlowpath[eFlowpaths.size()]),
 				eCatchments.toArray(new ECatchment[eCatchments.size()]));
 	}
 	
-	public EFlowpath addEFlowpath(FlowpathType type, int rank, String name, int strahlerOrder, int hortonOrder, int hackOrder, LineString lineString) {
+	public EFlowpath addEFlowpath(FlowpathType type, int rank, String name, int certainty, int strahlerOrder, int hortonOrder, int hackOrder, LineString lineString) {
 		return addEFlowpath(getNexus(lineString.getStartPoint()), getNexus(lineString.getEndPoint()), 
-				lineString.getLength(), type, rank, name, strahlerOrder, hortonOrder, hackOrder, getECatchment(lineString, type), lineString);
+				lineString.getLength(), type, rank, name, certainty, strahlerOrder, hortonOrder, hackOrder, getECatchment(lineString, type), lineString);
 	}
 
 	private EFlowpath addEFlowpath(Nexus fromNexus, Nexus toNexus, double length, 
-			FlowpathType type, int rank, String name, int strahlerOrder, int hortonOrder, int hackOrder, 
+			FlowpathType type, int rank, String name, int certainty, int strahlerOrder, int hortonOrder, int hackOrder, 
 			ECatchment catchment, LineString lineString) {
 		EFlowpath eFlowpath = new EFlowpath(nextEdgeId++, fromNexus, toNexus, length, type, rank, name, 
-				strahlerOrder, hortonOrder, /*hackOrder,*/ catchment, lineString);
+				certainty, strahlerOrder, hortonOrder, hackOrder, catchment, lineString);
 		eFlowpaths.add(eFlowpath);
 		fromNexus.addDownFlow(eFlowpath);
 		toNexus.addUpFlow(eFlowpath);
@@ -201,6 +200,7 @@ public class HyGraphBuilder {
 	}
 	
 	private void classifyCatchments() {
+		// determine the type of the catchment based on contained nexuses and flowpaths
 		for(ECatchment c : eCatchments) {
 			if(c.getFlowpaths().size() == 0) {
 				@SuppressWarnings("unchecked")
@@ -233,9 +233,27 @@ public class HyGraphBuilder {
 					c.setType(CatchmentType.REACH);
 				}
 			}
+			
+			// set Terminal based on downstream nexus types
 			for(Nexus n : c.getDownNexuses()) {
 				if(n.getType() == NexusType.TERMINAL) {
 					c.setTerminal(true);
+				}
+			}
+			
+			// set orders based on "most important" stream internal stream order
+			c.setStrahlerOrder(null);
+			c.setHortonOrder(null);
+			c.setHackOrder(null);
+			for(EFlowpath f : c.getFlowpaths()) {
+				if(c.getStrahlerOrder() == null || (f.getStrahlerOrder() != null && f.getStrahlerOrder() > c.getStrahlerOrder())) {
+					c.setStrahlerOrder(f.getStrahlerOrder());
+				}
+				if(c.getHortonOrder() == null || (f.getHortonOrder() != null && f.getHortonOrder() > c.getHortonOrder())) {
+					c.setHortonOrder(f.getHortonOrder());
+				}
+				if(c.getHackOrder() == null || (f.getHackOrder() != null && f.getHackOrder() < c.getHackOrder())) {
+					c.setHackOrder(f.getHackOrder());
 				}
 			}
 		}
@@ -273,53 +291,8 @@ public class HyGraphBuilder {
 		checked[f.getId()-1] = true;
 		visited.remove(f);
 		return false;
-	}	
-	
-	private void calcStrahlerOrders() {
-		System.out.print("Calculating Strahler Order...");
-		for(EFlowpath f: eFlowpaths) {
-			f.setStrahlerOrder(-1);
-		}
-		// every eFlowpath in the q still needs to have its order calculated
-		Deque<EFlowpath> q = new ArrayDeque<EFlowpath>(eFlowpaths);
-		queue:
-		while(!q.isEmpty()) {
-			if(q.size() % 100 == 0) {
-				System.out.print(q.size() + "..");
-			}
-			EFlowpath f = q.poll();
-			if(f.getRank() > 1) {
-				continue;
-			}
-			List<EFlowpath> upflows = f.getFromNode().getUpFlows();
-			if(upflows.size() == 0) {
-				f.setStrahlerOrder(1);
-				continue;
-			} 
-			int maxUpflow = -1;
-			int order = 1;
-			for(EFlowpath u : upflows) {
-				if(u.getRank() > 1) {
-					continue;
-				}
-				int upOrder = u.getStrahlerOrder();
-				if(upOrder == -1) {
-					q.add(f);
-					continue queue;
-				}
-				if(upOrder > maxUpflow) {
-					maxUpflow = upOrder; 
-				} else if(maxUpflow == upOrder) {
-					order = maxUpflow + 1;
-				}
-			}
-			if(maxUpflow > order) {
-				order = maxUpflow;
-			}
-			f.setStrahlerOrder(order);
-		}
-		System.out.println("done.");
 	}
+		
 	
 	private void outputUniqueNames() {
 		HashSet<String> names = new HashSet<String>();

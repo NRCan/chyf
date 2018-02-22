@@ -143,6 +143,7 @@
 		#dataBar table th, #dataBar table td  {
 			border: 1px solid grey;
 			padding: 1px 8px;
+			text-align: center;
 		}
 		#dataBar table thead {
 		/*	display: inline-block;*/
@@ -195,8 +196,10 @@
 					<option value="name">Name</option>
 					<option value="type">Type</option>
 					<option value="rank">Rank</option>
+					<option value="certainty">FD Certainty</option>
 					<option value="strahleror">Strahler Order</option>
 					<option value="hortonor">Horton Order</option>
+					<option value="hackor">Hack Order</option>
 					<option value="length">Length (m)</option>
 				</select>
 				<select id="flowpathPredSel">
@@ -1120,20 +1123,26 @@
 				"Second Ruisseau",
 				"Troisième Ruisseau"
 			],
+			'certainty': [-1, 1],
 			'type': ['Observed','Constructed','Inferred','Bank','Unknown'],
 			'rank': [1,2],
-			'strahleror': [1,2,3,4,5,6,7,8],
-			'hortonor': [1,2,3,4,5,6,7,8],
+			'strahleror': [1,2,3,4,5,6,7],
+			'hortonor': [1,2,3,4,5,6,7],
+			'hackor': [1,2,3,4,5,6,7,8,9,10,1001,1002,1003],
 			'length': [10, 100, 250, 500, 1000, 2500, 5000]
 		};
 
 		function flowpathPropSelChange() {
 			var selected = $('#flowpathPropSel').val();
 			var $valSel = $('#flowpathValSel');
+			oldVal = $valSel.val();
 			$valSel.empty();
 			$.each(filterDataMap[selected], function(index, item) {
 				$valSel.append($("<option></option>").text(item));
 			});
+			if($valSel.find('option:contains(' + oldVal + ')').size() > 0) {
+				$valSel.val(oldVal);
+			}
 		}
 		// call to initialize values
 		flowpathPropSelChange();
@@ -1156,9 +1165,10 @@
 					'name': 'Primary Name',
 					'type': 'Type',
 					'rank': 'Rank',
+					'certainty': 'FD Certainty',
 					'strahleror': 'Strahler Order',
 					'hortonor': 'Horton Order',
-					//'hackor': 'Hack Order',
+					'hackor': 'Hack Order',
 					'length': 'Length (metres)'
 				}
 			},
@@ -1170,10 +1180,11 @@
 					'name': 'Primary Name',
 					'type': 'Type',
 					'subtype': 'SubType',
+					'isTerminal': 'Terminal',
 					'rank': 'Rank',
 					'strahleror': 'Strahler Order',
 					'hortonor': 'Horton Order',
-					//'hackor': 'Hack Order',
+					'hackor': 'Hack Order',
 					'area': 'Area (ha)'
 				}
 			},
@@ -1222,7 +1233,7 @@
 			}
 			$table.append($tbody);
 			$('#dataBar').empty();
-			$('#dataBar').append('<div id="dataTitle" title="' + url + '">' + dataMap[type].titlePlural
+			$('#dataBar').append('<div id="dataTitle" title="' + url + '">' + dataMap[type].titlePlural + ' (' + features.length + ')'
 					+ ' <button id="urlButton" type="button" data-clipboard-text="' + url + '">Copy Url</button></div>');
 			//$('#dataBar').append('<div id="dataUrl">' + url + '</div>');
 			$('#dataBar').append($table);
@@ -1245,7 +1256,7 @@
 				}
 				if(c == 'id') {
 					str += '<tr><td>' + name + '</td><td>' + feature.ID + '</td></tr>';
-				} else if(props[c]) {
+				} else {
 					str += '<tr><td>' + name + '</td><td>';
 					if(/^https?:\/\//.test(props[c])) {
 						var val = props[c].split('/').pop().split('#')[0].split('?')[0];

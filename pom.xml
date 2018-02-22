@@ -24,7 +24,79 @@
 			<target>1.8</target>
 			</configuration>
 		</plugin>
+		<plugin>
+			<groupId>org.codehaus.mojo</groupId>
+			<artifactId>license-maven-plugin</artifactId>
+			<version>1.8</version>
+			<executions>
+				<execution>
+					<id>aggregate-add-third-party</id>
+					<inherited>true</inherited>
+					<configuration>
+						<force>true</force>
+						<outputDirectory>src/license/</outputDirectory>
+						<useMissingFile>true</useMissingFile>
+						<licenseMerges>
+							<licenseMerge>apache_2_0|apache_v2</licenseMerge>
+							<licenseMerge>apache_2_0|The Apache Software License, Version 2.0</licenseMerge>
+							<licenseMerge>apache_2_0|Apache License, Version 2.0</licenseMerge>
+							<licenseMerge>apache_2_0|Apache License 2.0</licenseMerge>
+							<licenseMerge>apache_2_0|Apache License</licenseMerge>
+							<licenseMerge>apache_2_0|Apache 2.0 License</licenseMerge>
+							<licenseMerge>apache_2_0|Apache 2</licenseMerge>
+							<licenseMerge>apache_2_0|ASF 2.0</licenseMerge>
+							<licenseMerge>bsd_2|The BSD License</licenseMerge>
+							<licenseMerge>bsd_2|BSD License</licenseMerge>
+							<licenseMerge>cddl_1_0|Common Development and Distribution License (CDDL) v1.0</licenseMerge>
+							<licenseMerge>cddl_1_0|COMMON DEVELOPMENT AND DISTRIBUTION LICENSE (CDDL) Version 1.0</licenseMerge>
+							<licenseMerge>epl_1|Eclipse Public License - v 1.0</licenseMerge>
+							<licenseMerge>lgpl_2_1|LGPL 2.1</licenseMerge>
+							<licenseMerge>lgpl_2_1|GNU Lesser General Public License</licenseMerge>
+							<licenseMerge>lgpl_2_1|Lesser General Public License (LGPL)</licenseMerge>
+							<licenseMerge>mit|MIT License</licenseMerge>
+							<licenseMerge>mpl_1_1|MPL 1.1</licenseMerge>
+						</licenseMerges>
+					</configuration>
+					<goals>
+						<goal>aggregate-add-third-party</goal>
+					</goals>
+				</execution>
+			</executions>
+		</plugin>
   	</plugins>
+	<pluginManagement>
+		<plugins>
+			<!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
+			<plugin>
+				<groupId>org.eclipse.m2e</groupId>
+				<artifactId>lifecycle-mapping</artifactId>
+				<version>1.0.0</version>
+				<configuration>
+					<lifecycleMappingMetadata>
+						<pluginExecutions>
+							<pluginExecution>
+								<pluginExecutionFilter>
+									<groupId>org.codehaus.mojo</groupId>
+									<artifactId>
+										license-maven-plugin
+									</artifactId>
+									<versionRange>[1.8,)</versionRange>
+									<goals>
+										<goal>
+											aggregate-add-third-party
+										</goal>
+									</goals>
+								</pluginExecutionFilter>
+								<action>
+									<ignore></ignore>
+								</action>
+							</pluginExecution>
+						</pluginExecutions>
+					</lifecycleMappingMetadata>
+				</configuration>
+			</plugin>
+		</plugins>
+	</pluginManagement>
   </build>
   
   <dependencies>

@@ -44,11 +44,19 @@ public abstract class ConverterHelper {
 	protected abstract void nestedFieldFooter() throws IOException;
 	
 	protected abstract void field(String fieldName, boolean fieldValue) throws IOException;
-	protected abstract void field(String fieldName, long fieldValue) throws IOException;
+	protected abstract void field(String fieldName, Long fieldValue) throws IOException;
 	protected abstract void field(String fieldName, double fieldValue) throws IOException;
 	protected abstract void field(String fieldName, String fieldValue) throws IOException;
 	protected abstract void nullData() throws IOException;
-	
+
+	protected void field(String fieldName, Integer fieldValue) throws IOException {
+		if(fieldValue == null) {
+			field(fieldName, (Long)null);
+		} else {
+			field(fieldName, Long.valueOf(fieldValue));
+		}
+	}
+
 	protected void nexus(Nexus nexus, ApiResponse response, ApiResponse responseMetadata) throws IOException {
 		featureHeader(GeotoolsGeometryReprojector.reproject(nexus.getPoint(), response.getSrs()), nexus.getId(), responseMetadata);
 		field("type", nexus.getType().toString());
@@ -59,9 +67,10 @@ public abstract class ConverterHelper {
 		field("name", eFlowpath.getName());
 		field("type", eFlowpath.getType().toString());
 		field("rank", eFlowpath.getRank());
+		field("certainty", eFlowpath.getCertainty());
 		field("strahleror", eFlowpath.getStrahlerOrder());
 		field("hortonor", eFlowpath.getHortonOrder());
-		//field("hackor", eFlowpath.getHackOrder());
+		field("hackor", eFlowpath.getHackOrder());
 		field("length", eFlowpath.getLength());
 		featureFooter();
 	}
@@ -75,7 +84,7 @@ public abstract class ConverterHelper {
 		field("isTerminal", eCatchment.isTerminal());
 		field("strahleror", eCatchment.getStrahlerOrder());
 		field("hortonor", eCatchment.getHortonOrder());
-		//field("hackor", eCatchment.getHackOrder());
+		field("hackor", eCatchment.getHackOrder());
 		field("area", eCatchment.getArea()/10000);		
 		featureFooter();
 	}
