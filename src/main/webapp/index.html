@@ -318,7 +318,7 @@
 		var demLayer = L.tileLayer.wms('http://cartes.geogratis.gc.ca/wms/elevation_fr', {
 			layers: 'cdem.color-shaded-relief'
 		});
-		baseLayers['GeoGratis DEM'] = demLayer;
+		baseLayers['Canada DEM'] = demLayer;
 
 		var catchmentLayer = new L.layerJSON({
 			url: chyfApi + "ecatchment/within.json?bbox={lon1},{lat1},{lon2},{lat2}",
@@ -1180,7 +1180,7 @@
 					'name': 'Primary Name',
 					'type': 'Type',
 					'subtype': 'SubType',
-					'isTerminal': 'Terminal',
+					'isTerminal': 'Is Terminal',
 					'rank': 'Rank',
 					'strahleror': 'Strahler Order',
 					'hortonor': 'Horton Order',

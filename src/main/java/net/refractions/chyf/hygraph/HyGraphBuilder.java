@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.UUID;
 
 import net.refractions.chyf.enumTypes.CatchmentType;
 import net.refractions.chyf.enumTypes.FlowpathType;
@@ -54,16 +55,16 @@ public class HyGraphBuilder {
 				eCatchments.toArray(new ECatchment[eCatchments.size()]));
 	}
 	
-	public EFlowpath addEFlowpath(FlowpathType type, int rank, String name, int certainty, int strahlerOrder, int hortonOrder, int hackOrder, LineString lineString) {
+	public EFlowpath addEFlowpath(FlowpathType type, int rank, String name, UUID nameId, int certainty, LineString lineString) {
 		return addEFlowpath(getNexus(lineString.getStartPoint()), getNexus(lineString.getEndPoint()), 
-				lineString.getLength(), type, rank, name, certainty, strahlerOrder, hortonOrder, hackOrder, getECatchment(lineString, type), lineString);
+				lineString.getLength(), type, rank, name, nameId, certainty, getECatchment(lineString, type), lineString);
 	}
 
 	private EFlowpath addEFlowpath(Nexus fromNexus, Nexus toNexus, double length, 
-			FlowpathType type, int rank, String name, int certainty, int strahlerOrder, int hortonOrder, int hackOrder, 
+			FlowpathType type, int rank, String name, UUID nameId, int certainty, 
 			ECatchment catchment, LineString lineString) {
-		EFlowpath eFlowpath = new EFlowpath(nextEdgeId++, fromNexus, toNexus, length, type, rank, name, 
-				certainty, strahlerOrder, hortonOrder, hackOrder, catchment, lineString);
+		EFlowpath eFlowpath = new EFlowpath(nextEdgeId++, fromNexus, toNexus, length, type, rank, name, nameId,
+				certainty, catchment, lineString);
 		eFlowpaths.add(eFlowpath);
 		fromNexus.addDownFlow(eFlowpath);
 		toNexus.addUpFlow(eFlowpath);

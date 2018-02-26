@@ -14,6 +14,7 @@ import net.refractions.chyf.rest.SharedParameters;
 import net.refractions.chyf.rest.exceptions.InvalidParameterException;
 import net.refractions.chyf.rest.messageconverters.ApiResponse;
 import net.refractions.util.StopWatch;
+import net.refractions.util.UuidUtil;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.BindingResult;
@@ -199,6 +200,7 @@ public class EFlowpathController {
 		Filter<EFlowpath> filter;
 		switch(params.getProperty().toLowerCase()) {
 			case "name": filter = new PredicateFilter<EFlowpath>(EFlowpath::getName, PredicateParameter.convert(params.getPredicate()).get(), params.getValue()); break;
+			case "nameid": filter = new PredicateFilter<EFlowpath>(EFlowpath::getNameId, PredicateParameter.convert(params.getPredicate()).get(), UuidUtil.UuidFromString(params.getValue())); break;
 			case "type": filter = new PredicateFilter<EFlowpath>(EFlowpath::getType, PredicateParameter.convert(params.getPredicate()).get(), FlowpathType.convert(params.getValue())); break;
 			case "rank": filter = new PredicateFilter<EFlowpath>(EFlowpath::getRank, PredicateParameter.convert(params.getPredicate()).get(), Integer.parseInt(params.getValue())); break;
 			case "certainty": filter = new PredicateFilter<EFlowpath>(EFlowpath::getCertainty, PredicateParameter.convert(params.getPredicate()).get(), Integer.parseInt(params.getValue())); break;
@@ -207,7 +209,7 @@ public class EFlowpathController {
 			case "hackor": filter = new PredicateFilter<EFlowpath>(EFlowpath::getHackOrder, PredicateParameter.convert(params.getPredicate()).get(), Integer.parseInt(params.getValue())); break;
 			case "length": filter = new PredicateFilter<EFlowpath>(EFlowpath::getLength, PredicateParameter.convert(params.getPredicate()).get(), Double.parseDouble(params.getValue())); break;
 			default:
-				String errMsg = "The property parameter must be one of (name, type, rank, certainty, strahleror, hortonor, hackor, length).";
+				String errMsg = "The property parameter must be one of (name, nameId, type, rank, certainty, strahleror, hortonor, hackor, length).";
 				throw new IllegalArgumentException(errMsg);
 		}
 		

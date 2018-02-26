@@ -19,6 +19,7 @@ public class PredicateFilter<T> implements Filter<T> {
 	@SuppressWarnings("unchecked")
 	@Override
 	public boolean pass(T item) {
+		if(propertyExtractor.apply(item) == null) return false;
 		return predicate.test(propertyExtractor.apply(item), value);
 	}
 

@@ -65,6 +65,7 @@ public abstract class ConverterHelper {
 	protected void eFlowpath(EFlowpath eFlowpath, ApiResponse response, ApiResponse responseMetadata) throws IOException {
 		featureHeader(filterCoords(GeotoolsGeometryReprojector.reproject(eFlowpath.getLineString(), response.getSrs()), response.getScale()), eFlowpath.getId(), responseMetadata);
 		field("name", eFlowpath.getName());
+		field("nameid", eFlowpath.getNameId() == null ? null : eFlowpath.getNameId().toString());
 		field("type", eFlowpath.getType().toString());
 		field("rank", eFlowpath.getRank());
 		field("certainty", eFlowpath.getCertainty());

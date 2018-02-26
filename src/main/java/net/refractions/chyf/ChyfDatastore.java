@@ -5,12 +5,14 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import net.refractions.chyf.enumTypes.CatchmentType;
 import net.refractions.chyf.enumTypes.FlowpathType;
 import net.refractions.chyf.hygraph.HyGraph;
 import net.refractions.chyf.hygraph.HyGraphBuilder;
 import net.refractions.chyf.rest.GeotoolsGeometryReprojector;
+import net.refractions.util.UuidUtil;
 
 import org.geotools.data.DataStore;
 import org.geotools.data.DataStoreFinder;
@@ -132,20 +134,14 @@ public class ChyfDatastore {
 		            	rank = 2;
 		            } 
 		            String name = ((String)feature.getAttribute("NAME")).intern();
+		            UUID nameId = null;
+		            try {
+		            	nameId = UuidUtil.UuidFromString((String)feature.getAttribute("NAMEID"));
+		            } catch(IllegalArgumentException iae) {
+		            	logger.warn("Exception reading UUID: " + iae.getMessage());
+		            }
 		            Integer certainty = (Integer)feature.getAttribute("DIRECTION");
-		            Integer strahlerOrder = (Integer)feature.getAttribute("STRAHLEROR");
-		            if(strahlerOrder == null) {
-		            	strahlerOrder = -1;
-		            }
-		            Integer hortonOrder = (Integer)feature.getAttribute("HORTONOR");
-		            if(hortonOrder == null) {
-		            	hortonOrder = -1;
-		            }
-		            Integer hackOrder = (Integer)feature.getAttribute("HACKOR");
-		            if(hackOrder == null) {
-		            	hackOrder = -1;
-		            }
-		            gb.addEFlowpath(type, rank, name, certainty, strahlerOrder, hortonOrder, hackOrder, flowPath);
+		            gb.addEFlowpath(type, rank, name, nameId, certainty, flowPath);
 		        }
 		    }
 		    flowPathDataStore.dispose();
