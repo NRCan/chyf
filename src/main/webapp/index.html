@@ -96,6 +96,8 @@
 		#map.progress {
 			cursor: progress;
 		}
+		.about {
+		}
 		.toolCat {
 			font-size: 1em;
 			font-weight: bold;
@@ -180,6 +182,7 @@
 	<div id="container">
 		<div id="title">ChyF Pilot Demo</div>
 		<div id="toolBar">
+			<div class="about"><a href="https://github.com/cmhodgson/chyf-pilot/wiki">About the CHyF Pilot...</a></div>
 			<div class="toolCat">Nexuses</div>
 			<button id="nexusById" type="button" class="toolBtn">Find by ID:</button>
 			<input id="nexusId" class="idInput" type="text"/>
@@ -232,9 +235,9 @@
 	<script src="https://unpkg.com/leaflet@1.3.0/dist/leaflet.js"></script>
 	<!-- script src="https://bbecquet.github.io/Leaflet.PolylineDecorator/dist/leaflet.polylineDecorator.js"></script -->
 	<script src='https://unpkg.com/leaflet.gridlayer.googlemutant@latest/Leaflet.GoogleMutant.js'></script>
-	<script src="https://unpkg.com/esri-leaflet@2.1.1/dist/esri-leaflet.js"
+	<!-- script src="https://unpkg.com/esri-leaflet@2.1.1/dist/esri-leaflet.js"
 		integrity="sha512-ECQqaYZke9cSdqlFG08zSkudgrdF6I1d8ViSa7I3VIszJyVqw4ng1G8sehEXlumdMnFYfzY0tMgdQa4WCs9IUw=="
-		crossorigin=""></script>
+		crossorigin=""></script -->
 	<script src="leaflet-layerjson.js"></script>
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
 	<!--script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" crossorigin="anonymous"
@@ -289,8 +292,8 @@
 		});
 		baseLayers['MapBox Streets'] = mapboxStreetsLayer;
 
-		var esriStreetsLayer = L.esri.basemapLayer('Streets');
-		baseLayers['ESRI Streets'] = esriStreetsLayer;
+		// var esriStreetsLayer = L.esri.basemapLayer('Streets');
+		// baseLayers['ESRI Streets'] = esriStreetsLayer;
 
 		var googleRoads = L.gridLayer.googleMutant({
 			type: 'roadmap' // valid values are 'roadmap', 'satellite', 'terrain' and 'hybrid'
@@ -304,16 +307,16 @@
 		});
 		baseLayers['MapBox Satellite'] = mapboxSatlayer;
 
-		var esriStreetsLayer = L.esri.basemapLayer('Imagery');
-		baseLayers['ESRI Imagery'] = esriStreetsLayer;
+		// var esriStreetsLayer = L.esri.basemapLayer('Imagery');
+		// baseLayers['ESRI Imagery'] = esriStreetsLayer;
 
 		var googleSatellite = L.gridLayer.googleMutant({
 			type: 'satellite' // valid values are 'roadmap', 'satellite', 'terrain' and 'hybrid'
 		});
 		baseLayers['Google Satellite'] = googleSatellite;
 
-		var esriStreetsLayer = L.esri.basemapLayer('Topographic');
-		baseLayers['ESRI Topographic'] = esriStreetsLayer;
+		// var esriStreetsLayer = L.esri.basemapLayer('Topographic');
+		// baseLayers['ESRI Topographic'] = esriStreetsLayer;
 
 		var demLayer = L.tileLayer.wms('http://cartes.geogratis.gc.ca/wms/elevation_fr', {
 			layers: 'cdem.color-shaded-relief'
@@ -475,6 +478,13 @@
 			}
 		});
 		overlays["Wells"] = wellsLayer;
+
+		var nhnLayer = L.tileLayer.wms('http://maps.geogratis.gc.ca/wms/hydro_network_en', {
+			layers: 'nhn:nhn',
+			transparent: 'true',
+    		format: 'image/png'
+		});
+		overlays['Canada NHN'] = nhnLayer;
 
 		var layerControl = L.control.layers(baseLayers, overlays).addTo(map);
 

@@ -129,7 +129,7 @@ public class HyGraph {
 
 	public ECatchment getECatchment(int ecatchmentId) {
 		if(ecatchmentId > 0 && ecatchmentId <= eCatchments.length) {
-			return eCatchments[ecatchmentId];
+			return eCatchments[ecatchmentId-1];
 		}
 		return null;	
 	}

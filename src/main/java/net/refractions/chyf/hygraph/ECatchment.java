@@ -64,10 +64,18 @@ public class ECatchment implements SpatiallyIndexable {
 		return rank;
 	}
 
+	public void setRank(int rank) {
+		this.rank = rank;
+	}
+
 	public String getName() {
 		return name;
 	}
 
+	public void setName(String name) {
+		this.name = name;
+	}
+	
 	public Integer getStrahlerOrder() {
 		return strahlerOrder;
 	}
@@ -111,15 +119,6 @@ public class ECatchment implements SpatiallyIndexable {
 				&& (rank < 0 || (flowpath.getRank() < rank))) {
 			rank = flowpath.getRank();
 		}
-		if(flowpath.getName() != null && !flowpath.getName().isEmpty()) {
-			if(name == null) {
-				name = flowpath.getName();
-			} else if(!name.equals(flowpath.getName())) {
-				// empty string is a special value to mean we aren't going to assign a name 
-				// because flowpaths with different names are contained by this eCatchment
-				name = ""; 
-			}
-		}
 		flowpaths.add(flowpath);
 	}
 
@@ -142,5 +141,5 @@ public class ECatchment implements SpatiallyIndexable {
 	public List<Nexus> getDownNexuses() {
 		return Collections.unmodifiableList(downNexuses);
 	}
-	
+
 }

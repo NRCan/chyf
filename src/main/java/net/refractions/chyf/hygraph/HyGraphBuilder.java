@@ -224,6 +224,7 @@ public class HyGraphBuilder {
 					c.addDownNexus(bankNexus);
 					bankNexus.setBankCatchment(c);
 					c.setType(CatchmentType.BANK);
+					c.setRank(1);
 				} else {
 					logger.warn("Catchment " + c.getId() + " has no flowpaths and an unexpected number of nexuses (" + totalNexuses + ").");
 					c.setType(CatchmentType.UNKNOWN);
@@ -243,9 +244,14 @@ public class HyGraphBuilder {
 			}
 			
 			// set orders based on "most important" stream internal stream order
+			// set the name based on the flowpaths (in the case of multiple named flowpaths, pick the most important using horton order)
 			c.setStrahlerOrder(null);
 			c.setHortonOrder(null);
 			c.setHackOrder(null);
+			EFlowpath bestNamedFlowpath = null; 
+			if(c.getId() == 111) {
+				System.out.print("foo");
+			}
 			for(EFlowpath f : c.getFlowpaths()) {
 				if(c.getStrahlerOrder() == null || (f.getStrahlerOrder() != null && f.getStrahlerOrder() > c.getStrahlerOrder())) {
 					c.setStrahlerOrder(f.getStrahlerOrder());
@@ -256,6 +262,13 @@ public class HyGraphBuilder {
 				if(c.getHackOrder() == null || (f.getHackOrder() != null && f.getHackOrder() < c.getHackOrder())) {
 					c.setHackOrder(f.getHackOrder());
 				}
+				if(f.getName() != null && !f.getName().isEmpty() && (bestNamedFlowpath == null || (bestNamedFlowpath.getHortonOrder() == null && f.getHortonOrder() != null) 
+						|| (f.getHortonOrder() != null && f.getHortonOrder() > bestNamedFlowpath.getHortonOrder()))) {
+					bestNamedFlowpath = f;
+				}
+			}
+			if(bestNamedFlowpath != null) {
+				c.setName(bestNamedFlowpath.getName());
 			}
 		}
 	}

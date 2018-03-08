@@ -38,7 +38,7 @@ public class ChyfDatastore {
 	
 	public static final int BASE_SRS = 6624; // Quebec Albers
 	public static final GeometryFactory GEOMETRY_FACTORY = new GeometryFactory(new PrecisionModel(), BASE_SRS);
-	public static final int MAX_RESULTS = 2000;
+	public static final int MAX_RESULTS = 20000;
 	
 	private HyGraph hyGraph;
 
