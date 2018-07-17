@@ -5,10 +5,12 @@ import net.refractions.util.GeomUtil;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Envelope;
+import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.geom.PrecisionModel;
+import com.vividsolutions.jts.precision.GeometryPrecisionReducer;
 
 public class ReverseGeocodeParameters extends SharedParameters {
 	
@@ -46,6 +48,11 @@ public class ReverseGeocodeParameters extends SharedParameters {
 		this.maxDistance = maxDistance;
 	}
 	
+	private static Geometry precisionReducer(Geometry geometry) {
+		PrecisionModel pm = new PrecisionModel(1000);
+		return GeometryPrecisionReducer.reduce(geometry, pm);
+	}
+	
 	public void resolveAndValidate() {
 		super.resolveAndValidate();
 		// convert any double[] into geometries in input SRS projection
@@ -63,7 +70,7 @@ public class ReverseGeocodeParameters extends SharedParameters {
 			}
 		}
 		if(pointPoint != null) {
-			pointPoint = GeotoolsGeometryReprojector.reproject(pointPoint, ChyfDatastore.BASE_SRS);
+			pointPoint = (Point) precisionReducer(GeotoolsGeometryReprojector.reproject(pointPoint, ChyfDatastore.BASE_SRS));
 		}
 		Polygon bboxPolygon = null;
 		if(bbox != null && bbox.length != 0) {
@@ -75,7 +82,7 @@ public class ReverseGeocodeParameters extends SharedParameters {
 			}
 		}
 		if(bboxPolygon != null) {
-			bboxPolygon = GeotoolsGeometryReprojector.reproject(bboxPolygon, ChyfDatastore.BASE_SRS);
+			bboxPolygon = (Polygon) precisionReducer(GeotoolsGeometryReprojector.reproject(bboxPolygon, ChyfDatastore.BASE_SRS));
 			bboxEnvelope = bboxPolygon.getEnvelopeInternal();
 			// if their is a bbox, override the maxdistance with the radius of the bbox
 			maxDistance = (int)Math.round(GeomUtil.getRadius(bboxEnvelope));

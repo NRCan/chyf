@@ -28,6 +28,11 @@
     </servlet-mapping>
     <context-param>
     	<param-name>chyfDataDir</param-name>
-    	<param-value>C:\projects\chyf-pilot\data\</param-value>
+    	<param-value>C:\webApps\workspaceEclipseNeon\chyf-pilot\data\</param-value>
+    </context-param>xm
+    <context-param>
+    	<param-name>chyfDataStore</param-name>
+    	<!-- param-value is filestore or database -->
+    	<param-value>database</param-value>
     </context-param>
 </web-app>

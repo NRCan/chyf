@@ -14,24 +14,36 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class ChyfApplication {
-
+	
 	private ChyfDatastore chyfDatastore;
 	
     @Autowired
 	public ChyfApplication(ServletContext servletContext) {
-    	String[] dirs = {
-    	                 servletContext.getInitParameter("chyfDataDir"), 
-    	                 "C:\\projects\\chyf-pilot\\data\\",
-    	                 "/data/chyf/"
-    	};
-    	String dir = null;
-    	for(String d : dirs) {
-    		if(new File(d).isDirectory()) {
-    			dir = d;
-    			break;
-    		}
+    	String dataStore = servletContext.getInitParameter("chyfDataStore");
+		String dir = null;
+		
+    	if (dataStore.equals("filestore")) {
+    		String[] dirs = {
+	                 servletContext.getInitParameter("chyfDataDir"), 
+	                 "C:\\projects\\chyf-pilot\\data\\",
+	                 "/data/chyf/"
+			};
+
+			for(String d : dirs) {
+				if(new File(d).isDirectory()) {
+					dir = d;
+					break;
+				}
+			}
+
+			chyfDatastore = new ChyfDatastore(dir);
+    		
+    	} else if (dataStore.equals("database")) {
+    		
+    		chyfDatastore = new ChyfDatastore();
+    		
     	}
-		chyfDatastore = new ChyfDatastore(dir);
+    	
 	}
 	
 	@Bean

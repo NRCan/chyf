@@ -10,8 +10,8 @@ public class UuidUtil {
 			.compile("\\A[0-9a-fA-F]{32}\\z");
 	
 	public static UUID UuidFromString(String s) {
-		if(s == null || s.isEmpty()) return null;
 		s = s.trim();
+		if(s == null || s.isEmpty()) return null;
 		if(UUID_RE.matcher(s).matches()) {
 			return UUID.fromString(s);
 		} else if(UUID_RE_2.matcher(s).matches()) {
