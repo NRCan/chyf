@@ -48,8 +48,8 @@ public class HyGraphBuilder {
 		classifyNexuses();
 		//findCycles();
 		StreamOrderCalculator.calcOrders(eFlowpaths, nexuses);
-
 		classifyCatchments();
+		
 		return new HyGraph(nexuses.toArray(new Nexus[nexuses.size()]), 
 				eFlowpaths.toArray(new EFlowpath[eFlowpaths.size()]),
 				eCatchments.toArray(new ECatchment[eCatchments.size()]));
@@ -60,15 +60,24 @@ public class HyGraphBuilder {
 				lineString.getLength(), type, rank, name, nameId, certainty, getECatchment(lineString, type), lineString);
 	}
 
-	private EFlowpath addEFlowpath(Nexus fromNexus, Nexus toNexus, double length, 
-			FlowpathType type, int rank, String name, UUID nameId, int certainty, 
-			ECatchment catchment, LineString lineString) {
+	private EFlowpath addEFlowpath(Nexus fromNexus, Nexus toNexus, double length, FlowpathType type, int rank, String name,
+			UUID nameId, int certainty, ECatchment catchment, LineString lineString) {
+		
 		EFlowpath eFlowpath = new EFlowpath(nextEdgeId++, fromNexus, toNexus, length, type, rank, name, nameId,
-				certainty, catchment, lineString);
-		eFlowpaths.add(eFlowpath);
-		fromNexus.addDownFlow(eFlowpath);
-		toNexus.addUpFlow(eFlowpath);
+			certainty, catchment, lineString);
+
 		if(catchment != null) {
+			
+			eFlowpaths.add(eFlowpath);
+			fromNexus.addDownFlow(eFlowpath);
+			toNexus.addUpFlow(eFlowpath);
+			
+			for (EFlowpath f : catchment.getFlowpaths()) {			
+				if(eFlowpath.getEnvelope().compareTo(f.getEnvelope()) == 0) {
+					logger.warn("Identical flowpath; flowpath id: " + eFlowpath.getId());
+					break;
+				}
+			}
 			catchment.addFlowpath(eFlowpath);
 			if(catchment.getPolygon().touches(fromNexus.getPoint())) {
 				catchment.addUpNexus(fromNexus);
@@ -76,10 +85,12 @@ public class HyGraphBuilder {
 			if(catchment.getPolygon().touches(toNexus.getPoint())) {
 				catchment.addDownNexus(toNexus);
 			}
+			
 		} else {
 			logger.warn("EFlowpath " + eFlowpath.getId() + " is not contained by any catchment.");
 		}
-		return eFlowpath;
+		
+		return null;
 	}
 
 	public ECatchment addECatchment(CatchmentType type, Polygon polygon) {
@@ -249,9 +260,7 @@ public class HyGraphBuilder {
 			c.setHortonOrder(null);
 			c.setHackOrder(null);
 			EFlowpath bestNamedFlowpath = null; 
-			if(c.getId() == 111) {
-				System.out.print("foo");
-			}
+
 			for(EFlowpath f : c.getFlowpaths()) {
 				if(c.getStrahlerOrder() == null || (f.getStrahlerOrder() != null && f.getStrahlerOrder() > c.getStrahlerOrder())) {
 					c.setStrahlerOrder(f.getStrahlerOrder());
@@ -272,7 +281,7 @@ public class HyGraphBuilder {
 			}
 		}
 	}
-	
+
 	private boolean findCycles() {
 		System.out.print("Finding cycles...");
 		boolean[] checked = new boolean[eFlowpaths.size()];
@@ -306,7 +315,6 @@ public class HyGraphBuilder {
 		visited.remove(f);
 		return false;
 	}
-		
 	
 	private void outputUniqueNames() {
 		HashSet<String> names = new HashSet<String>();

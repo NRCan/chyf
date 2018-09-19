@@ -17,12 +17,14 @@ public class StreamOrderCalculator {
 		logger.info("Calculating Stream Orders");
 		StopWatch sw = new StopWatch();
 		sw.start();
+		
 		// reset all stream orders to null everywhere
 		for(EFlowpath f : eFlowpaths) {
 			f.setStrahlerOrder(null);
 			f.setHortonOrder(null);
 			f.setHackOrder(null);
 		}
+		
 		// loop through nexuses and start from each terminal nexus
 		for(Nexus n : nexuses) {
 			if(n.getType() == NexusType.TERMINAL) {
@@ -30,16 +32,11 @@ public class StreamOrderCalculator {
 					calcStrahlerOrder(f);
 					MainstemmedFlowpath mf = new MainstemmedFlowpath(f);
 					mf.assignHortonOrder(null);
-					if(mf.f.getStrahlerOrder() == 7) {
-						// this is the Richelieu terminal nexus
-						mf.assignHackOrder(1);
-					} else {
-						// this is for other isolated terminal nexuses
-						mf.assignHackOrder(1001);
-					}
+					mf.assignHackOrder(1);
 				}
 			}
-		}
+		}  
+		
 		sw.stop();
 		logger.info("Stream Orders calculated in " + sw.getElapsedTime() + "ms");
 	}
@@ -49,7 +46,7 @@ public class StreamOrderCalculator {
 		if(f.getStrahlerOrder() != null || f.getRank() > 1 || f.getType() == FlowpathType.BANK) {
 			return f.getStrahlerOrder();
 		}
-
+		
 		Integer maxUpflow = null;
 		Integer order = 1;
 		for(EFlowpath u : f.getFromNode().getUpFlows()) {
@@ -68,8 +65,9 @@ public class StreamOrderCalculator {
 		f.setStrahlerOrder(order);
 		return order;
 	}
-	
+
 }
+
 
 class MainstemmedFlowpath {
 	final EFlowpath f;
@@ -78,20 +76,32 @@ class MainstemmedFlowpath {
 	ArrayList<MainstemmedFlowpath> upflows; 
 	
 	MainstemmedFlowpath(EFlowpath f) {
+
 		this.f = f;
+
 		upflows = new ArrayList<MainstemmedFlowpath>(f.getFromNode().getUpFlows().size());
 		for(EFlowpath u : f.getFromNode().getUpFlows()) {
-			if(u.getRank() == 1) {
+			if(u.getRank() == 1) {		
 				upflows.add(new MainstemmedFlowpath(u));
 			}
 		}
+		
+		assignMainstem();
+		
+		length = f.getLength();
+		if(mainstem != null) {
+			length += mainstem.length;
+		}
+	}
+	
+	void assignMainstem() {
 		MainstemmedFlowpath sameNameBest = null;
 		MainstemmedFlowpath someNameBest = null;
 		MainstemmedFlowpath noNameBest = null;
 		for(MainstemmedFlowpath u : upflows) {
 			// banks and secondaries can't be mainstems
 			if(u.f.getStrahlerOrder() == null) continue;
-			if(u.f.getName() == null || u.f.getName().isEmpty()) {
+			if(u.f.getName() == null || u.f.getName().isEmpty() || u.f.getName().equals(" ")) {
 				if(noNameBest == null || u.length > noNameBest.length) {
 					noNameBest = u;
 				}
@@ -112,10 +122,6 @@ class MainstemmedFlowpath {
 		} else {
 			mainstem = noNameBest;
 		}
-		length = f.getLength();
-		if(mainstem != null) {
-			length += mainstem.length;
-		}
 	}
 
 	void assignHortonOrder(Integer order) {
@@ -135,16 +141,31 @@ class MainstemmedFlowpath {
 		}
 	}
 	
-	void assignHackOrder(Integer order) {
-		// don't assign to secondaries or banks
-		if(f.getStrahlerOrder() == null) return;
-		f.setHackOrder(order);
-		for(MainstemmedFlowpath u : upflows) {
+	/**
+	 * "Bottom up" hierarchy that allocates the number "1" to the river with its mouth at the sea
+	 * @param order : The hack order (river's number must be 1)
+	 * @return The hack order
+	 */
+	Integer assignHackOrder(Integer order) {
+		
+		// skip eFlowpaths that are already done, secondary flows, or bank flowpaths
+		if(f.getHackOrder() != null || f.getRank() > 1 || f.getType() == FlowpathType.BANK) {
+			return f.getHackOrder();
+		}
+		
+		// set the first element to the number 1
+ 		if(f.getToNode().getType() == NexusType.TERMINAL) {
+			f.setHackOrder(1);
+		}
+		
+		for(MainstemmedFlowpath u: upflows) {
 			if(mainstem == u) {
-				u.assignHackOrder(order);
-			} else {
-				u.assignHackOrder(order+1);
+				u.f.setHackOrder(u.assignHackOrder(order));
+			} else {			
+				u.f.setHackOrder(u.assignHackOrder(order + 1));
 			}
 		}
+		return order;
 	}
+	
 }
