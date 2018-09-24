@@ -168,6 +168,43 @@ public class HyGraphBuilder {
 		nexusIndex.insert(node.getPoint().getEnvelopeInternal(),node);
 		return node;
 	}
+	
+	public void clearCatchments() {
+		this.eCatchments.clear();
+		nextCatchmentId = 1;
+		this.eCatchmentIndex = new Quadtree();
+	}
+	
+	public void clearFlowpaths() {
+		this.eFlowpaths.clear();
+		nextNexusId = 1;
+		this.eCatchmentIndex = new Quadtree();
+	}
+	
+	
+	public List<EFlowpath> getEFlowpaths() {
+		return eFlowpaths;
+	}
+
+	public void setEFlowpaths(List<EFlowpath> eFlowpaths) {
+		this.eFlowpaths = eFlowpaths;
+	}
+	
+	public List<Nexus> getNexuses() {
+		return nexuses;
+	}
+
+	public void setNexuses(List<Nexus> nexuses) {
+		this.nexuses = nexuses;
+	}
+
+	public List<ECatchment> geteCatchments() {
+		return eCatchments;
+	}
+
+	public void seteCatchments(List<ECatchment> eCatchments) {
+		this.eCatchments = eCatchments;
+	}
 
 	private void classifyNexuses() {
 		for(Nexus n : nexuses) {

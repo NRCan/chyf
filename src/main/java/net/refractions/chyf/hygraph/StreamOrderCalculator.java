@@ -8,15 +8,12 @@ import org.slf4j.LoggerFactory;
 
 import net.refractions.chyf.enumTypes.FlowpathType;
 import net.refractions.chyf.enumTypes.NexusType;
-import net.refractions.util.StopWatch;
 
 public class StreamOrderCalculator {
 	static final Logger logger = LoggerFactory.getLogger(StreamOrderCalculator.class.getCanonicalName());
 
 	public static void calcOrders(List<EFlowpath> eFlowpaths, List<Nexus> nexuses) {
 		logger.info("Calculating Stream Orders");
-		StopWatch sw = new StopWatch();
-		sw.start();
 		
 		// reset all stream orders to null everywhere
 		for(EFlowpath f : eFlowpaths) {
@@ -35,10 +32,7 @@ public class StreamOrderCalculator {
 					mf.assignHackOrder(1);
 				}
 			}
-		}  
-		
-		sw.stop();
-		logger.info("Stream Orders calculated in " + sw.getElapsedTime() + "ms");
+		}
 	}
 	
 	private static Integer calcStrahlerOrder(EFlowpath f) {
