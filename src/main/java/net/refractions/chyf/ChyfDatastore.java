@@ -67,7 +67,7 @@ public class ChyfDatastore {
 		return hyGraph;
 	}
 	
-	public void init() {
+	private void init() {
 		try {
 		    HyGraphBuilder gb = new HyGraphBuilder();
 
