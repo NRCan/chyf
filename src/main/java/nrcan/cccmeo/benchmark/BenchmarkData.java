@@ -26,7 +26,7 @@ public class BenchmarkData extends Benchmark {
 	
 	public BenchmarkData() {
 		super();
-		chyf = new ChyfDatastore(true);
+		chyf = new ChyfDatastore();
 		gb = new HyGraphBuilder();
 	}
 	

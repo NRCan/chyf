@@ -39,7 +39,7 @@ public abstract class Benchmark {
 		DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
 		logger.info(format.format(ldt));
 		
-		fmt.format("%-50s %10s %10s %10s\n", "Method", "iterations", "Score", "Units");
+		fmt.format("%-50s %10s %20s %10s\n", "Method", "iterations", "Score", "Units");
 		logger.info(fmt.toString());
 		
 		functions.run();
@@ -75,7 +75,7 @@ public abstract class Benchmark {
 		double mean = getMean(iterationsTime, iterations);
 		
 		fmt = new Formatter();
-		fmt.format("%-50s %10d %10g %10s\n", nameFunction, iterations, mean, UNIT);
+		fmt.format("%-50s %10d %20g %10s\n", nameFunction, iterations, mean, UNIT);
 		logger.info(fmt.toString());
 	}
 	

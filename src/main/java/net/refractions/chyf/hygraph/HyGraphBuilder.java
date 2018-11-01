@@ -185,25 +185,14 @@ public class HyGraphBuilder {
 	public List<EFlowpath> getEFlowpaths() {
 		return eFlowpaths;
 	}
-
-	public void setEFlowpaths(List<EFlowpath> eFlowpaths) {
-		this.eFlowpaths = eFlowpaths;
-	}
 	
 	public List<Nexus> getNexuses() {
 		return nexuses;
 	}
 
-	public void setNexuses(List<Nexus> nexuses) {
-		this.nexuses = nexuses;
-	}
 
-	public List<ECatchment> geteCatchments() {
+	public List<ECatchment> getECatchments() {
 		return eCatchments;
-	}
-
-	public void seteCatchments(List<ECatchment> eCatchments) {
-		this.eCatchments = eCatchments;
 	}
 
 	private void classifyNexuses() {

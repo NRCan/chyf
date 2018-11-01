@@ -59,10 +59,6 @@ public class ChyfDatastore {
 		init();
 	}
 	
-	public ChyfDatastore(boolean benchmark) {
-		
-	}
-	
 	public ChyfDatastore(String dataDir) {
 		init(dataDir);
 	}
