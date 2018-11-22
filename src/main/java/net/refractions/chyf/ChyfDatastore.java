@@ -51,6 +51,10 @@ public class ChyfDatastore {
 	public static GeometryFactory GEOMETRY_FACTORY = new GeometryFactory(new PrecisionModel(), BASE_SRS);
 	public static final int MAX_RESULTS = 20000;
 	
+	public static final String FLOWPATH_FILE = "Flowpath.shp";
+	public static final String CATCHMENT_FILE = "Catchment.shp";
+	public static final String WATERBODY_FILE = "Waterbody.shp";
+	
 	private HyGraph hyGraph;
 
 	public ChyfDatastore() {
@@ -156,7 +160,7 @@ public class ChyfDatastore {
 
 			// read and add Waterbodies
 		    logger.info("Reading waterbodies shapefile");
-			DataStore waterbodyDataStore = getShapeFileDataStore(dataDir + "Waterbody.shp");
+			DataStore waterbodyDataStore = getShapeFileDataStore(dataDir + WATERBODY_FILE);
 		    String waterbodyTypeName = waterbodyDataStore.getTypeNames()[0];
 		    FeatureSource<SimpleFeatureType, SimpleFeature> waterbodyFeatureSource = waterbodyDataStore.getFeatureSource(waterbodyTypeName);
 		    FeatureCollection<SimpleFeatureType, SimpleFeature> waterbodyFeatureCollection = waterbodyFeatureSource.getFeatures(query);
@@ -189,7 +193,7 @@ public class ChyfDatastore {
 
 			// read and add Catchments
 		    logger.info("Reading catchments shapefile");
-			DataStore catchmentDataStore = getShapeFileDataStore(dataDir + "Catchment.shp");
+			DataStore catchmentDataStore = getShapeFileDataStore(dataDir + CATCHMENT_FILE);
 		    String catchmentTypeName = catchmentDataStore.getTypeNames()[0];
 		    FeatureSource<SimpleFeatureType, SimpleFeature> catchmentFeatureSource = catchmentDataStore.getFeatureSource(catchmentTypeName);
 		    FeatureCollection<SimpleFeatureType, SimpleFeature> catchmentFeatureCollection = catchmentFeatureSource.getFeatures(query);
@@ -207,7 +211,7 @@ public class ChyfDatastore {
 
 		    // read and add Flowpaths
 		    logger.info("Reading flowpaths shapefile");
-			DataStore flowPathDataStore = getShapeFileDataStore(dataDir + "Flowpath.shp");
+			DataStore flowPathDataStore = getShapeFileDataStore(dataDir + FLOWPATH_FILE);
 		    String flowPathTypeName = flowPathDataStore.getTypeNames()[0];
 		    FeatureSource<SimpleFeatureType, SimpleFeature> flowpathFeatureSource = flowPathDataStore.getFeatureSource(flowPathTypeName);
 		    FeatureCollection<SimpleFeatureType, SimpleFeature> flowpathFeatureCollection = flowpathFeatureSource.getFeatures(query);
