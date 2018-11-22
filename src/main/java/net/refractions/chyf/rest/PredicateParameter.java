@@ -4,6 +4,7 @@ import java.util.function.BiPredicate;
 
 public enum PredicateParameter {
 	equals((a,b)->a.equals(b)),
+	notEquals((a,b)->!a.equals(b)),
 	greaterThan((a,b)->a.compareTo(b) > 0),
 	lessThan((a,b)->a.compareTo(b) < 0);
 	
