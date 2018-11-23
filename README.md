@@ -7,4 +7,4 @@ CHyF is a hydrological features model derived from the OGC’s HY_Features
 CHyF extends HY_Features and provides an implementation.
 
 
-The demo site is available at: https://chyf.ca/
+The demo site is available at: http://chyf.ca/
