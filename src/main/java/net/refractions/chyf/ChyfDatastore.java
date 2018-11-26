@@ -42,14 +42,16 @@ import com.vividsolutions.jts.geom.MultiLineString;
 import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.geom.PrecisionModel;
+import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKTReader;
 
 public class ChyfDatastore {
 	static final Logger logger = LoggerFactory.getLogger(ChyfDatastore.class.getCanonicalName());
 	
 	public static final int BASE_SRS = 6624; // Quebec Albers
-	public static GeometryFactory GEOMETRY_FACTORY = new GeometryFactory(new PrecisionModel(), BASE_SRS);
 	public static final int MAX_RESULTS = 20000;
+	public static final int PRECISION_MODEL = 1000;
+	public static GeometryFactory GEOMETRY_FACTORY = new GeometryFactory(new PrecisionModel(PRECISION_MODEL), BASE_SRS);
 	
 	private HyGraph hyGraph;
 
@@ -67,79 +69,109 @@ public class ChyfDatastore {
 	
 	private void init() {
 		try {
-			GeometryFactory GEOMETRY_FACTORY = new GeometryFactory(new PrecisionModel(1000), BASE_SRS);
-			
 		    HyGraphBuilder gb = new HyGraphBuilder();
-		    
-			@SuppressWarnings("resource")
-			AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(SpringJdbcConfiguration.class); //ML
-			WKTReader wktreader = new WKTReader();
 
-			// read and add Waterbodies
-			logger.info("Reading waterbodies");
-		    WaterbodyDAO waterbodyDAO = (WaterbodyDAO) context.getBean(WaterbodyDAO.class);
-			    
-		    for(Waterbody wb : waterbodyDAO.getWaterbodies()) {
-		    	Geometry waterCatchment = GEOMETRY_FACTORY.createGeometry(wktreader.read(wb.getLinestring()));
-			    CatchmentType type = CatchmentType.UNKNOWN;
-			    switch(wb.getDefinition()) {
-			        case 1:
-			            type = CatchmentType.WATER_CANAL;
-			            break;
-			        case 4:
-			           	type = CatchmentType.WATER_LAKE;
-			           	break;
-			        case 6: 
-			           	type = CatchmentType.WATER_RIVER;
-			           	break;
-			        case 9:
-			           	type = CatchmentType.WATER_POND;
-			           	break;
-			        }
-			        gb.addECatchment(type, (Polygon)waterCatchment);
-			    }
+			// read and create Waterbodies
+			List<Waterbody> waterbodies = read(Waterbody.class);
+			createWaterbodies(waterbodies, gb);
 
 			// read and add Catchments
-			logger.info("Reading catchments");
-			CatchmentDAO catchmentDAO = (CatchmentDAO) context.getBean(CatchmentDAO.class);
+			List<Catchment> catchments = read(Catchment.class);
+			createCatchments(catchments, gb);
 			
-			List<Catchment> catchments = catchmentDAO.getCatchments(); 
-			for (Catchment c : catchments) {
-				Geometry catchment = GEOMETRY_FACTORY.createGeometry(wktreader.read(c.getLinestring()));
-			    gb.addECatchment(CatchmentType.UNKNOWN, (Polygon)catchment);
-			    }
 
 			// read and add Flowpaths
-			logger.info("Reading flowpaths");
-			FlowpathDAO flow = (FlowpathDAO) context.getBean(FlowpathDAO.class);
-			
-			List<Flowpath> flowpaths = flow.getFlowpaths();
-			for (Flowpath fp : flowpaths){
-				Geometry flowPath = GEOMETRY_FACTORY.createGeometry(wktreader.read(fp.getLinestring()));
-				FlowpathType type = FlowpathType.convert(fp.getType()); //ML
-				String rankString = fp.getRank(); //ML
-			    int rank = -1;
-			    if(rankString.equals("Primary")) {
-			    	rank = 1;
-			    } else if(rankString.equals("Secondary")) {
-			    	rank = 2;
-			    } 
-				String name = fp.getName().intern(); //ML
-			    UUID nameId = null;
-			    try {
-			    	nameId = UuidUtil.UuidFromString(fp.getNameId()); //ML
-			    } catch(IllegalArgumentException iae) {
-			    	logger.warn("Exception reading UUID: " + iae.getMessage());
-			    }
-			    Integer certainty = fp.getCertainty();
-			    gb.addEFlowpath(type, rank, name, nameId, certainty, (LineString)flowPath);
-				
-			}
+			List<Flowpath> flowpaths = read(Flowpath.class);
+			createFlowpaths(flowpaths, gb);
 			
 			hyGraph = gb.build();
 			
 		} catch(Exception e) {
 			e.printStackTrace();
+		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	public <T> List<T> read(Class<T> clazz) {
+		AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(SpringJdbcConfiguration.class); //ML
+		
+		if(clazz.equals(Waterbody.class)) {
+			logger.info("Reading waterbodies");
+			WaterbodyDAO waterbodyDAO = (WaterbodyDAO) context.getBean(WaterbodyDAO.class);
+			return (List<T>) waterbodyDAO.getWaterbodies();
+		} 
+		else if (clazz.equals(Catchment.class)) {
+			logger.info("Reading catchments");
+			CatchmentDAO catchmentDAO = (CatchmentDAO) context.getBean(CatchmentDAO.class);
+			return (List<T>) catchmentDAO.getCatchments();
+		}
+		else if (clazz.equals(Flowpath.class)) {
+			logger.info("Reading flowpaths");
+			FlowpathDAO flowpathDAO = (FlowpathDAO) context.getBean(FlowpathDAO.class);
+			return (List<T>) flowpathDAO.getFlowpaths();
+		}
+		return null;
+		
+	}
+	
+	public void createWaterbodies(List<Waterbody> waterbodies, HyGraphBuilder gb) throws ParseException {
+		logger.info("Creating waterbodies");
+		WKTReader wktreader = new WKTReader();
+		
+		for(Waterbody wb : waterbodies) {
+	    	Geometry waterCatchment = GEOMETRY_FACTORY.createGeometry(wktreader.read(wb.getLinestring()));
+		    CatchmentType type = CatchmentType.UNKNOWN;
+		    switch(wb.getDefinition()) {
+		        case 1:
+		            type = CatchmentType.WATER_CANAL;
+		            break;
+		        case 4:
+		           	type = CatchmentType.WATER_LAKE;
+		           	break;
+		        case 6: 
+		           	type = CatchmentType.WATER_RIVER;
+		           	break;
+		        case 9:
+		           	type = CatchmentType.WATER_POND;
+		           	break;
+		        }
+		        gb.addECatchment(type, (Polygon)waterCatchment);
+		}
+	}
+	
+	public void createCatchments(List<Catchment> catchments, HyGraphBuilder gb) throws ParseException {
+		logger.info("Creating catchments");
+		WKTReader wktreader = new WKTReader();
+		
+		for (Catchment c : catchments) {
+			Geometry catchment = GEOMETRY_FACTORY.createGeometry(wktreader.read(c.getLinestring()));
+		    gb.addECatchment(CatchmentType.UNKNOWN, (Polygon)catchment);
+		}
+	}
+	
+	public void createFlowpaths(List<Flowpath> flowpaths, HyGraphBuilder gb) throws ParseException {
+		logger.info("Creating flowpaths");
+		WKTReader wktreader = new WKTReader();
+		
+		for (Flowpath fp : flowpaths){
+			Geometry flowPath = GEOMETRY_FACTORY.createGeometry(wktreader.read(fp.getLinestring()));
+			FlowpathType type = FlowpathType.convert(fp.getType()); //ML
+			String rankString = fp.getRank(); //ML
+		    int rank = -1;
+		    if(rankString.equals("Primary")) {
+		    	rank = 1;
+		    } else if(rankString.equals("Secondary")) {
+		    	rank = 2;
+		    } 
+			String name = fp.getName().intern(); //ML
+		    UUID nameId = null;
+		    try {
+		    	nameId = UuidUtil.UuidFromString(fp.getNameId()); //ML
+		    } catch(IllegalArgumentException iae) {
+		    	logger.warn("Exception reading UUID: " + iae.getMessage());
+		    }
+		    Integer certainty = fp.getCertainty();
+		    gb.addEFlowpath(type, rank, name, nameId, certainty, (LineString)flowPath);
 		}
 	}
 	

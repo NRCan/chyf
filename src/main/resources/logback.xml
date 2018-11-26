@@ -1,13 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
- 
+
+  <property name="FILE_PATH" value="C:/Users/dbrochu/eclipse-workspace/chyf-pilot/src/main/resources" />
+
   <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
     <encoder>
       <Pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</Pattern>
     </encoder>
   </appender>
+  
+  
+  <appender name="FILE-ENGINE" class="ch.qos.logback.core.FileAppender">
+    <file>${FILE_PATH}/benchmark.log</file>
+    <encoder>
+      <Pattern>%msg%n</Pattern>
+    </encoder>
+  </appender>
+  
+  <logger name="nrcan.cccmeo.benchmark" level="info">
+		<appender-ref ref="FILE-ENGINE" />
+  </logger>
+  
    
   <root level="info">
     <appender-ref ref="STDOUT" />
   </root>
+  
 </configuration>
