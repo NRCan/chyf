@@ -7,7 +7,7 @@ public class ApiResponse {
 	
 	private Object data;
 	private int srs;
-	private long executionTime;
+	private double executionTime;
 	private String errorMsg;
 	private String callback = "jsonp";
 	private Double scale = null;
@@ -54,11 +54,11 @@ public class ApiResponse {
 		return callback;
 	}
 
-	public void setExecutionTime(long executionTime) {
+	public void setExecutionTime(double executionTime) {
 		this.executionTime = executionTime;
 	}
 
-	public long getExecutionTime() {
+	public double getExecutionTime() {
 		return executionTime;
 	}
 

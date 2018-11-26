@@ -20,13 +20,13 @@ public class StopWatch {
 	 * Returns elapsed time in milliseconds
 	 * @return elapsed time in milliseconds
 	 */
-	public long getElapsedTime() {
-		long elapsed;
+	public double getElapsedTime() {
+		double elapsed;
 		if(running) {
-			elapsed = (System.nanoTime() - startTime) / 1000000;
+			elapsed = (System.nanoTime() - startTime) / 1000000.0;
 		}
 		else {
-			elapsed = (stopTime - startTime) / 1000000;
+			elapsed = (stopTime - startTime) / 1000000.0;
 		}
 		return elapsed;
 	}
@@ -35,8 +35,8 @@ public class StopWatch {
 	 * Returns elapsed time in seconds
 	 * @return elapsed time in seconds
 	 */
-	public long getElapsedTimeSecs() {
-		return getElapsedTime() / 1000;
+	public double getElapsedTimeSecs() {
+		return getElapsedTime() / 1000.0;
 	}
 	
 	// sample usage
