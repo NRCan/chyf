@@ -27,12 +27,16 @@ public class StreamOrderCalculator {
 		
 		// loop through nexuses and start from each terminal nexus
 		for(Nexus n : nexuses) {
-			if(n.getType() == NexusType.TERMINAL) {
+			if(n.getType().isTerminal()) {
 				for(EFlowpath f : n.getUpFlows()) {
 					calcStrahlerOrder(f);
 					MainstemmedFlowpath mf = new MainstemmedFlowpath(f);
 					mf.assignHortonOrder(null);
-					mf.assignHackOrder(1);
+					if (n.getType() == NexusType.TERMINAL_ISOLATED) {
+						mf.assignHackOrder(1001);
+					}else {
+						mf.assignHackOrder(1);
+					}
 				}
 			}
 		}  
@@ -154,8 +158,13 @@ class MainstemmedFlowpath {
 		}
 		
 		// set the first element to the number 1
- 		if(f.getToNode().getType() == NexusType.TERMINAL) {
-			f.setHackOrder(1);
+ 		if(f.getToNode().getType().isTerminal()) {
+ 			//isolated edges get hack order of 1001
+ 			if (f.getToNode().getType() == NexusType.TERMINAL_ISOLATED) {
+				f.setHackOrder(1001);
+			}else {
+				f.setHackOrder(1);
+			}
 		}
 		
 		for(MainstemmedFlowpath u: upflows) {

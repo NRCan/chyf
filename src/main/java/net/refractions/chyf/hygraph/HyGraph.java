@@ -2,17 +2,10 @@ package net.refractions.chyf.hygraph;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-
-import net.refractions.chyf.ChyfDatastore;
-import net.refractions.chyf.enumTypes.CatchmentType;
-import net.refractions.chyf.enumTypes.NexusType;
-import net.refractions.chyf.indexing.ECatchmentContainsPointFilter;
-import net.refractions.chyf.indexing.Filter;
-import net.refractions.chyf.indexing.RTree;
-import net.refractions.chyf.indexing.SpatiallyIndexable;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +15,14 @@ import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.operation.union.UnaryUnionOp;
+
+import net.refractions.chyf.ChyfDatastore;
+import net.refractions.chyf.enumTypes.CatchmentType;
+import net.refractions.chyf.enumTypes.NexusType;
+import net.refractions.chyf.indexing.ECatchmentContainsPointFilter;
+import net.refractions.chyf.indexing.Filter;
+import net.refractions.chyf.indexing.RTree;
+import net.refractions.chyf.indexing.SpatiallyIndexable;
 
 public class HyGraph {
 	static final Logger logger = LoggerFactory.getLogger(HyGraph.class.getCanonicalName());
@@ -176,7 +177,7 @@ public class HyGraph {
 		return results;
 	}
 
-	public Object getDownstreamEFlowpaths(EFlowpath eFlowpath, int maxResults) {
+	public Collection<EFlowpath> getDownstreamEFlowpaths(EFlowpath eFlowpath, int maxResults) {
 		if(eFlowpath == null) {
 			return Collections.emptyList();
 		}

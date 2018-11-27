@@ -5,7 +5,8 @@ import org.slf4j.LoggerFactory;
 
 public enum NexusType {
 	HEADWATER("Headwater"),
-	TERMINAL("Terminal"),
+	TERMINAL_ISOLATED("Terminal Isolated"),
+	TERMINAL_BOUNDARY("Terminal Boundary"),
 	FLOWPATH("Flowpath"),
 	WATER("Water"),
 	BANK("Bank"),
@@ -44,4 +45,12 @@ public enum NexusType {
 		return label;
 	}
 
+	/**
+	 * 
+	 * @return true if this is a terminal node, irregardless
+	 * of the terminal type
+	 */
+	public boolean isTerminal() {
+		return this == TERMINAL_ISOLATED || this == NexusType.TERMINAL_BOUNDARY;
+	}
 }

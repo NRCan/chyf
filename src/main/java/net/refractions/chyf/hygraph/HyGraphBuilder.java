@@ -6,18 +6,20 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
 
-import net.refractions.chyf.enumTypes.CatchmentType;
-import net.refractions.chyf.enumTypes.FlowpathType;
-import net.refractions.chyf.enumTypes.NexusType;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.IntersectionMatrix;
 import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.Polygon;
+import com.vividsolutions.jts.index.SpatialIndex;
 import com.vividsolutions.jts.index.quadtree.Quadtree;
+
+import net.refractions.chyf.enumTypes.CatchmentType;
+import net.refractions.chyf.enumTypes.FlowpathType;
+import net.refractions.chyf.enumTypes.NexusType;
 
 public class HyGraphBuilder {
 	static final Logger logger = LoggerFactory.getLogger(HyGraphBuilder.class.getCanonicalName());
@@ -43,9 +45,9 @@ public class HyGraphBuilder {
 		eCatchmentIndex = new Quadtree();
 	}
 	
-	public HyGraph build() {
+	public HyGraph build(SpatialIndex boundary) {
 		//outputUniqueNames();
-		classifyNexuses();
+		classifyNexuses(boundary);
 		//findCycles();
 		StreamOrderCalculator.calcOrders(eFlowpaths, nexuses);
 		classifyCatchments();
@@ -169,7 +171,7 @@ public class HyGraphBuilder {
 		return node;
 	}
 
-	private void classifyNexuses() {
+	private void classifyNexuses(SpatialIndex boundary) {
 		for(Nexus n : nexuses) {
 			if(n.getUpFlows().size() == 0) {
 				if(n.getDownFlows().size() == 1 
@@ -179,7 +181,17 @@ public class HyGraphBuilder {
 					n.setType(NexusType.HEADWATER);
 				}
 			} else if(n.getDownFlows().size() == 0) {
-				n.setType(NexusType.TERMINAL);
+				n.setType(NexusType.TERMINAL_ISOLATED);
+				List<Geometry> results = boundary.query(n.getPoint().getEnvelopeInternal());
+				for (Geometry g : results) {
+					//if the node intersects the boundary then this is a boundary node otherwise an isolated node
+					if (n.getPoint().relate(g, "F0F******")) {
+						n.setType(NexusType.TERMINAL_BOUNDARY);
+						break;
+					}
+				}
+				
+				
 			} else {
 				// count up how many of each type of flowpath we have going each direction
 				EnumMap<FlowpathType,Integer> upTypes = new EnumMap<FlowpathType,Integer>(FlowpathType.class);
@@ -249,7 +261,7 @@ public class HyGraphBuilder {
 			
 			// set Terminal based on downstream nexus types
 			for(Nexus n : c.getDownNexuses()) {
-				if(n.getType() == NexusType.TERMINAL) {
+				if (n.getType().isTerminal()){
 					c.setTerminal(true);
 				}
 			}

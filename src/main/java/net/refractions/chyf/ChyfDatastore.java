@@ -42,6 +42,7 @@ import com.vividsolutions.jts.geom.MultiLineString;
 import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.geom.PrecisionModel;
+import com.vividsolutions.jts.index.strtree.STRtree;
 import com.vividsolutions.jts.io.WKTReader;
 
 public class ChyfDatastore {
@@ -54,6 +55,8 @@ public class ChyfDatastore {
 	public static final String FLOWPATH_FILE = "Flowpath.shp";
 	public static final String CATCHMENT_FILE = "Catchment.shp";
 	public static final String WATERBODY_FILE = "Waterbody.shp";
+	
+	public static final String BOUNDARY_FILE = "Working_limit.shp";
 	
 	private HyGraph hyGraph;
 
@@ -140,7 +143,11 @@ public class ChyfDatastore {
 				
 			}
 			
-			hyGraph = gb.build();
+			//TODO: the STRTree here should be updated to read the
+			//boundary information from the database.  This is necessary to 
+			//correctly assign hack order to the stream edges.  Without this
+			//the hack order will be incorrect
+			hyGraph = gb.build(new STRtree());
 			
 		} catch(Exception e) {
 			e.printStackTrace();
@@ -157,7 +164,7 @@ public class ChyfDatastore {
 		    query.setHints(hints);
 
 		    HyGraphBuilder gb = new HyGraphBuilder();
-
+		    
 			// read and add Waterbodies
 		    logger.info("Reading waterbodies shapefile");
 			DataStore waterbodyDataStore = getShapeFileDataStore(dataDir + WATERBODY_FILE);
@@ -243,7 +250,28 @@ public class ChyfDatastore {
 		    }
 		    flowPathDataStore.dispose();
 		    
-		    hyGraph = gb.build();
+		    
+		    //read Boundaries files
+		    logger.info("Reading boundary shapefile");
+			DataStore boundaryDataStore = getShapeFileDataStore(dataDir + BOUNDARY_FILE);
+		    FeatureSource<SimpleFeatureType, SimpleFeature> boundaryFeatureSource = boundaryDataStore.getFeatureSource(boundaryDataStore.getTypeNames()[0]);
+		    FeatureCollection<SimpleFeatureType, SimpleFeature> boundaryFeatureCollection = boundaryFeatureSource.getFeatures(query);
+		    STRtree boundaryIndex = new STRtree();
+		    try (FeatureIterator<SimpleFeature> features = boundaryFeatureCollection.features()) {
+		        while (features.hasNext()) {
+					SimpleFeature feature = features.next();
+					// System.out.print(feature.getID());
+					Geometry g = (Geometry) feature.getDefaultGeometryProperty().getValue();
+					g.setSRID(4617); // CSRS/GRS80/NAD83/
+			        g = GeotoolsGeometryReprojector.reproject(g, BASE_SRS);
+					boundaryIndex.insert(g.getEnvelopeInternal(), g);
+		        }
+		    }
+		    boundaryIndex.build();
+		    boundaryDataStore.dispose();
+		    
+		    logger.info("building network graph");
+		    hyGraph = gb.build(boundaryIndex);
 		} catch(IOException e) {
 			// System.out.println(e.getMessage());
 			throw new RuntimeException(e);
