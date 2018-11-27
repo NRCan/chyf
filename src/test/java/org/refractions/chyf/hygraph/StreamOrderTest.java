@@ -2,22 +2,22 @@ package org.refractions.chyf.hygraph;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.URL;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestRule;
 
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Point;
-import com.vividsolutions.jts.geom.PrecisionModel;
+import com.vividsolutions.jts.geom.Polygon;
 
 import net.refractions.chyf.ChyfDatastore;
 import net.refractions.chyf.enumTypes.FlowpathType;
@@ -35,35 +35,32 @@ import net.refractions.chyf.rest.PredicateParameter;
  */
 public class StreamOrderTest {
 	
-	private static ChyfDatastore datastore;
-	
 	/**
 	 * The expected results for order computations.  This file
 	 * should be a point geojson file with each feature containing  
 	 * "strahlerorder", "hortonorder", and "hackorder".  The geometry should
 	 * be a point geometry that is next to the linestring being tested. All data 
-	 * should be in lat/long.
+	 * should be in same projection as the test data.
 	 * 
 	 */
-	public static final String ORDER_EXPECTED_RESULTS = "data/order_results.json";
+	public static final String ORDER_EXPECTED_RESULTS = BasicTestSuite.RESULTS_DIR + "/order_results.json";
 	
-	private static GeometryFactory gf = new GeometryFactory(new PrecisionModel(), 4326);
-	
+	@Rule
+	public TestRule rule = BasicTestSuite.SETUP_RULE;
+
 	@BeforeClass
 	public static void setup() throws Exception{
 		//ensure file exists
 		try(InputStream is = ClassLoader.getSystemResourceAsStream(ORDER_EXPECTED_RESULTS)){
 		}		
-		//create network
-		URL url = ClassLoader.getSystemResource("data/" + ChyfDatastore.FLOWPATH_FILE);
-		Path datapath = Paths.get(url.toURI()).getParent();
-		datastore = new ChyfDatastore(datapath.toString() + "/");
 	}
 	
+
 	@Test
-	public void test_findEFlowpaths(){
-		Coordinate c = new Coordinate(-73.13851, 45.99993);
-		Point pnt = gf.createPoint(c);
+	public void test_findEFlowpaths() throws URISyntaxException{
+		ChyfDatastore datastore = BasicTestSuite.DATASTORE;
+		Coordinate c = new Coordinate(-73.13851109999999, 45.99991639999997);
+		Point pnt = BasicTestSuite.GF.createPoint(c);
 		pnt = GeotoolsGeometryReprojector.reproject(pnt, ChyfDatastore.BASE_SRS);
 		List<EFlowpath> paths = datastore.getHyGraph().findEFlowpaths(pnt, 1, 1, 
 				new PredicateFilter<EFlowpath>(EFlowpath::getType, 
@@ -76,7 +73,7 @@ public class StreamOrderTest {
 	
 	@Test
 	public void test_Order() throws Exception {
-		
+		ChyfDatastore datastore = BasicTestSuite.DATASTORE;
 		List<TestPoint> tests = readOrderJson();
 		for (TestPoint point : tests) {		
 			Point pnt = GeotoolsGeometryReprojector.reproject(point.point, ChyfDatastore.BASE_SRS);
@@ -92,6 +89,9 @@ public class StreamOrderTest {
 		}
 		
 	}
+	
+	
+	
 	
 	/*
 	 * reads expected results for order from json file
@@ -163,7 +163,7 @@ public class StreamOrderTest {
 				}
 		
 				TestPoint point = new TestPoint();
-				point.point = gf.createPoint(new Coordinate(x,y));
+				point.point = BasicTestSuite.GF.createPoint(new Coordinate(x,y));
 				point.strahlerorder = sorder;
 				point.hackorder = hackorder;
 				point.hortonorder = horder;
@@ -181,6 +181,21 @@ public class StreamOrderTest {
 		
 		public TestPoint() {
 		}
+	}
+	
+	public static void main(String args[]) {
+		GeometryFactory gf = new GeometryFactory();
+		Point p = gf.createPoint(new Coordinate(1, 3));
+		Polygon polygon = gf.createPolygon(new Coordinate[] {
+				new Coordinate(0,0),
+				new Coordinate(0,1),
+				new Coordinate(2,1),
+				new Coordinate(2,0),
+				new Coordinate(0,0),
+				
+		});
+		System.out.println(p.relate(polygon));
+		System.out.println(p.relate(polygon, "F0F******"));
 	}
 	
 }
