@@ -3,6 +3,7 @@ package net.refractions.chyf.rest;
 import java.nio.charset.Charset;
 import java.util.List;
 
+import net.refractions.chyf.rest.messageconverters.GeoPackageConverter;
 import net.refractions.chyf.rest.messageconverters.HtmlResponseConverter;
 import net.refractions.chyf.rest.messageconverters.JsonErrorMessageConverter;
 import net.refractions.chyf.rest.messageconverters.JsonResponseConverter;
@@ -35,6 +36,7 @@ public class WebConfig extends WebMvcConfigurerAdapter {
 		converters.add(jsonResponseConverter());
 		converters.add(jsonpResponseConverter());
 		converters.add(htmlResponseConverter());
+		converters.add(geoPackageResponseConverter());
 		super.configureMessageConverters(converters);
 	}	
 	
@@ -58,6 +60,10 @@ public class WebConfig extends WebMvcConfigurerAdapter {
 		return new HtmlResponseConverter();
 	}
 
+	@Bean
+	public GeoPackageConverter geoPackageResponseConverter() {
+		return new GeoPackageConverter();
+	}
 	
 	@Override
 	public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
@@ -75,7 +81,12 @@ public class WebConfig extends WebMvcConfigurerAdapter {
 				.mediaType("jsonp",
 						new MediaType("application", "javascript", Charset.forName("UTF-8")))
 				.mediaType("geojsonp",
-						new MediaType("application", "javascript", Charset.forName("UTF-8")));
+						new MediaType("application", "javascript", Charset.forName("UTF-8")))
+				.mediaType("geopackage", 
+						new MediaType("application", "geopackage+sqlite3", Charset.forName("UTF-8")))
+				.mediaType("geopkg", 
+						new MediaType("application", "geopackage+sqlite3", Charset.forName("UTF-8")))
+				;
 	}
 	
 }

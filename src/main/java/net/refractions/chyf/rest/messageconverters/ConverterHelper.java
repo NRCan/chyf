@@ -21,6 +21,113 @@ import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.Polygon;
 
 public abstract class ConverterHelper {
+	
+	public static enum DrainageAreaField{
+		AREA("area", Double.class);
+		
+		String fieldName;
+		Class<?> type;
+		
+		DrainageAreaField(String fieldName, Class<?> type){
+			this.fieldName = fieldName;
+			this.type = type;
+		}
+		
+		public Object getValue(DrainageArea item) {
+			if (this == AREA) return item.getArea() / 10000;
+			return "";
+		}
+	};
+
+	
+	public static enum NexusField{
+		TYPE("type", String.class);
+		
+		String fieldName;
+		Class<?> type;
+		
+		NexusField(String fieldName, Class<?> type){
+			this.fieldName = fieldName;
+			this.type = type;
+		}
+		
+		public Object getValue(Nexus item) {
+			if (this == TYPE) return item.getType().toString();
+			return "";
+		}
+	};
+
+	public static enum ECatchmentField{
+		NAME("name", String.class),
+		TYPE("type", String.class),
+		SUBTYPE("subtype", String.class),
+		RANK("rank", Integer.class),
+		ISTERMINAL("isTerminal", Boolean.class),
+		STRAHLER("strahleror", Integer.class),
+		HORTON("hortonor", Integer.class),
+		HACK("hackor", Integer.class),
+		AREA("area", Double.class);
+		
+		String fieldName;
+		Class<?> type;
+		
+		ECatchmentField(String fieldName, Class<?> type){
+			this.fieldName = fieldName;
+			this.type = type;
+		}
+		
+		public Object getValue(ECatchment item) {
+			switch(this) {
+			case AREA: return item.getArea() / 10000;
+			case HACK: return item.getHackOrder();
+			case HORTON: return item.getHortonOrder();
+			case ISTERMINAL: return item.isTerminal();
+			case NAME: return item.getName();
+			case RANK: return item.getRank();
+			case STRAHLER: return item.getStrahlerOrder();
+			case SUBTYPE: return item.getType().getSubType();
+			case TYPE: return item.getType().toString();
+			}
+			return "";
+		}
+	}
+
+	public static enum EFlowpathField{
+		NAME("name", String.class),
+		NAMEID("nameid", String.class),
+		TYPE("type", String.class),
+		RANK("rank", Integer.class),
+		CERTAINTY("certainty", Integer.class),
+		STRAHLER("strahleror", Integer.class),
+		HORTON("hortonor", Integer.class),
+		HACK("hackor", Integer.class),
+		LENGTH("length", Double.class);
+		
+		String fieldName;
+		Class<?> type;
+		
+		EFlowpathField(String fieldName, Class<?> type){
+			this.fieldName = fieldName;
+			this.type = type;
+		}
+		
+		public Object getValue(EFlowpath item) {
+			switch(this) {
+			case LENGTH: return item.getLength();
+			case HACK: return item.getHackOrder();
+			case HORTON: return item.getHortonOrder();
+			case CERTAINTY: return item.getCertainty();
+			case NAME: return item.getName();
+			case NAMEID: return item.getNameId() == null ? null : item.getName();
+			case RANK: return item.getRank();
+			case STRAHLER: return item.getStrahlerOrder();
+			case TYPE: return item.getType().toString();
+			}
+			return "";
+		}
+	}
+	
+	
 	static final DecimalFormat DEGREE_FORMAT = new DecimalFormat("###.#####");
 	static final DecimalFormat METRE_FORMAT = new DecimalFormat("###.##");
 	
@@ -56,43 +163,42 @@ public abstract class ConverterHelper {
 			field(fieldName, Long.valueOf(fieldValue));
 		}
 	}
+	
+	protected void nfield(String fieldName, Object type) throws IOException {
+		if(type instanceof String) field(fieldName, (String)type);
+		if(type instanceof Long) field(fieldName, (Long)type);
+		if(type instanceof Integer) field(fieldName, (Integer)type);
+		if(type instanceof Double) field(fieldName, (Double)type);
+	}
 
 	protected void nexus(Nexus nexus, ApiResponse response, ApiResponse responseMetadata) throws IOException {
 		featureHeader(GeotoolsGeometryReprojector.reproject(nexus.getPoint(), response.getSrs()), nexus.getId(), responseMetadata);
-		field("type", nexus.getType().toString());
+		for (NexusField f : NexusField.values()) {
+			nfield(f.fieldName, f.getValue(nexus));
+		}
 		featureFooter();
 	}
 	protected void eFlowpath(EFlowpath eFlowpath, ApiResponse response, ApiResponse responseMetadata) throws IOException {
 		featureHeader(filterCoords(GeotoolsGeometryReprojector.reproject(eFlowpath.getLineString(), response.getSrs()), response.getScale()), eFlowpath.getId(), responseMetadata);
-		field("name", eFlowpath.getName());
-		field("nameid", eFlowpath.getNameId() == null ? null : eFlowpath.getNameId().toString());
-		field("type", eFlowpath.getType().toString());
-		field("rank", eFlowpath.getRank());
-		field("certainty", eFlowpath.getCertainty());
-		field("strahleror", eFlowpath.getStrahlerOrder());
-		field("hortonor", eFlowpath.getHortonOrder());
-		field("hackor", eFlowpath.getHackOrder());
-		field("length", eFlowpath.getLength());
+		for (EFlowpathField f : EFlowpathField.values()) {
+			nfield(f.fieldName, f.getValue(eFlowpath));
+		}
 		featureFooter();
 	}
 
 	protected void eCatchment(ECatchment eCatchment, ApiResponse response, ApiResponse responseMetadata) throws IOException {
 		featureHeader(GeotoolsGeometryReprojector.reproject(eCatchment.getPolygon(), response.getSrs()), eCatchment.getId(), responseMetadata);
-		field("name", eCatchment.getName());
-		field("type", eCatchment.getType().toString());
-		field("subtype", eCatchment.getType().getSubType());
-		field("rank", eCatchment.getRank());
-		field("isTerminal", eCatchment.isTerminal());
-		field("strahleror", eCatchment.getStrahlerOrder());
-		field("hortonor", eCatchment.getHortonOrder());
-		field("hackor", eCatchment.getHackOrder());
-		field("area", eCatchment.getArea()/10000);		
+		for (ECatchmentField f : ECatchmentField.values()) {
+			nfield(f.fieldName, f.getValue(eCatchment));
+		}
 		featureFooter();
 	}
 
 	protected void drainageArea(DrainageArea drainageArea, ApiResponse response, ApiResponse responseMetadata) throws IOException {
 		featureHeader(GeotoolsGeometryReprojector.reproject(drainageArea.getGeometry(), response.getSrs()), 1, responseMetadata);
-		field("area", drainageArea.getArea()/10000);		
+		for (DrainageAreaField f : DrainageAreaField.values()) {
+			nfield(f.fieldName, f.getValue(drainageArea));
+		}
 		featureFooter();
 	}
 
@@ -139,7 +245,7 @@ public abstract class ConverterHelper {
 		responseFooter(response);
 	}
 	
-	private void dataObject(Object data, ApiResponse response, ApiResponse responseMetadata) throws IOException {
+	protected void dataObject(Object data, ApiResponse response, ApiResponse responseMetadata) throws IOException {
 		if(data instanceof Nexus) {
 			nexus((Nexus)data, response, responseMetadata);
 		} else if(data instanceof EFlowpath) {

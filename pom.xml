@@ -139,6 +139,18 @@
 			<version>${geotools.version}</version>
 		</dependency>
 		<dependency>
+			<groupId>org.geotools</groupId>
+			<artifactId>gt-geopkg</artifactId>
+			<version>${geotools.version}</version>
+			<exclusions>
+				<!-- we only deal with vector data -->
+				<exclusion>
+					<groupId>org.geotools</groupId>
+            		<artifactId>gt-coverage</artifactId>
+        	    </exclusion>
+        	</exclusions>
+		</dependency>
+		<dependency>
 			<groupId>net.sf.trove4j</groupId>
 			<artifactId>trove4j</artifactId>
 			<version>3.0.3</version>
