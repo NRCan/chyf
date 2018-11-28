@@ -26,7 +26,9 @@ import net.refractions.chyf.ChyfDatastore;
  *
  */
 @RunWith(Suite.class)
-@SuiteClasses({StreamOrderTest.class, FlowpathTest.class, DrainageTest.class, ElementaryDrainageTest.class})
+@SuiteClasses({StreamOrderTest.class, FlowpathTest.class, 
+	DrainageTest.class, ElementaryDrainageTest.class,
+	MultiDimensionalDownstreamTest.class})
 public class BasicTestSuite extends Suite {
 
 	protected static ChyfDatastore DATASTORE = null;
