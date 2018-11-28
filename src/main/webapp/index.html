@@ -194,6 +194,7 @@
 			<button id="flowpathFlowsFrom" type="button" class="toolBtn tool">Flows From Point</button>
 			<button id="flowpathsUpstreamOf" type="button" class="toolBtn tool">Upstream Of Point</button>
 			<button id="flowpathsDownstreamOf" type="button" class="toolBtn tool">Downstream Of Point</button>
+			<button id="multiDimensionalDownstreamOf" type="button" class="toolBtn tool">MultiDimensional Downstream Of Point</button>
 			<div class="buttonGroup">
 				<select id="flowpathPropSel">
 					<option value="name">Name</option>
@@ -213,6 +214,7 @@
 				<select id="flowpathValSel"></select><br/>
 				<button id="flowpathFilter" type="button" class="toolBtn">Find by Filter</button>
 			</div>
+			
 			<div class="toolCat">E. Catchments</div>
 			<button id="catchmentById" type="button" class="toolBtn">Find by ID:</button>
 			<input id="catchmentId" class="idInput" type="text"/>
@@ -251,9 +253,10 @@
 		});
 
 		// API URLs
-		var chyfApi = "http://chyf.ca/chyf/";
+// 		var chyfApi = "http://chyf.ca/chyf/";
+		var chyfApi = window.location.href;
 		if(queryParams['env'] == 'local') {
-			chyfApi = "http://localhost:8080/chyf-pilot/";
+ 			chyfApi = "http://localhost:8080/chyf-pilot/";
 		} else if(queryParams['env'] == 'nfis') {
 			chyfApi = "https://demo.nfis.org/chyf/";
 		}
@@ -551,6 +554,9 @@
 				case 'flowpathsDownstreamOf':
 					selectFlowpaths("eflowpath/downstreamOf.json?point=" + latlng.lng + "," + latlng.lat);
 					break;
+				case 'multiDimensionalDownstreamOf':
+					selectFlowpathsCatchments("eflowpath/multiDimensionalDownstreamOf.json?point=" + latlng.lng + "," + latlng.lat);
+					break;
 				case 'catchmentContaining':
 					selectCatchments("ecatchment/containing.json?point=" + latlng.lng + "," + latlng.lat);
 					break;
@@ -678,6 +684,41 @@
 			});
 		}
 
+		function selectFlowpathsCatchments(path, center = 0) {
+			clearSelection();
+			$('#mapCover').css('z-index', 800);
+			$("#map").addClass('progress');
+			var selectionRequest = $.ajax({
+				url: chyfApi + path,
+				xhrFields: {
+   					withCredentials: true
+				},
+				success: function(data) {
+					fillDataTable(data, "eMulti", chyfApi + path);
+					clearSelectionLayer();
+					
+					selectionLayer = L.geoJson(data, {
+						interactive: false,
+						pane: 'selection',
+						style: function(feature) {
+							return {color:selectColor, weight:4};
+						}
+					}).addTo(map);
+					if(center > 0) {
+						var bounds = selectionLayer.getBounds();
+						if(data.type == 'FeatureCollection' && data.features[0] && center == 1) {
+							bounds = L.GeoJSON.geometryToLayer(data.features[0]).getBounds();
+						}
+						centerMap(bounds);
+					}
+				},
+				complete: function() {
+					$('#mapCover').css('z-index', 0);
+					$("#map").removeClass('progress');
+				}
+			});
+		}
+		
 		function selectDrainageArea(path, center = 0) {
 			clearSelection();
 			$('#mapCover').css('z-index', 800);
@@ -1198,6 +1239,24 @@
 					'area': 'Area (ha)'
 				}
 			},
+			eMulti:{
+				title: "Elementary Flowpath and Catchment",
+				titlePlural: "Elementary Flowpaths and Catchments",
+				cols: {
+					'id': 'ID',
+					'name': 'Primary Name',
+					'type': 'Type',
+					'subtype': 'SubType',
+					'isTerminal': 'Is Terminal',
+					'certainty': 'FD Certainty',
+					'rank': 'Rank',
+					'strahleror': 'Strahler Order',
+					'hortonor': 'Horton Order',
+					'hackor': 'Hack Order',
+					'area': 'Area (ha)',
+					'length': 'Length (metres)'
+				}
+			},
 			drainageArea: {
 				title: "Drainage Area",
 				titlePlural: "Drainage Areas",
@@ -1236,7 +1295,7 @@
 					if(c == 'id') {
 						$row.append('<td>' + features[f].ID + '</td>');
 					} else {
-						$row.append('<td>' + features[f].properties[c] + '</td>');
+						$row.append('<td>' + (features[f].properties[c] == null ? "" : features[f].properties[c]) + '</td>');
 					}
 				}
 				$tbody.append($row);
