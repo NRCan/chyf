@@ -42,7 +42,7 @@
 		}*/
 		#toolBar {
 			flex: 0 0 auto;
-            width: 180px;
+            width: 200px;
 			overflow: auto;
 			border-right: 1px solid lightSlateGrey;
 			padding: 5px;
@@ -79,7 +79,7 @@
 			z-index: 999;
 			background-color: white;
 			bottom: 0;
-			left: 190px;
+			left: 210px;
 			height: 200px;
 			border: 1px solid lightSlateGrey;
 			overflow: auto;
@@ -186,15 +186,17 @@
 			<div class="toolCat">Nexuses</div>
 			<button id="nexusById" type="button" class="toolBtn">Find by ID:</button>
 			<input id="nexusId" class="idInput" type="text"/>
-		 	<div class="toolCat">E. Flowpaths</div>
+		 	<div class="toolCat">Elementary Flowpaths</div>
 			<button id="flowpathById" type="button" class="toolBtn">Find by ID:</button>
 			<input id="flowpathId" class="idInput" type="text"/>
+			<!-- 
 			<button id="flowpathsUpstreamOfId" type="button" class="toolBtn">Upstream Of ID</button>
 			<button id="flowpathsDownstreamOfId" type="button" class="toolBtn">Downstream Of ID</button>
+			-->
 			<button id="flowpathFlowsFrom" type="button" class="toolBtn tool">Flows From Point</button>
 			<button id="flowpathsUpstreamOf" type="button" class="toolBtn tool">Upstream Of Point</button>
 			<button id="flowpathsDownstreamOf" type="button" class="toolBtn tool">Downstream Of Point</button>
-			<button id="multiDimensionalDownstreamOf" type="button" class="toolBtn tool">MultiDimensional Downstream Of Point</button>
+			
 			<div class="buttonGroup">
 				<select id="flowpathPropSel">
 					<option value="name">Name</option>
@@ -215,15 +217,20 @@
 				<button id="flowpathFilter" type="button" class="toolBtn">Find by Filter</button>
 			</div>
 			
-			<div class="toolCat">E. Catchments</div>
+			<div class="toolCat">Elementary Catchments</div>
 			<button id="catchmentById" type="button" class="toolBtn">Find by ID:</button>
 			<input id="catchmentId" class="idInput" type="text"/>
+			<!-- 
 			<button id="catchmentsUpstreamOfId" type="button" class="toolBtn">Upstream Of ID</button>
 			<button id="catchmentsDownstreamOfId" type="button" class="toolBtn">Downstream Of ID</button>
+			-->
 			<button id="catchmentContaining" type="button" class="toolBtn tool">Containing Point</button>
 			<button id="catchmentsUpstreamOf" type="button" class="toolBtn tool">Upstream Of Point</button>
 			<button id="catchmentsDownstreamOf" type="button" class="toolBtn tool">Downstream Of Point</button>
-			<div class="toolCat">Drainage Areas</div>
+			<div class="toolCat">Waterbody Flows</div>
+			<button id="multiDimensionalDownstreamOf" type="button" class="toolBtn tool">Downstream Of Point</button>
+			<button id="multiDimensionalUpstreamOf" type="button" class="toolBtn tool">Upstream Of Point</button>
+			<div class="toolCat">Catchments (Drainage Areas)</div>
 			<input id="removeHoles" type="checkbox"/>Remove Holes
 			<button id="drainageAreaUpstreamOf" type="button" class="toolBtn tool">Upstream Of Point</button>
 			<button id="drainageAreaDownstreamOf" type="button" class="toolBtn tool">Downstream Of Point</button>
@@ -555,7 +562,10 @@
 					selectFlowpaths("eflowpath/downstreamOf.json?point=" + latlng.lng + "," + latlng.lat);
 					break;
 				case 'multiDimensionalDownstreamOf':
-					selectFlowpathsCatchments("eflowpath/multiDimensionalDownstreamOf.json?point=" + latlng.lng + "," + latlng.lat);
+					selectFlowpathsCatchments("waterbodyFlow/multiDimensionalDownstreamOf.json?point=" + latlng.lng + "," + latlng.lat);
+					break;
+				case 'multiDimensionalUpstreamOf':
+					selectFlowpathsCatchments("waterbodyFlow/multiDimensionalUpstreamOf.json?point=" + latlng.lng + "," + latlng.lat);
 					break;
 				case 'catchmentContaining':
 					selectCatchments("ecatchment/containing.json?point=" + latlng.lng + "," + latlng.lat);
@@ -1331,7 +1341,8 @@
 						var val = props[c].split('/').pop().split('#')[0].split('?')[0];
 			 			str += '<a target="_blank" href="' + props[c] + '">' + val + '</a>';
 					} else {
-						str += props[c];
+						str += (props[c]==null) ? "&nbsp;" : props[c];
+						
 					}
 					str += "</td></tr>";
 				}

@@ -194,6 +194,29 @@ public class HyGraph {
 	 */
 	public Collection<SpatiallyIndexable> getDownstreamMultiDimensional(ECatchment eCatchment, int maxResults) {
 		Collection<ECatchment> catchments = getDownstreamECatchments(eCatchment, maxResults);
+		return filterMultiDimensionalResults(catchments, maxResults);
+	}
+
+	/**
+	 * 
+	 * Given a point, the elementary catchment containing the point is returned. 
+	 * If the elementary catchment flows into a flowpath associated with a single-line river, 
+	 * then the flowpath is returned; otherwise if the flowpath is associated with a 
+	 * polygonal waterbody (e.g., a double-line river or a lake), then the 
+	 * polygonal waterbody is returned. This behaviour occurs recursively upstream 
+	 * until the limit of the data is reached. This is intended to convey a more 
+	 * accurate representation of what actually happens in the case of a spill for example.
+	 * 
+	 * @param eFlowpath the flowpath to start from 
+	 * @param maxResults the maximum number of flowpaths to return
+	 * @return a collection of eflowpath or ecatchment objects
+	 */
+	public Collection<SpatiallyIndexable> getUpstreamMultiDimensional(ECatchment eCatchment, int maxResults) {
+		Collection<ECatchment> catchments = getUpstreamECatchments(eCatchment, maxResults);
+		return filterMultiDimensionalResults(catchments, maxResults);
+	}
+	
+	private Collection<SpatiallyIndexable> filterMultiDimensionalResults(Collection<ECatchment> catchments, int maxResults){
 		Set<SpatiallyIndexable> results = new HashSet<>();
 		for (ECatchment catchment : catchments) {
 			switch(catchment.getType()) {
@@ -215,7 +238,6 @@ public class HyGraph {
 		}		
 		return results;
 	}
-
 		
 	public Collection<EFlowpath> getDownstreamEFlowpaths(EFlowpath eFlowpath, int maxResults) {
 		if(eFlowpath == null) {

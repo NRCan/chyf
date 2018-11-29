@@ -219,27 +219,7 @@ public class EFlowpathController {
 		resp.setParams(params);
 		return resp;
 	}
-	
-	@RequestMapping(value = "/multiDimensionalDownstreamOf", method = {RequestMethod.GET,RequestMethod.POST})
-	public ApiResponse getMultiDimensionalDownstreamOfLocation(ReverseGeocodeParameters params, BindingResult bindingResult) {
-		if(bindingResult.hasErrors()) {
-			throw new InvalidParameterException(bindingResult);
-		}
-		params.resolveAndValidate();
-		
-		if(params.getPoint() == null) {
-			String errMsg = "The point parameter must be provided.";
-			throw new IllegalArgumentException(errMsg);
-		}
 
-		StopWatch sw = new StopWatch();
-		sw.start();
-		ApiResponse resp = new ApiResponse(hyGraph.getDownstreamMultiDimensional(hyGraph.getECatchment(params.getPoint()), params.getMaxFeatures() ));
-		sw.stop();
-		resp.setExecutionTime(sw.getElapsedTime());
-		resp.setParams(params);
-		return resp;
-	}
 }
 
 

@@ -41,6 +41,8 @@ public class MultiDimensionalDownstreamTest {
 	 * well-known-text representation of expected geometries
 	 */
 	public static final String DOWNSTREAMELEDRAINAGE_RESULTS = BasicTestSuite.RESULTS_DIR + "/multidimensionaldownstream_results.json";
+	public static final String UPSTREAMELEDRAINAGE_RESULTS = BasicTestSuite.RESULTS_DIR + "/multidimensionalupstream_results.json";
+
 	
 	@Rule
 	public TestRule rule = BasicTestSuite.SETUP_RULE;
@@ -50,6 +52,17 @@ public class MultiDimensionalDownstreamTest {
 		try {
 			validateCatchments(DOWNSTREAMELEDRAINAGE_RESULTS, 
 					point-> BasicTestSuite.DATASTORE.getHyGraph().getDownstreamMultiDimensional(BasicTestSuite.DATASTORE.getHyGraph().getECatchment(point), ChyfDatastore.MAX_RESULTS));
+		}catch (Exception ex) {
+			ex.printStackTrace();
+			Assert.fail(ex.getMessage());
+		}
+	}
+	
+	@Test
+	public void test_MultiDimensionalUpstreamCatchment() throws ParseException {
+		try {
+			validateCatchments(UPSTREAMELEDRAINAGE_RESULTS, 
+					point-> BasicTestSuite.DATASTORE.getHyGraph().getUpstreamMultiDimensional(BasicTestSuite.DATASTORE.getHyGraph().getECatchment(point), ChyfDatastore.MAX_RESULTS));
 		}catch (Exception ex) {
 			ex.printStackTrace();
 			Assert.fail(ex.getMessage());
