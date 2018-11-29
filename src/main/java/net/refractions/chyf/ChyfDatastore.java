@@ -3,24 +3,11 @@ package net.refractions.chyf;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-
-import net.refractions.chyf.enumTypes.CatchmentType;
-import net.refractions.chyf.enumTypes.FlowpathType;
-import net.refractions.chyf.hygraph.HyGraph;
-import net.refractions.chyf.hygraph.HyGraphBuilder;
-import net.refractions.chyf.rest.GeotoolsGeometryReprojector;
-import net.refractions.util.UuidUtil;
-import nrcan.cccmeo.chyf.db.SpringJdbcConfiguration;
-import nrcan.cccmeo.chyf.db.Waterbody;
-import nrcan.cccmeo.chyf.db.WaterbodyDAO;
-import nrcan.cccmeo.chyf.db.Catchment;
-import nrcan.cccmeo.chyf.db.CatchmentDAO;
-import nrcan.cccmeo.chyf.db.Flowpath;
-import nrcan.cccmeo.chyf.db.FlowpathDAO;
 
 import org.geotools.data.DataStore;
 import org.geotools.data.DataStoreFinder;
@@ -36,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.GeometryCollection;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.MultiLineString;
@@ -44,6 +32,20 @@ import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.geom.PrecisionModel;
 import com.vividsolutions.jts.index.strtree.STRtree;
 import com.vividsolutions.jts.io.WKTReader;
+
+import net.refractions.chyf.enumTypes.CatchmentType;
+import net.refractions.chyf.enumTypes.FlowpathType;
+import net.refractions.chyf.hygraph.HyGraph;
+import net.refractions.chyf.hygraph.HyGraphBuilder;
+import net.refractions.chyf.rest.GeotoolsGeometryReprojector;
+import net.refractions.util.UuidUtil;
+import nrcan.cccmeo.chyf.db.Catchment;
+import nrcan.cccmeo.chyf.db.CatchmentDAO;
+import nrcan.cccmeo.chyf.db.Flowpath;
+import nrcan.cccmeo.chyf.db.FlowpathDAO;
+import nrcan.cccmeo.chyf.db.SpringJdbcConfiguration;
+import nrcan.cccmeo.chyf.db.Waterbody;
+import nrcan.cccmeo.chyf.db.WaterbodyDAO;
 
 public class ChyfDatastore {
 	static final Logger logger = LoggerFactory.getLogger(ChyfDatastore.class.getCanonicalName());
@@ -143,11 +145,15 @@ public class ChyfDatastore {
 				
 			}
 			
-			//TODO: the STRTree here should be updated to read the
+			//TODO: the arraylist here should be updated to read the
 			//boundary information from the database.  This is necessary to 
 			//correctly assign hack order to the stream edges.  Without this
-			//the hack order will be incorrect
-			hyGraph = gb.build(new STRtree());
+			//the hack order will be incorrect.  This array list
+			//should be a list of geometries representing the boundary
+			//of the dataset.  The assumption is that the boundary geometries
+			//have exact same coordinate as the flowline where
+			//the boundary meets the flowline
+			hyGraph = gb.build(new ArrayList<Geometry>());
 			
 		} catch(Exception e) {
 			e.printStackTrace();
@@ -256,7 +262,7 @@ public class ChyfDatastore {
 			DataStore boundaryDataStore = getShapeFileDataStore(dataDir + BOUNDARY_FILE);
 		    FeatureSource<SimpleFeatureType, SimpleFeature> boundaryFeatureSource = boundaryDataStore.getFeatureSource(boundaryDataStore.getTypeNames()[0]);
 		    FeatureCollection<SimpleFeatureType, SimpleFeature> boundaryFeatureCollection = boundaryFeatureSource.getFeatures(query);
-		    STRtree boundaryIndex = new STRtree();
+		    List<Geometry> boundaries = new ArrayList<>();
 		    try (FeatureIterator<SimpleFeature> features = boundaryFeatureCollection.features()) {
 		        while (features.hasNext()) {
 					SimpleFeature feature = features.next();
@@ -264,14 +270,14 @@ public class ChyfDatastore {
 					Geometry g = (Geometry) feature.getDefaultGeometryProperty().getValue();
 					g.setSRID(4617); // CSRS/GRS80/NAD83/
 			        g = GeotoolsGeometryReprojector.reproject(g, BASE_SRS);
-					boundaryIndex.insert(g.getEnvelopeInternal(), g);
+			        boundaries.add(g);
 		        }
 		    }
-		    boundaryIndex.build();
+		    
 		    boundaryDataStore.dispose();
 		    
 		    logger.info("building network graph");
-		    hyGraph = gb.build(boundaryIndex);
+		    hyGraph = gb.build(boundaries);
 		} catch(IOException e) {
 			// System.out.println(e.getMessage());
 			throw new RuntimeException(e);

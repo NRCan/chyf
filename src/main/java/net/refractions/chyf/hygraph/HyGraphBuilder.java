@@ -1,20 +1,22 @@
 package net.refractions.chyf.hygraph;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.IntersectionMatrix;
 import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.Polygon;
-import com.vividsolutions.jts.index.SpatialIndex;
 import com.vividsolutions.jts.index.quadtree.Quadtree;
 
 import net.refractions.chyf.enumTypes.CatchmentType;
@@ -45,9 +47,18 @@ public class HyGraphBuilder {
 		eCatchmentIndex = new Quadtree();
 	}
 	
-	public HyGraph build(SpatialIndex boundary) {
+	/**
+	 * 
+	 * @param boundaries A collection of geometries that represent the boundary
+	 * of the dataset.  It is assumed that the boundary geoetries have the
+	 * exact same coordinate as the flowline where the boundary meets the
+	 * flowline otherwise the flowline will be considered isolated.
+	 * 
+	 * @return
+	 */
+	public HyGraph build(Collection<Geometry> boundaries) {
 		//outputUniqueNames();
-		classifyNexuses(boundary);
+		classifyNexuses(boundaries);
 		//findCycles();
 		StreamOrderCalculator.calcOrders(eFlowpaths, nexuses);
 		classifyCatchments();
@@ -171,7 +182,17 @@ public class HyGraphBuilder {
 		return node;
 	}
 
-	private void classifyNexuses(SpatialIndex boundary) {
+	private void classifyNexuses(Collection<Geometry> boundaries) {
+		
+		//build an index of out all boundary coordinates
+		Set<Coordinate> boundaryPoints = new HashSet<>();
+		boundaries.forEach(p->{
+			Coordinate[] coords = p.getCoordinates();
+			for (int i = 0; i < coords.length; i ++) {
+				boundaryPoints.add(coords[i]);
+			}
+		});
+		
 		for(Nexus n : nexuses) {
 			if(n.getUpFlows().size() == 0) {
 				if(n.getDownFlows().size() == 1 
@@ -182,16 +203,9 @@ public class HyGraphBuilder {
 				}
 			} else if(n.getDownFlows().size() == 0) {
 				n.setType(NexusType.TERMINAL_ISOLATED);
-				List<Geometry> results = boundary.query(n.getPoint().getEnvelopeInternal());
-				for (Geometry g : results) {
-					//if the node intersects the boundary then this is a boundary node otherwise an isolated node
-					if (n.getPoint().relate(g, "F0F******")) {
-						n.setType(NexusType.TERMINAL_BOUNDARY);
-						break;
-					}
+				if (boundaryPoints.contains(n.getPoint().getCoordinate())) {
+					n.setType(NexusType.TERMINAL_BOUNDARY);
 				}
-				
-				
 			} else {
 				// count up how many of each type of flowpath we have going each direction
 				EnumMap<FlowpathType,Integer> upTypes = new EnumMap<FlowpathType,Integer>(FlowpathType.class);
