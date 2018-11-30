@@ -230,7 +230,7 @@
 			<div class="toolCat">Waterbody Flows</div>
 			<button id="multiDimensionalDownstreamOf" type="button" class="toolBtn tool">Downstream Of Point</button>
 			<button id="multiDimensionalUpstreamOf" type="button" class="toolBtn tool">Upstream Of Point</button>
-			<div class="toolCat">Catchments (Drainage Areas)</div>
+			<div class="toolCat">Catchment<br>(Drainage Area)</div>
 			<input id="removeHoles" type="checkbox"/>Remove Holes
 			<button id="drainageAreaUpstreamOf" type="button" class="toolBtn tool">Upstream Of Point</button>
 			<button id="drainageAreaDownstreamOf" type="button" class="toolBtn tool">Downstream Of Point</button>
@@ -1311,12 +1311,15 @@
 				$tbody.append($row);
 			}
 			$table.append($tbody);
+			var geopkgurl = url.replace(/\.json/, ".geopackage");
 			$('#dataBar').empty();
 			$('#dataBar').append('<div id="dataTitle" title="' + url + '">' + dataMap[type].titlePlural + ' (' + features.length + ')'
-					+ ' <button id="urlButton" type="button" data-clipboard-text="' + url + '">Copy Url</button></div>');
+					+ ' <button id="urlButtonJson" type="button" data-clipboard-text="' + url + '">Copy Url (JSON)</button>'
+					+ ' <button id="urlButtonGeoPkg" type="button" data-clipboard-text="' + geopkgurl + '">Copy Url (GeoPkg)</button></div>');
 			//$('#dataBar').append('<div id="dataUrl">' + url + '</div>');
 			$('#dataBar').append($table);
-			new Clipboard('#urlButton');
+			new Clipboard('#urlButtonJson');
+			new Clipboard('#urlButtonGeoPkg');
 		}
 
 		function makeFeatureTable(type, feature) {

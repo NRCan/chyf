@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import net.refractions.chyf.enumTypes.FlowpathType;
 import net.refractions.chyf.enumTypes.NexusType;
+import net.refractions.chyf.enumTypes.Rank;
 import net.refractions.util.StopWatch;
 
 public class StreamOrderCalculator {
@@ -47,7 +48,7 @@ public class StreamOrderCalculator {
 	
 	private static Integer calcStrahlerOrder(EFlowpath f) {
 		// skip eFlowpaths that are already done, secondary flows, or bank flowpaths
-		if(f.getStrahlerOrder() != null || f.getRank() > 1 || f.getType() == FlowpathType.BANK) {
+		if(f.getStrahlerOrder() != null || f.getRank() != Rank.PRIMARY || f.getType() == FlowpathType.BANK) {
 			return f.getStrahlerOrder();
 		}
 		
@@ -85,7 +86,7 @@ class MainstemmedFlowpath {
 
 		upflows = new ArrayList<MainstemmedFlowpath>(f.getFromNode().getUpFlows().size());
 		for(EFlowpath u : f.getFromNode().getUpFlows()) {
-			if(u.getRank() == 1) {		
+			if(u.getRank() == Rank.PRIMARY) {		
 				upflows.add(new MainstemmedFlowpath(u));
 			}
 		}
@@ -153,7 +154,7 @@ class MainstemmedFlowpath {
 	Integer assignHackOrder(Integer order) {
 		
 		// skip eFlowpaths that are already done, secondary flows, or bank flowpaths
-		if(f.getHackOrder() != null || f.getRank() > 1 || f.getType() == FlowpathType.BANK) {
+		if(f.getHackOrder() != null || f.getRank() != Rank.PRIMARY || f.getType() == FlowpathType.BANK) {
 			return f.getHackOrder();
 		}
 		

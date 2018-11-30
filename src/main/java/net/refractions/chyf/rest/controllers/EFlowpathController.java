@@ -2,6 +2,7 @@ package net.refractions.chyf.rest.controllers;
 
 import net.refractions.chyf.ChyfDatastore;
 import net.refractions.chyf.enumTypes.FlowpathType;
+import net.refractions.chyf.enumTypes.Rank;
 import net.refractions.chyf.hygraph.EFlowpath;
 import net.refractions.chyf.hygraph.HyGraph;
 import net.refractions.chyf.indexing.BboxIntersectsFilter;
@@ -202,7 +203,7 @@ public class EFlowpathController {
 			case "name": filter = new PredicateFilter<EFlowpath>(EFlowpath::getName, PredicateParameter.convert(params.getPredicate()).get(), params.getValue()); break;
 			case "nameid": filter = new PredicateFilter<EFlowpath>(EFlowpath::getNameId, PredicateParameter.convert(params.getPredicate()).get(), UuidUtil.UuidFromString(params.getValue())); break;
 			case "type": filter = new PredicateFilter<EFlowpath>(EFlowpath::getType, PredicateParameter.convert(params.getPredicate()).get(), FlowpathType.convert(params.getValue())); break;
-			case "rank": filter = new PredicateFilter<EFlowpath>(EFlowpath::getRank, PredicateParameter.convert(params.getPredicate()).get(), Integer.parseInt(params.getValue())); break;
+			case "rank": filter = new PredicateFilter<EFlowpath>(EFlowpath::getRank, PredicateParameter.convert(params.getPredicate()).get(), Rank.convert(params.getValue())); break;
 			case "certainty": filter = new PredicateFilter<EFlowpath>(EFlowpath::getCertainty, PredicateParameter.convert(params.getPredicate()).get(), Integer.parseInt(params.getValue())); break;
 			case "strahleror": filter = new PredicateFilter<EFlowpath>(EFlowpath::getStrahlerOrder, PredicateParameter.convert(params.getPredicate()).get(), Integer.parseInt(params.getValue())); break;
 			case "hortonor": filter = new PredicateFilter<EFlowpath>(EFlowpath::getHortonOrder, PredicateParameter.convert(params.getPredicate()).get(), Integer.parseInt(params.getValue())); break;

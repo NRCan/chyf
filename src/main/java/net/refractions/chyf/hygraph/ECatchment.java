@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.List;
 
 import net.refractions.chyf.enumTypes.CatchmentType;
+import net.refractions.chyf.enumTypes.Rank;
 import net.refractions.chyf.indexing.SpatiallyIndexable;
 
 import com.vividsolutions.jts.geom.Envelope;
@@ -17,7 +18,7 @@ public class ECatchment implements SpatiallyIndexable {
 	private final Polygon polygon;
 	private CatchmentType type;
 	private boolean terminal;
-	private int rank = -1;
+	private Rank rank = Rank.UNKNOWN;
 	private String name = null;
 	private Integer strahlerOrder = null;
 	private Integer hortonOrder = null;
@@ -60,11 +61,11 @@ public class ECatchment implements SpatiallyIndexable {
 		this.terminal = terminal;
 	}
 
-	public int getRank() {
+	public Rank getRank() {
 		return rank;
 	}
 
-	public void setRank(int rank) {
+	public void setRank(Rank rank) {
 		this.rank = rank;
 	}
 
@@ -115,8 +116,8 @@ public class ECatchment implements SpatiallyIndexable {
 	}
 
 	public void addFlowpath(EFlowpath flowpath) {
-		if(flowpath.getRank() > 0 
-				&& (rank < 0 || (flowpath.getRank() < rank))) {
+		if(flowpath.getRank() != Rank.UNKNOWN 
+				&& (rank == Rank.UNKNOWN || (flowpath.getRank().ordinal() < rank.ordinal()))) {
 			rank = flowpath.getRank();
 		}
 		flowpaths.add(flowpath);

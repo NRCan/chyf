@@ -61,7 +61,7 @@ public abstract class ConverterHelper {
 		NAME("name", String.class),
 		TYPE("type", String.class),
 		SUBTYPE("subtype", String.class),
-		RANK("rank", Integer.class),
+		RANK("rank", String.class),
 		ISTERMINAL("isTerminal", Boolean.class),
 		STRAHLER("strahleror", Integer.class),
 		HORTON("hortonor", Integer.class),
@@ -83,7 +83,7 @@ public abstract class ConverterHelper {
 			case HORTON: return item.getHortonOrder();
 			case ISTERMINAL: return item.isTerminal();
 			case NAME: return item.getName();
-			case RANK: return item.getRank();
+			case RANK: return item.getRank().rankName;
 			case STRAHLER: return item.getStrahlerOrder();
 			case SUBTYPE: return item.getType().getSubType();
 			case TYPE: return item.getType().toString();
@@ -96,7 +96,7 @@ public abstract class ConverterHelper {
 		NAME("name", String.class),
 		NAMEID("nameid", String.class),
 		TYPE("type", String.class),
-		RANK("rank", Integer.class),
+		RANK("rank", String.class),
 		CERTAINTY("certainty", Integer.class),
 		STRAHLER("strahleror", Integer.class),
 		HORTON("hortonor", Integer.class),
@@ -119,7 +119,7 @@ public abstract class ConverterHelper {
 			case CERTAINTY: return item.getCertainty();
 			case NAME: return item.getName();
 			case NAMEID: return item.getNameId() == null ? null : item.getName();
-			case RANK: return item.getRank();
+			case RANK: return item.getRank().rankName;
 			case STRAHLER: return item.getStrahlerOrder();
 			case TYPE: return item.getType().toString();
 			}

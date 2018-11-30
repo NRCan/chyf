@@ -35,6 +35,7 @@ import com.vividsolutions.jts.io.WKTReader;
 
 import net.refractions.chyf.enumTypes.CatchmentType;
 import net.refractions.chyf.enumTypes.FlowpathType;
+import net.refractions.chyf.enumTypes.Rank;
 import net.refractions.chyf.hygraph.HyGraph;
 import net.refractions.chyf.hygraph.HyGraphBuilder;
 import net.refractions.chyf.rest.GeotoolsGeometryReprojector;
@@ -127,13 +128,8 @@ public class ChyfDatastore {
 				Geometry flowPath = GEOMETRY_FACTORY.createGeometry(wktreader.read(fp.getLinestring()));
 				FlowpathType type = FlowpathType.convert(fp.getType()); //ML
 				String rankString = fp.getRank(); //ML
-			    int rank = -1;
-			    if(rankString.equals("Primary")) {
-			    	rank = 1;
-			    } else if(rankString.equals("Secondary")) {
-			    	rank = 2;
-			    } 
-				String name = fp.getName().intern(); //ML
+			    Rank rank = Rank.convert(rankString);
+			    String name = fp.getName().intern(); //ML
 			    UUID nameId = null;
 			    try {
 			    	nameId = UuidUtil.UuidFromString(fp.getNameId()); //ML
@@ -237,12 +233,7 @@ public class ChyfDatastore {
 		            flowPath = GeotoolsGeometryReprojector.reproject(flowPath, BASE_SRS);
 		            FlowpathType type = FlowpathType.convert((String)feature.getAttribute("TYPE"));
 		            String rankString = (String)feature.getAttribute("RANK");
-		            int rank = -1;
-		            if(rankString.equals("Primary")) {
-		            	rank = 1;
-		            } else if(rankString.equals("Secondary")) {
-		            	rank = 2;
-		            } 
+		            Rank rank = Rank.convert(rankString);
 		            String name = ((String)feature.getAttribute("NAME")).intern();
 		            UUID nameId = null;
 		            try {
@@ -250,7 +241,9 @@ public class ChyfDatastore {
 		            } catch(IllegalArgumentException iae) {
 		            	logger.warn("Exception reading UUID: " + iae.getMessage());
 		            }
-		            Integer certainty = (Integer)feature.getAttribute("DIRECTION");
+		            Number n = (Number) feature.getAttribute("DIRECTION");
+		            Integer certainty = n.intValue();
+//		            Integer certainty = (Integer)feature.getAttribute("DIRECTION");
 		            gb.addEFlowpath(type, rank, name, nameId, certainty, flowPath);
 		        }
 		    }

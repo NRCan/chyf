@@ -2,12 +2,13 @@ package net.refractions.chyf.hygraph;
 
 import java.util.UUID;
 
-import net.refractions.chyf.enumTypes.FlowpathType;
-import net.refractions.chyf.indexing.SpatiallyIndexable;
-
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.Point;
+
+import net.refractions.chyf.enumTypes.FlowpathType;
+import net.refractions.chyf.enumTypes.Rank;
+import net.refractions.chyf.indexing.SpatiallyIndexable;
 
 public class EFlowpath implements SpatiallyIndexable {
 	private final int id;
@@ -15,7 +16,7 @@ public class EFlowpath implements SpatiallyIndexable {
 	private final Nexus toNode;
 	private final double length;
 	private final FlowpathType type;
-	private final int rank;
+	private final Rank rank;
 	private final UUID nameId;
 	private final String name;
 	private final int certainty;
@@ -25,7 +26,7 @@ public class EFlowpath implements SpatiallyIndexable {
 	private final ECatchment catchment;
 	private final LineString lineString;
 	
-	public EFlowpath(int id, Nexus fromNode, Nexus toNode, double length, FlowpathType type, int rank, String name, UUID nameId,
+	public EFlowpath(int id, Nexus fromNode, Nexus toNode, double length, FlowpathType type, Rank rank, String name, UUID nameId,
 			int certainty, ECatchment catchment, LineString lineString) {
 		this.id = id;
 		this.fromNode = fromNode;
@@ -64,7 +65,7 @@ public class EFlowpath implements SpatiallyIndexable {
 		return type;
 	}
 
-	public int getRank() {
+	public Rank getRank() {
 		return rank;
 	}
 	

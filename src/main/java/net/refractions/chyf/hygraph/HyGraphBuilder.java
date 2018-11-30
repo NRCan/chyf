@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import org.refractions.chyf.hygraph.BasicTestSuite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,6 +23,8 @@ import com.vividsolutions.jts.index.quadtree.Quadtree;
 import net.refractions.chyf.enumTypes.CatchmentType;
 import net.refractions.chyf.enumTypes.FlowpathType;
 import net.refractions.chyf.enumTypes.NexusType;
+import net.refractions.chyf.enumTypes.Rank;
+import net.refractions.chyf.rest.GeotoolsGeometryReprojector;
 
 public class HyGraphBuilder {
 	static final Logger logger = LoggerFactory.getLogger(HyGraphBuilder.class.getCanonicalName());
@@ -68,12 +71,12 @@ public class HyGraphBuilder {
 				eCatchments.toArray(new ECatchment[eCatchments.size()]));
 	}
 	
-	public EFlowpath addEFlowpath(FlowpathType type, int rank, String name, UUID nameId, int certainty, LineString lineString) {
+	public EFlowpath addEFlowpath(FlowpathType type, Rank rank, String name, UUID nameId, int certainty, LineString lineString) {
 		return addEFlowpath(getNexus(lineString.getStartPoint()), getNexus(lineString.getEndPoint()), 
 				lineString.getLength(), type, rank, name, nameId, certainty, getECatchment(lineString, type), lineString);
 	}
 
-	private EFlowpath addEFlowpath(Nexus fromNexus, Nexus toNexus, double length, FlowpathType type, int rank, String name,
+	private EFlowpath addEFlowpath(Nexus fromNexus, Nexus toNexus, double length, FlowpathType type, Rank rank, String name,
 			UUID nameId, int certainty, ECatchment catchment, LineString lineString) {
 		
 		EFlowpath eFlowpath = new EFlowpath(nextEdgeId++, fromNexus, toNexus, length, type, rank, name, nameId,
@@ -261,7 +264,7 @@ public class HyGraphBuilder {
 					c.addDownNexus(bankNexus);
 					bankNexus.setBankCatchment(c);
 					c.setType(CatchmentType.BANK);
-					c.setRank(1);
+					c.setRank(Rank.PRIMARY);
 				} else {
 					logger.warn("Catchment " + c.getId() + " has no flowpaths and an unexpected number of nexuses (" + totalNexuses + ").");
 					c.setType(CatchmentType.UNKNOWN);
