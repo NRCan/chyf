@@ -53,6 +53,10 @@ public class PourpointOutput {
 		return aggregateAreas(items);
 	}
 	
+	public Set<ECatchment> getUniqueCatchments(Pourpoint point){
+		return point.getUniqueCatchments();
+	}
+	
 	private Geometry aggregateAreas(Set<ECatchment> catchments) {
 		List<Geometry> geoms = new ArrayList<Geometry>(catchments.size());
 		for(ECatchment c : catchments) {

@@ -132,10 +132,8 @@ public class Pourpoint {
 				return;
 			}
 			ECatchment c = catchments.get(0);
-			EFlowpath downstream = null;
 			//find the flowpath "nearest" to 
 			double distance = Double.MAX_VALUE;
-			
 			EFlowpath closest = null;
 			for (EFlowpath p : c.getFlowpaths()) {
 				double tdistance = p.getToNode().getPoint().getCoordinate().distance(location.getCoordinate());
@@ -155,11 +153,32 @@ public class Pourpoint {
 			//The intended pourpoint is the nearest point on the nearest flowpath 
 			//(using Euclidean distance in both cases) to the input pourpoint.
 			//find the nearest flowpath
-			List<EFlowpath> nearestPaths = graph.findEFlowpaths(location, 1, null, e->e.getType() != FlowpathType.BANK);
+			List<EFlowpath> nearestPaths = graph.findEFlowpaths(location, 4, null, e->e.getType() != FlowpathType.BANK);
+			
 			if (nearestPaths.isEmpty()) {
 				//TODO: error
 			}else {
-				downstreamFlowpaths.add(nearestPaths.get(0));
+				double d0 = nearestPaths.get(0).distance(location);
+				double d1 = nearestPaths.get(1).distance(location);
+				
+				if(d0 < d1) {
+					downstreamFlowpaths.add(nearestPaths.get(0));
+				}else {
+					//multiple points with same distance; add the one in the same catchments
+					//find the first with the closest downstream path
+					EFlowpath toAdd = nearestPaths.get(0);
+					double dn0 = nearestPaths.get(0).getToNode().distance(location);
+					for (int i = 1; i < nearestPaths.size(); i ++) {
+						if (nearestPaths.get(i).distance(location) != d0) break;
+						double dnx = nearestPaths.get(i).getToNode().distance(location);
+						if (dnx < dn0) {
+							dn0 = dnx;
+							toAdd = nearestPaths.get(i);
+						}
+					}
+					downstreamFlowpaths.add(toAdd);
+					
+				}
 			}
 			
 		}else if (this.type == CType.NEAREST_NEXUS_ALL) {
