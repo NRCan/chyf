@@ -23,6 +23,7 @@ import net.refractions.chyf.hygraph.ECatchment;
 import net.refractions.chyf.pourpoint.Pourpoint;
 import net.refractions.chyf.pourpoint.PourpointEngine;
 import net.refractions.chyf.pourpoint.PourpointOutput;
+import net.refractions.chyf.pourpoint.UniqueSubCatchment;
 import net.refractions.chyf.rest.GeotoolsGeometryReprojector;
 
 public class SimpleDataPourpointTest {
@@ -61,7 +62,6 @@ public class SimpleDataPourpointTest {
 		points.add(new Pourpoint(GeotoolsGeometryReprojector.reproject(BasicTestSuite.GF.createPoint(new Coordinate(-73.4622349011061, 45.101463647914315)), ChyfDatastore.BASE_SRS), 0, "P1"));
 		points.add(new Pourpoint(GeotoolsGeometryReprojector.reproject(BasicTestSuite.GF.createPoint(new Coordinate(-73.46392456572985, 45.10495082809525)), ChyfDatastore.BASE_SRS), 2, "P2"));
 		points.add(new Pourpoint(GeotoolsGeometryReprojector.reproject(BasicTestSuite.GF.createPoint(new Coordinate(-73.46755554715536, 45.106892144897)), ChyfDatastore.BASE_SRS), 1, "P3"));
-//		points.add(new Pourpoint(GeotoolsGeometryReprojector.reproject(BasicTestSuite.GF.createPoint(new Coordinate(-73.47460180813951, 45.111997089079395)), ChyfDatastore.BASE_SRS), -1, "P4"));
 		points.add(new Pourpoint(GeotoolsGeometryReprojector.reproject(BasicTestSuite.GF.createPoint(new Coordinate(-73.474930904963, 45.1122588226033)), ChyfDatastore.BASE_SRS), -1, "P4"));
 		points.add(new Pourpoint(GeotoolsGeometryReprojector.reproject(BasicTestSuite.GF.createPoint(new Coordinate(-73.46838240431167, 45.11530451770461)), ChyfDatastore.BASE_SRS), 0, "P5"));
 		
@@ -189,38 +189,69 @@ public class SimpleDataPourpointTest {
 			}
 		}
 		
-		//test catchment relationship
-		Integer[][] catRel = results.getCatchmentRelationship();
+		//test non-overlapping single coverages
+		HashMap<String, String> expectedMergedCoverages = new HashMap<>();
+		expectedMergedCoverages.put("P1_P2", "POLYGON (( -73.46455294608097 45.10444375753015, -73.45918353912803 45.10622805276376, -73.45753141391174 45.10726653147111, -73.45696497098045 45.10405668819373, -73.46238158151098 45.10125751604159, -73.4652255970619 45.100610827028326, -73.4664080560344 45.101856577455656, -73.46455294608097 45.10444375753015 ))");
+		expectedMergedCoverages.put("P1_P3", "POLYGON (( -73.46707833748302 45.10751199007466, -73.46686658977292 45.10814178248914, -73.4666386864137 45.108341197928425, -73.46629394434744 45.10824683192497, -73.46455294608097 45.10444375753015, -73.4664080560344 45.101856577455656, -73.46654499005874 45.10274664861382, -73.46667088788585 45.103414875542406, -73.46684168044482 45.10432138989377, -73.4673894165422 45.10507452702768, -73.4676176399161 45.105485329100766, -73.467978455945 45.10584361266417, -73.4675948175787 45.10596459818589, -73.46727530485524 45.10623846623458, -73.4671383708309 45.10660362363286, -73.46718401550568 45.107105715055475, -73.46707833748302 45.10751199007466 ))");
+		expectedMergedCoverages.put("P1_P4_P5", "POLYGON (( -73.46564160921722 45.11175974831633, -73.46629394434744 45.10824683192497, -73.4666386864137 45.108341197928425, -73.46686658977292 45.10814178248914, -73.46707833748302 45.10751199007466, -73.46782304095261 45.1080186085511, -73.46798279731436 45.10813272023806, -73.46831947368777 45.10814178248914, -73.46869028977345 45.10813272023806, -73.46912391418388 45.107904496864094, -73.46928367054561 45.108589166985816, -73.46982933344245 45.109053395925955, -73.47056172143948 45.10925101477017, -73.47102582607823 45.10919583552539, -73.47220492973159 45.10925101477017, -73.47288959985332 45.10918254775798, -73.47368838166199 45.10888585737189, -73.47376066638859 45.110135936882116, -73.47452470185077 45.11217570354236, -73.47233627039363 45.113469023510326, -73.47320822109107 45.114253779138096, -73.47076943479914 45.11509283494458, -73.4685416483889 45.115064562491945, -73.46672100182545 45.11445307764433, -73.46486928947812 45.113978279606485, -73.46339741556099 45.113028683530985, -73.46564160921722 45.11175974831633 ))");
+		expectedMergedCoverages.put("P2", "POLYGON (( -73.46455294608097 45.10444375753015, -73.46629394434744 45.10824683192497, -73.46564160921722 45.11175974831633, -73.46339741556099 45.113028683530985, -73.46045366772674 45.11369340078384, -73.4589003176624 45.11094841052455, -73.45781463537739 45.10877704595456, -73.45753141391174 45.10726653147111, -73.45918353912803 45.10622805276376, -73.46455294608097 45.10444375753015 ))");
+		expectedMergedCoverages.put("P3", "POLYGON (( -73.4676176399161 45.105485329100766, -73.4673894165422 45.10507452702768, -73.46684168044482 45.10432138989377, -73.46667088788585 45.103414875542406, -73.46654499005874 45.10274664861382, -73.46745788355437 45.10222173485384, -73.46864464509866 45.10217609017906, -73.46983140664298 45.10217609017906, -73.47106381286207 45.10292922731303, -73.47181694999595 45.10272382627644, -73.473163467902 45.10272382627644, -73.47457845282021 45.10331720704862, -73.47512618891759 45.104230100544235, -73.4753544122915 45.10525710572684, -73.47599343773844 45.10557661845027, -73.47624448344973 45.106398222596376, -73.47612516374025 45.10708772945284, -73.47578803670191 45.10747087245369, -73.47521355030347 45.107942367049844, -73.47438740062638 45.10842666168814, -73.47368838166199 45.10888585737189, -73.47288959985332 45.10918254775798, -73.47220492973159 45.10925101477017, -73.47102582607823 45.10919583552539, -73.47056172143948 45.10925101477017, -73.46982933344245 45.109053395925955, -73.46928367054561 45.108589166985816, -73.46912391418388 45.107904496864094, -73.46869028977345 45.10813272023806, -73.46831947368777 45.10814178248914, -73.46798279731436 45.10813272023806, -73.46782304095261 45.1080186085511, -73.46707833748302 45.10751199007466, -73.46718401550568 45.107105715055475, -73.4671383708309 45.10660362363286, -73.46727530485524 45.10623846623458, -73.4675948175787 45.10596459818589, -73.467978455945 45.10584361266417, -73.4676176399161 45.105485329100766 ))");
+		expectedMergedCoverages.put("P4", "POLYGON (( -73.47438740062638 45.10842666168814, -73.47521355030347 45.107942367049844, -73.47578803670191 45.10747087245369, -73.47612516374025 45.10708772945284, -73.47624448344973 45.106398222596376, -73.48008498460628 45.10591972473701, -73.48481397930962 45.108540613367694, -73.48757730753987 45.11090511071941, -73.48717847666127 45.11489341950532, -73.48358899875393 45.11571956918244, -73.47703677717703 45.115406202063525, -73.47433042478657 45.11526376246401, -73.47320822109107 45.114253779138096, -73.47233627039363 45.113469023510326, -73.47452470185077 45.11217570354236, -73.47376066638859 45.110135936882116, -73.47368838166199 45.10888585737189, -73.47438740062638 45.10842666168814 ))");
+		expectedMergedCoverages.put("P5", "POLYGON (( -73.45931415243606 45.11948593684484, -73.45803219773404 45.11734934567477, -73.4601213091003 45.11469047666323, -73.46045366772674 45.11369340078384, -73.46339741556099 45.113028683530985, -73.46486928947812 45.113978279606485, -73.46672100182545 45.11445307764433, -73.4685416483889 45.115064562491945, -73.47076943479914 45.11509283494458, -73.47320822109107 45.114253779138096, -73.47433042478657 45.11526376246401, -73.47484320734478 45.11571956918242, -73.47538447782284 45.11842592157284, -73.47413100934729 45.120106708846954, -73.47094036231852 45.12004973300711, -73.4708042649504 45.12261960389417, -73.4679554767237 45.12323684134334, -73.46501172888945 45.12261960389417, -73.46154570321363 45.1230469221282, -73.45855447557561 45.1215275684073, -73.45931415243606 45.11948593684484 ))");
+			
+		for (Pourpoint point : results.getPoints()) {
+			for (UniqueSubCatchment pcat : point.getUniqueCombinedCatchments()) {
+				Geometry expected = GeotoolsGeometryReprojector.reproject(reader.read(expectedMergedCoverages.get(pcat.getId())), ChyfDatastore.BASE_SRS);
+				if (!pcat.getGeometry().equalsExact(expected, 0.0001)) {
+					Assert.fail("Pourpoint sub catchment polygon incorrect (pointid:" + point.getId() + " subcatchment: " + pcat.getId() + ")");
+
+				}
+			}
+		}
+		
+		Integer[][] catRel = results.getPourpointCatchmentRelationship();
 		Integer[][] expectedCatRel = new Integer[][]{
-			new Integer[]{null,null,1,1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null},
-			new Integer[]{null,null,1,1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null},
-			new Integer[]{-1,-1,null,1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null},
-			new Integer[]{-1,-1,-1,null,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1},
-			new Integer[]{null,null,null,1,null,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1},
-			new Integer[]{null,null,null,1,1,null,-1,-1,-1,-1,null,null,null,null,null,null,null,null,null,null,null,null},
-			new Integer[]{null,null,null,1,1,1,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null},
-			new Integer[]{null,null,null,1,1,1,null,null,-1,-1,null,null,null,null,null,null,null,null,null,null,null,null},
-			new Integer[]{null,null,null,1,1,1,null,1,null,null,null,null,null,null,null,null,null,null,null,null,null,null},
-			new Integer[]{null,null,null,1,1,1,null,1,null,null,null,null,null,null,null,null,null,null,null,null,null,null},
-			new Integer[]{null,null,null,1,1,null,null,null,null,null,null,null,1,1,1,null,null,null,null,null,null,null},
-			new Integer[]{null,null,null,1,1,null,null,null,null,null,null,null,1,1,1,null,null,null,null,null,null,null},
-			new Integer[]{null,null,null,1,1,null,null,null,null,null,-1,-1,null,1,-1,null,null,null,null,null,null,null},
-			new Integer[]{null,null,null,1,1,null,null,null,null,null,-1,-1,-1,null,-1,-1,-1,-1,-1,-1,-1,-1},
-			new Integer[]{null,null,null,1,1,null,null,null,null,null,-1,-1,1,1,null,null,null,null,null,null,null,null},
-			new Integer[]{null,null,null,1,1,null,null,null,null,null,null,null,null,1,null,null,-1,-1,-1,-1,-1,-1},
-			new Integer[]{null,null,null,1,1,null,null,null,null,null,null,null,null,1,null,1,null,null,null,null,null,null},
-			new Integer[]{null,null,null,1,1,null,null,null,null,null,null,null,null,1,null,1,null,null,-1,-1,-1,-1},
-			new Integer[]{null,null,null,1,1,null,null,null,null,null,null,null,null,1,null,1,null,1,null,null,-1,-1},
-			new Integer[]{null,null,null,1,1,null,null,null,null,null,null,null,null,1,null,1,null,1,null,null,null,null},
-			new Integer[]{null,null,null,1,1,null,null,null,null,null,null,null,null,1,null,1,null,1,1,null,null,null},
-			new Integer[]{null,null,null,1,1,null,null,null,null,null,null,null,null,1,null,1,null,1,1,null,null,null}
+			new Integer[]{null,-1,-1,-1,-1,-1,-1},
+			new Integer[]{1,null,-1,null,-1,-1,-1},
+			new Integer[]{1,1,null,null,null,-1,-1},
+			new Integer[]{1,null,null,null,null,null,null},
+			new Integer[]{1,1,null,null,null,null,null},
+			new Integer[]{1,1,1,null,null,null,null},
+			new Integer[]{1,1,1,null,null,null,null}
 		};
 				
 		for (int i = 0; i < expectedCatRel.length; i ++) {
 			for (int j = 0; j < expectedCatRel.length; j ++) {
-				if (catRel[i][j] != expectedCatRel[i][j]) {
-					Assert.fail("Catchment relationship matrix incorrect");
-				}
+				Assert.assertEquals("Catchment relationship matrix incorrect (" + results.getUniqueSubCatchments().get(i).getId() + " to " + results.getUniqueSubCatchments().get(j).getId() + ")", expectedCatRel[i][j],catRel[i][j]);
+			}
+		}
+		
+		Double[][] actualDistances = results.getPourpointMinDistanceMatrix();
+		Double[][] expectedDistances = new Double[][]{
+			new Double[]{null,-395.82822539062494,-795.773832897013,-1759.582034487193,-1656.453622900341},
+			new Double[]{395.82822539062494,null,null,null,null},
+			new Double[]{795.773832897013,null,null,null,null},
+			new Double[]{1759.582034487193,null,null,null,null},
+			new Double[]{1656.453622900341,null,null,null,null}
+		};
+		for (int i = 0; i < actualDistances.length; i ++) {
+			for (int j = 0; j < actualDistances.length; j ++) {
+				Assert.assertEquals("Minimum pourpoint distance matrix incorrect", expectedDistances[i][j],actualDistances[i][j]);
+			}
+		}
+		
+		actualDistances = results.getPourpointMinDistanceMatrix();
+		expectedDistances = new Double[][]{
+			new Double[]{null,-395.82822539062494,-795.773832897013,-1759.582034487193,-1656.453622900341},
+			new Double[]{395.82822539062494,null,null,null,null},
+			new Double[]{795.773832897013,null,null,null,null},
+			new Double[]{1759.582034487193,null,null,null,null},
+			new Double[]{1656.453622900341,null,null,null,null}
+		};
+				
+		for (int i = 0; i < actualDistances.length; i ++) {
+			for (int j = 0; j < actualDistances.length; j ++) {
+				Assert.assertEquals("Maximum pourpoint distance matrix incorrect", expectedDistances[i][j],actualDistances[i][j]);
 			}
 		}
 	}

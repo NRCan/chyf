@@ -45,6 +45,7 @@ public class Pourpoint {
 	private Set<Pourpoint> downstreamPoints = null;
 	private Set<Pourpoint> upstreamPoints = null;
 	
+	private Collection<UniqueSubCatchment> uniqueMergedCatchments;
 	private Set<ECatchment> uniqueCatchments;
 	private Set<ECatchment> sharedCatchments;
 	
@@ -76,6 +77,14 @@ public class Pourpoint {
 		
 		uniqueCatchments = new HashSet<>();
 		sharedCatchments = new HashSet<>();
+	}
+	
+	public void setUniqueCombinedCatchments( Collection<UniqueSubCatchment> mergedCatchments) {
+		this.uniqueMergedCatchments = mergedCatchments;
+	}
+	
+	public Collection<UniqueSubCatchment> getUniqueCombinedCatchments(){
+		return this.uniqueMergedCatchments;
 	}
 	
 	public void addUpstreamCatchments(Collection<ECatchment> uniqueCatchments, Collection<ECatchment> sharedCatchments) {
