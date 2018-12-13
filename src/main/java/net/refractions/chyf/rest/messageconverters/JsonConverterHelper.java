@@ -13,7 +13,7 @@ import com.vividsolutions.jts.geom.Polygon;
 
 public class JsonConverterHelper extends ConverterHelper {
 
-	private JsonWriter jw;
+	protected JsonWriter jw;
 
 	public JsonConverterHelper(Writer out) {
 		super(out);

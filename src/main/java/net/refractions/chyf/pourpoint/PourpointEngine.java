@@ -7,30 +7,55 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
+
+import org.refractions.chyf.hygraph.BasicTestSuite;
+
 import java.util.Objects;
 import java.util.Set;
 
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.operation.union.UnaryUnionOp;
-
+import net.refractions.chyf.enumTypes.FlowpathType;
 import net.refractions.chyf.enumTypes.NexusType;
-import net.refractions.chyf.hygraph.DrainageArea;
 import net.refractions.chyf.hygraph.ECatchment;
 import net.refractions.chyf.hygraph.EFlowpath;
 import net.refractions.chyf.hygraph.HyGraph;
 import net.refractions.chyf.hygraph.Nexus;
+import net.refractions.chyf.rest.GeotoolsGeometryReprojector;
 
 
 
 public class PourpointEngine {
 
+	public enum OutputType{
+		PROJECTED("ppp"),
+		DISTANCE_MIN("pdmin"),
+		DISTANCE_MAX("pdmax"),
+		PP_RELATIONSHIP("pr"),
+		CATCHMENTS("pc"),
+		UNIQUE_CATCHMENTS("puc"),
+		UNIQUE_SUBCATCHMENTS("pusc"),
+		UNIQUE_SUBCATCHMENTS_RELATION("puscr");
+		
+		public String key;
+		
+		OutputType(String key){
+			this.key = key;
+		}
+		
+		public static OutputType parse(String key) {
+			for (OutputType t : OutputType.values()) {
+				if (t.key.equalsIgnoreCase(key)) return t;
+			}
+			throw new IllegalStateException("Output type " + key + " not supported for pourpoint service");
+		}
+		
+	}
 	private List<Pourpoint> points;
 	private HyGraph hygraph;
 	
 	private boolean removeHoles = false;
 	
 	private HashMap<PourpointKey, Range> distanceValues = new HashMap<>();
-	
+	private Set<OutputType> availableOutputs;
 	public static int TEST_DATA_SRID = 4617;
 	
 	public PourpointEngine(List<Pourpoint> points, HyGraph hygraph) {
@@ -38,18 +63,44 @@ public class PourpointEngine {
 		this.hygraph = hygraph;
 	}
 	
-	public PourpointOutput compute() {
+	public Set<OutputType> getAvailableOutputs(){
+		return this.availableOutputs;
+	}
+	/**
+	 * 
+	 * @param availableOutputs if null or empty everything is returned
+	 * @return
+	 */
+	public PourpointOutput compute(Set<OutputType> availableOutputs) {
+		if (availableOutputs == null) availableOutputs = new HashSet<>();
+		if (availableOutputs.isEmpty()) {
+			for (OutputType t : OutputType.values()) availableOutputs.add(t);
+		}
+		this.availableOutputs = availableOutputs;
+		
 		//compute downstream flowpaths for pourpoints
 		points.forEach(p->p.findDownstreamFlowpaths(hygraph));
 		
 		//compute pourpoint relationship & distances between points
-		computeUpstreamDownstreamPourpointRelationship();
+		if (availableOutputs.contains(OutputType.PP_RELATIONSHIP) ||
+				availableOutputs.contains(OutputType.UNIQUE_CATCHMENTS) ||
+				availableOutputs.contains(OutputType.UNIQUE_SUBCATCHMENTS) ||
+				availableOutputs.contains(OutputType.UNIQUE_SUBCATCHMENTS_RELATION)) {
+			computeUpstreamDownstreamPourpointRelationship();
+		}
 		
 		//catchments for pourpoints
-		computeUniqueCatchments();
+		if (availableOutputs.contains(OutputType.CATCHMENTS) ||
+			availableOutputs.contains(OutputType.UNIQUE_CATCHMENTS) ||
+			availableOutputs.contains(OutputType.UNIQUE_SUBCATCHMENTS) ||
+			availableOutputs.contains(OutputType.UNIQUE_SUBCATCHMENTS_RELATION)) {
+			computeUniqueCatchments();
+		}
 		
 		//catchment relationships
-		computeUniqueSubCatchmentRelationship();
+		if (availableOutputs.contains(OutputType.UNIQUE_SUBCATCHMENTS_RELATION)) {
+			computeUniqueSubCatchmentRelationship();
+		}
 
 		return new PourpointOutput(this);
 	}
@@ -60,13 +111,16 @@ public class PourpointEngine {
 	}
 	
 	public Double[][] getPourpointMinDistanceMatrix(){
+		if (!availableOutputs.contains(OutputType.DISTANCE_MIN) ) return null;
 		return getPourpointDistanceMatrix(true);
 	}
 	public Double[][] getPourpointMaxDistanceMatrix(){
+		if (!availableOutputs.contains(OutputType.DISTANCE_MAX) ) return null;
 		return getPourpointDistanceMatrix(false);
 	}
 	
 	private Double[][] getPourpointDistanceMatrix(boolean isMin){
+		
 		Double[][] values = new Double[points.size()][points.size()];
 		
 		for (int i = 0 ; i < points.size(); i ++) {
@@ -109,6 +163,7 @@ public class PourpointEngine {
 	 * @return
 	 */
 	public Integer[][] getPourpointRelationshipMatrix(){
+		if (!availableOutputs.contains(OutputType.PP_RELATIONSHIP)) return null;
 		Integer[][] values = new Integer[points.size()][points.size()];
 	
 		for (int i = 0 ; i < points.size(); i ++) {
@@ -127,9 +182,10 @@ public class PourpointEngine {
 	}
 	
 	public List<UniqueSubCatchment> getSortedUniqueSubCatchments(){
+		if (!availableOutputs.contains(OutputType.UNIQUE_SUBCATCHMENTS)) return null;
 		Set<UniqueSubCatchment> allCatchments = new HashSet<>();
 		for (Pourpoint p : points) {
-			allCatchments.addAll(p.getUniqueCombinedCatchments());
+			allCatchments.addAll(p.getUniqueSubCatchments());
 		}
 		
 		List<UniqueSubCatchment> ordered = new ArrayList<>();
@@ -142,7 +198,8 @@ public class PourpointEngine {
 	 * results are ordered by catchment id (see getSortedUniqueSubCatchments)
 	 * @return
 	 */
-	public Integer[][] getPourpointCatchmentRelationship(){
+	public Integer[][] getUniqueSubCatchmentRelationship(){
+		if (!availableOutputs.contains(OutputType.UNIQUE_SUBCATCHMENTS_RELATION)) return null;
 		List<UniqueSubCatchment> ordered = getSortedUniqueSubCatchments();
 		Integer[][] values = new Integer[ordered.size()][ordered.size()];
 		for (int i = 0 ; i < ordered.size(); i ++) {
@@ -167,7 +224,7 @@ public class PourpointEngine {
 	private void computeUniqueSubCatchmentRelationship() {
 		HashMap<EFlowpath, UniqueSubCatchment> flowToCatchments = new HashMap<>();
 		for(Pourpoint p : points) {
-			for (UniqueSubCatchment cat : p.getUniqueCombinedCatchments()) {
+			for (UniqueSubCatchment cat : p.getUniqueSubCatchments()) {
 				for (ECatchment ecat : cat.getCatchments()) {
 					for (EFlowpath flow : ecat.getFlowpaths()) {
 						flowToCatchments.put(flow, cat);
@@ -178,7 +235,7 @@ public class PourpointEngine {
 				
 		for(Pourpoint p : points) {
 			
-			for (UniqueSubCatchment cat : p.getUniqueCombinedCatchments()) {
+			for (UniqueSubCatchment cat : p.getUniqueSubCatchments()) {
 				Set<EFlowpath> edgesOfInterest = new HashSet<>();
 				cat.getCatchments().forEach(c->edgesOfInterest.addAll(c.getFlowpaths()));
 			
@@ -208,90 +265,109 @@ public class PourpointEngine {
 	
 	
 	private void computeUpstreamDownstreamPourpointRelationship() {
-
-		HashMap<EFlowpath, Set<Pourpoint>> flowpathToUpPp = new HashMap<>();
+		//if (points.size() <2 ) return;
+//		HashMap<EFlowpath, Set<Pourpoint>> flowpathToUpPp = new HashMap<>();
 		
-		HashMap<Nexus, HashMap<Pourpoint, Double>> nodedistances = new HashMap<>();
+		HashMap<Nexus, HashMap<Pourpoint, Range>> nodedistances = new HashMap<>();
 		distanceValues = new HashMap<>();
 		for (Pourpoint pp : points) {
 			//walk downstream until we reach the network terminus
 			for (EFlowpath edge : pp.getDownstreamFlowpaths()) {
-				if (flowpathToUpPp.containsKey(edge)) continue;
-				processEdge(edge, Collections.singleton(pp), flowpathToUpPp, nodedistances);
+				//for(EFlowpath out : edge.getToNode().getDownFlows()) {
+					processPourpointRel(pp, edge, nodedistances);
+				//}
 			}
 		}
 		
-		for (Pourpoint pp : points) {
-			for (EFlowpath down : pp.getDownstreamFlowpaths()) {
-				Set<Pourpoint> pps = flowpathToUpPp.get(down);
-				if (pps == null) continue;
-				pps.remove(pp);
-				pp.getUpstreamPourpoints().addAll(pps);
+//		for (Entry<Nexus, HashMap<Pourpoint, Range>> map : nodedistances.entrySet()) {
+//			System.out.println(map.getKey().getId() + " " + GeotoolsGeometryReprojector.reproject(map.getKey().getPoint(), BasicTestSuite.TEST_DATA_SRID));
+//			
+//			HashMap<Pourpoint, Range> r = map.getValue();
+//			for (Entry<Pourpoint,Range> d : r.entrySet()) {
+//				System.out.println(d.getKey().getId() + ":" + d.getValue().getMinDistance() + " to " + d.getValue().getMaxDistance());
+//			}
+//			
+//		}
+		distanceValues = new HashMap<>();
+		
+		for (HashMap<Pourpoint, Range> nodeRel : nodedistances.values()) {
+			for (Pourpoint p : nodeRel.keySet()) {
+				Range d = nodeRel.get(p);
+				if (d.getMinDistance() == -1) {
+					HashSet<Pourpoint> items = new HashSet<>(nodeRel.keySet());
+//					items.remove(p);
+					//also remove other -1 items as these have the same headwaters
+					for (Entry<Pourpoint, Range> rr : nodeRel.entrySet()) {
+						if (rr.getValue().getMinDistance() == -1) items.remove(rr.getKey());
+					}
+					p.getUpstreamPourpoints().addAll(items);
+					items.forEach(pr->pr.getDownstreamPourpoints().add(p));
+				}
 			}
 		}
+		for (HashMap<Pourpoint, Range> nodeRel : nodedistances.values()) {
+			for (Pourpoint p : nodeRel.keySet()) {
+				Range d = nodeRel.get(p);
+				if (d.getMinDistance() == 0) {
+					for (Pourpoint other : p.getUpstreamPourpoints()) {
+						PourpointKey key = new PourpointKey(other, p);
+						Range r = distanceValues.get(key);
+						if (r == null) {
+							r = new Range();
+							distanceValues.put(key, r);
+						}
+						r.updateDistance( nodeRel.get(other).getMinDistance(), nodeRel.get(other).getMaxDistance());
+						
+					}
+				}
 				
-		for (Pourpoint pp : points) {
-			for (Pourpoint up : pp.getUpstreamPourpoints()) {
-				up.getDownstreamPourpoints().add(pp);
+				
 			}
 		}
 	}
 	
-	private void processEdge(EFlowpath path, Set<Pourpoint> upstream, HashMap<EFlowpath, Set<Pourpoint>> flowpathToUpPp,
-			HashMap<Nexus, HashMap<Pourpoint, Double>> nodedistances) {
-		
-		HashMap<Pourpoint, Double> values = nodedistances.get(path.getFromNode());
-		if (values != null) {
-			double distance = path.getLength();
-			//compute distances for downstream node
-			HashMap<Pourpoint, Double> downValues = new HashMap<>();
-			for (Entry<Pourpoint, Double> e : values.entrySet()) {
-				downValues.put(e.getKey(),  e.getValue() + distance);
+	private void processPourpointRel(Pourpoint point, EFlowpath path, HashMap<Nexus, HashMap<Pourpoint, Range>> nodedistances) {
+		ArrayDeque<EFlowpath> toProcess = new ArrayDeque<>();
+		toProcess.add(path);
+		while(!toProcess.isEmpty()) {
+			EFlowpath item = toProcess.removeFirst();
+			
+			Nexus inNode = item.getFromNode();
+			Nexus outNode = item.getToNode();
+			
+			HashMap<Pourpoint, Range> inValue = nodedistances.get(inNode);
+			if (inValue == null) {
+				inValue = new HashMap<>();
+				nodedistances.put(inNode, inValue);
 			}
-			nodedistances.put(path.getToNode(), downValues);
-		}else {
-			values = new HashMap<>();
-			nodedistances.put(path.getToNode(), values);
-		}
-				
-		
-		Set<Pourpoint> pointsOnEdge = new HashSet<>();
-		for (Pourpoint pp : points) {
-			for (EFlowpath dpath : pp.getDownstreamFlowpaths()) {
-				if (dpath.equals(path)) {
-					pointsOnEdge.add(pp);
-					break;
-				}
-			}
-		}
-		for (Pourpoint pp : pointsOnEdge) {
-			for (Entry<Pourpoint, Double> e : values.entrySet()) {
-				//update pourpoint distances
-				Pourpoint uppp = e.getKey();
-				PourpointKey key = new PourpointKey(uppp, pp);
-				Range dd = distanceValues.get(key);
-				if (dd == null) {
-					dd = new Range();
-					distanceValues.put(key, dd);
-				}
-				dd.updateDistance(e.getValue() + path.getLength());
+			HashMap<Pourpoint, Range> outValue = nodedistances.get(outNode);
+			if (outValue == null) {
+				outValue = new HashMap<>();
+				nodedistances.put(outNode, outValue);
 			}
 			
-			values.put(pp, 0d);
-		}
-		
-		pointsOnEdge.addAll(upstream);
-		Set<Pourpoint> temp = flowpathToUpPp.get(path);
-		if (temp == null) {
-			temp = new HashSet<>();
-			flowpathToUpPp.put(path, temp);
-		}
-		temp.addAll(pointsOnEdge);
-
-		for (EFlowpath downstream: path.getToNode().getDownFlows()) {
-			processEdge(downstream, pointsOnEdge, flowpathToUpPp, nodedistances);
-		}
-		nodedistances.remove(path.getToNode());
+			double distance = item.getLength();
+			//compute distances for downstream node		
+			if (!inValue.containsKey(point)) {
+				inValue.put(point, new Range(-1, -1));
+				outValue.put(point,new Range(0,0));
+			}else {
+				Range v = inValue.get(point);
+				Range outRange = outValue.get(point);
+				if (outRange == null) outRange = new Range();
+				if (v.minDistance <= 0) {
+					outRange.updateDistance(distance, distance);
+				}else {
+					outRange.updateDistance(v.minDistance + distance, v.maxDistance+distance);
+					
+				}
+				outValue.put(point, outRange);
+			}
+			
+			for (EFlowpath downstream: outNode.getDownFlows()) {
+				toProcess.addLast(downstream);
+			}	
+		}	
 	}
 	
 	
@@ -370,9 +446,15 @@ public class PourpointEngine {
 				List<ECatchment> upCatchments = new ArrayList<>();
 				upCatchments.add(e);
 				for (Nexus upN : e.getUpNexuses()) {
-					for (EFlowpath inFlow : upN.getUpFlows()) {
-						if (point.getUniqueCatchments().contains(inFlow.getCatchment())) {
-							upCatchments.add(inFlow.getCatchment());
+					if (upN.getType() == NexusType.BANK) {
+						if (point.getUniqueCatchments().contains(upN.getBankCatchment())) {
+							upCatchments.add(upN.getBankCatchment());
+						}
+					}else {
+						for (EFlowpath inFlow : upN.getUpFlows()) {
+							if (point.getUniqueCatchments().contains(inFlow.getCatchment())) {
+								upCatchments.add(inFlow.getCatchment());
+							}
 						}
 					}
 				}
@@ -402,7 +484,7 @@ public class PourpointEngine {
 		
 		Set<UniqueSubCatchment> items = new HashSet<>();
 		items.addAll(catchmentMapping.values());
-		point.setUniqueCombinedCatchments(items);
+		point.setUniqueSubCatchments(items);
 		
 	}
 	
@@ -411,35 +493,27 @@ public class PourpointEngine {
 		List<ECatchment> uniqueCatchments = new ArrayList<ECatchment>();
 		List<ECatchment> otherCatchments = new ArrayList<ECatchment>();
 		
-		HashSet<ECatchment> resultSet = new HashSet<ECatchment>();
-
 		uniqueCatchments.add(root.getCatchment());
 		
-		for(int i = 0; i < uniqueCatchments.size(); i++) {
-			for(Nexus n: uniqueCatchments.get(i).getUpNexuses()) {
-				for(EFlowpath f: n.getUpFlows()) {
-					if(f.getCatchment() != null) {
-						ECatchment cc = f.getCatchment();
-						if (catchments.containsKey(f)) {
-							otherCatchments.addAll(catchments.get(f));
-						}else {
-							if(resultSet.add(cc)) {
-								uniqueCatchments.add(cc);
-							}
+		ArrayDeque<EFlowpath> toProcess = new ArrayDeque<>();
+		toProcess.add(root);
+		
+		while(!toProcess.isEmpty()) {
+			EFlowpath item = toProcess.removeFirst();
+			
+			if (catchments.containsKey(item)) {
+				otherCatchments.addAll(catchments.get(item));
+			}else {
+				if(item.getType() == FlowpathType.BANK) {
+					ECatchment cc = item.getFromNode().getBankCatchment();
+					uniqueCatchments.add(cc);
+				}else {
+					if(item.getCatchment() != null) {
+						ECatchment cc = item.getCatchment();
+						uniqueCatchments.add(cc);
+						for(EFlowpath f: item.getFromNode().getUpFlows()) {
+							toProcess.addLast(f);
 						}
-					}
-				}
-				//TODO: figure this out
-				if(n.getType() == NexusType.BANK) {
-					if(n.getBankCatchment() != null) {
-						ECatchment cc = n.getBankCatchment();
-//						if (catchments.containsKey(f)) {
-//							otherCatchments.addAll(catchments.get(cc));
-//						}else {
-							if(resultSet.add(cc)) {
-								uniqueCatchments.add(cc);
-							}
-//						}
 					}
 				}
 			}
@@ -452,14 +526,18 @@ public class PourpointEngine {
 		double minDistance;
 		double maxDistance;
 		
+		public Range(double min, double max) {
+			this.minDistance = min;
+			this.maxDistance = max;
+		}
 		public Range() {
 			minDistance = Double.MAX_VALUE;
 			maxDistance = Double.MIN_VALUE;
 		}
 		
-		public void updateDistance(double distance) {
-			if (distance < minDistance) minDistance = distance;
-			if (distance > maxDistance) maxDistance = distance;
+		public void updateDistance(double min, double max) {
+			if (min < minDistance) minDistance = min;
+			if (max > maxDistance) maxDistance = max;
 		}
 		
 		public double getMinDistance() { return this.minDistance; }

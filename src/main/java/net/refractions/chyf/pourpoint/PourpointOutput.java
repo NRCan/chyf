@@ -15,21 +15,27 @@ public class PourpointOutput {
 
 	private List<Pourpoint> points;
 	private Integer[][] pourpointRelationship;
-	private Integer[][] uniqueSubcCtchmentRelationship;
+	private Integer[][] uniqueSubCatchmentRelationship;
 	private List<UniqueSubCatchment> uniqueSubCatchments;
 	
 	private Double[][] minPpDistance;
 	private Double[][] maxPpDistance;
 	
+	private Set<PourpointEngine.OutputType> outputs;
+	
 	public PourpointOutput(PourpointEngine engine) {
 		this.points = engine.getPoints();
 		this.pourpointRelationship = engine.getPourpointRelationshipMatrix();
-		this.uniqueSubcCtchmentRelationship = engine.getPourpointCatchmentRelationship();
+		this.uniqueSubCatchmentRelationship = engine.getUniqueSubCatchmentRelationship();
 		this.uniqueSubCatchments = engine.getSortedUniqueSubCatchments();
 		minPpDistance = engine.getPourpointMinDistanceMatrix();
 		maxPpDistance = engine.getPourpointMaxDistanceMatrix();
+		this.outputs = engine.getAvailableOutputs();
 	}
 
+	public Set<PourpointEngine.OutputType> getAvailableOutputs(){
+		return this.outputs;
+	}
 	public List<Pourpoint> getPoints() {
 		return points;
 	}
@@ -47,7 +53,7 @@ public class PourpointOutput {
 	}
 
 	public Integer[][] getPourpointCatchmentRelationship() {
-		return uniqueSubcCtchmentRelationship;
+		return uniqueSubCatchmentRelationship;
 	}
 
 	public List<UniqueSubCatchment> getUniqueSubCatchments() {
@@ -59,28 +65,28 @@ public class PourpointOutput {
 		items.addAll(point.getSharedCatchments());
 		items.addAll(point.getUniqueCatchments());
 		return aggregateAreas(items);
+		
 	}
 	
-	public Geometry getCombinedUniqueCatchment(Pourpoint point) {
-		Set<ECatchment> items = new HashSet<>();
-		items.addAll(point.getUniqueCatchments());
-		return aggregateAreas(items);
+	public Geometry getUniqueCatchment(Pourpoint point) {
+		return aggregateAreas(point.getUniqueCatchments());
 	}
 	
-	public Set<ECatchment> getUniqueCatchments(Pourpoint point){
-		return point.getUniqueCatchments();
-	}
 	
-	public Collection<UniqueSubCatchment> getSubCombinedUniqueCatchments(Pourpoint point){
-		return point.getUniqueCombinedCatchments();
+	
+	public Collection<UniqueSubCatchment> getUniqueSubCatchments(Pourpoint point){
+		return point.getUniqueSubCatchments();
 	}
 	
 	public static Geometry aggregateAreas(Set<ECatchment> catchments) {
 		List<Geometry> geoms = new ArrayList<Geometry>(catchments.size());
+		double area = 0;
 		for(ECatchment c : catchments) {
 			geoms.add(c.getPolygon());
+			area+= c.getArea();
 		}
 		Geometry g = UnaryUnionOp.union(geoms);
+		g.setUserData(area);
 		return g;
 	}
 }

@@ -13,12 +13,14 @@ import com.vividsolutions.jts.algorithm.Angle;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Point;
 
+import net.refractions.chyf.ChyfDatastore;
 import net.refractions.chyf.enumTypes.FlowpathType;
 import net.refractions.chyf.enumTypes.NexusType;
 import net.refractions.chyf.hygraph.ECatchment;
 import net.refractions.chyf.hygraph.EFlowpath;
 import net.refractions.chyf.hygraph.HyGraph;
 import net.refractions.chyf.hygraph.Nexus;
+import net.refractions.chyf.rest.GeotoolsGeometryReprojector;
 
 public class Pourpoint {
 	
@@ -36,20 +38,29 @@ public class Pourpoint {
 		}
 	}
 	
+	private String id;
 	private Point location;
+	private Point raw;
 	private int ccode;
 	private CType type;
 	
+	//start edges for the pourpoint
 	private List<EFlowpath> downstreamFlowpaths = null;
 	
+	//pouroint relationship
 	private Set<Pourpoint> downstreamPoints = null;
 	private Set<Pourpoint> upstreamPoints = null;
 	
-	private Collection<UniqueSubCatchment> uniqueMergedCatchments;
+	//unique catchments combined with upstream neighbors until
+	//pourpoint nexus
+	private Collection<UniqueSubCatchment> uniqueMergedSubCatchments;
+
+	//catchments only used by this pourpoint
 	private Set<ECatchment> uniqueCatchments;
+	//all other catchments
 	private Set<ECatchment> sharedCatchments;
 	
-	private String id;
+	
 	
 	
 	/**
@@ -59,7 +70,8 @@ public class Pourpoint {
 	 */
 	public Pourpoint(Point location, int ccode, String id) {
 		this.id = id;
-		this.location = location;
+		this.raw = location;
+		this.location = GeotoolsGeometryReprojector.reproject(location, ChyfDatastore.BASE_SRS);
 		this.ccode = ccode;
 		this.downstreamPoints = new HashSet<>();
 		this.upstreamPoints = new HashSet<>();
@@ -79,12 +91,15 @@ public class Pourpoint {
 		sharedCatchments = new HashSet<>();
 	}
 	
-	public void setUniqueCombinedCatchments( Collection<UniqueSubCatchment> mergedCatchments) {
-		this.uniqueMergedCatchments = mergedCatchments;
+	public int getCcode() {
+		return this.ccode;
+	}
+	public void setUniqueSubCatchments( Collection<UniqueSubCatchment> mergedCatchments) {
+		this.uniqueMergedSubCatchments = mergedCatchments;
 	}
 	
-	public Collection<UniqueSubCatchment> getUniqueCombinedCatchments(){
-		return this.uniqueMergedCatchments;
+	public Collection<UniqueSubCatchment> getUniqueSubCatchments(){
+		return this.uniqueMergedSubCatchments;
 	}
 	
 	public void addUpstreamCatchments(Collection<ECatchment> uniqueCatchments, Collection<ECatchment> sharedCatchments) {
@@ -116,6 +131,10 @@ public class Pourpoint {
 	
 	public Point getPoint() {
 		return this.location;
+	}
+	
+	public Point getRawPoint() {
+		return this.raw;
 	}
 	
 	public List<EFlowpath> getDownstreamFlowpaths(){

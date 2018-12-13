@@ -148,6 +148,14 @@
 		/*	display: inline-block;*/
 			background-color: #cce0ff;
 		}
+		.pourpointFeatureTable td{
+			padding: 5px;
+		}
+		.pourpointFeatureTable tr:hover{
+ 		   	font-weight: bold;
+ 		   	color: red;
+		}
+		
 		#dataBar table tbody tr:nth-last-child(even) {
 			background-color:  #e5e5e5;
 		}
@@ -249,7 +257,19 @@
         	color:black;  
         	background-color:#ABABAB;
         }
+       .leaflet-tooltip.pourpointPointStyle{
+		   background-color: transparent;
+       		border:transparent;
+       		box-shadow:none;
+       		font-size: 10px;
+       }
        
+       .cellheader{
+       		font-weight: bold;
+       		background-color: #CCE0FF;
+       }
+       
+      
 	</style>
 </head>
 
@@ -325,9 +345,9 @@
 				<div class="form-group">
 					<div class="input-group">
 						
-						<input type="text" id="add_pourpointId" class="form-control input-sm" style="width:60px" value="P1" />
-						<input type="text" id="add_pourpointLocation" class="form-control input-sm" style="width:120px" placeholder="click here then select on map"/>
-						<select id="add_pourpointCode" class="form-control input-sm" style="width:60px">
+						<input type="text" id="add_pourpointId" class="form-control input-sm" style="width:55px" value="P1" />
+						<input type="text" id="add_pourpointLocation" class="form-control input-sm" style="width:115px" placeholder="click here then select on map"/>
+						<select id="add_pourpointCode" class="form-control input-sm" style="width:55px">
 						<option value="-2">-2</option>
 						<option value="-1" selected>-1</option>
 						<option value="0">0</option>
@@ -342,8 +362,8 @@
 					</div>
 				</div>
 			</div>
-			<div id="pourpointList">
-			</div>
+			<div id="pourpointList"></div>
+			<button id="clearPPList" class="btn btn-default btn-sm" style="margin-top:10px; width:100%" type="button" title="Remove All" >Remove All</button>
 			<div class="toolCat">Output Layers</div>
 			<div id="pourpointOut">
 			<div class="form-check">
@@ -380,6 +400,7 @@
 			</div>
 			</div> <!-- pourpoint output -->
 			<button id="doPPCalc" class="btn btn-default btn-sm" type="button" title="DoIt!" >Do It!</button>
+			<button id="clearPPMapLayers" class="btn btn-default btn-sm" style="margin-top:10px; width:100%" type="button" title="Clear Map" >Clear Map</button>
 			</div> <!-- pourpoint tab body -->
 			</div><!-- tabContent -->
 		</div> <!-- tabs -->
@@ -439,7 +460,20 @@
 		map.createPane('flowpath');
 		map.createPane('nexus');
 		map.createPane('selection');
-
+		map.createPane('pourpointpane');
+		map.createPane('pourpointcatchmentpane');
+		map.createPane('highlightpane');
+		var xindex = 300;
+		map.getPane('catchment').style.zIndex = xindex;
+		map.getPane('flowpath').style.zIndex = xindex;
+		map.getPane('nexus').style.zIndex = xindex;
+		map.getPane('selection').style.zIndex = xindex;
+		
+		map.getPane('pourpointpane').style.zIndex = xindex + 5;
+		map.getPane('pourpointcatchmentpane').style.zIndex = xindex + 4;
+		map.getPane('highlightpane').style.zIndex = xindex * 2;
+		
+		
 		var baseLayers = {};
 		var overlays = {};
 
@@ -672,6 +706,8 @@
 			if(selectionRequest != null) {
 				selectionRequest.abort();
 			}
+			
+			clearPourpointLayers();
 		}
 
 		function switchTool(newTool) {
@@ -976,6 +1012,8 @@
 			// deselect the tool
 			switchTool(false);
 		});
+		
+		
 
 		var filterDataMap = {
 			'name': [
@@ -1451,6 +1489,40 @@
 				cols: {
 					'area': 'Area (ha)'
 				}
+			},
+			
+			ppp:{
+				title: "Pourpoint",
+				titlePlural: "Pourpoints",
+				cols: {
+					'id': 'ID',
+					'ccode': 'C Code',
+				}
+			},
+			
+			pc:{
+				title: "Catchment",
+				titlePlural: "Catchments",
+				cols: {
+					'id': 'ID',
+					'area': 'Area',
+				}
+			},
+			puc:{
+				title: "Unique Catchment",
+				titlePlural: "Unique Catchments",
+				cols: {
+					'id': 'ID',
+					'area': 'Area',
+				}
+			},
+			pusc:{
+				title: "Unique SubCatchment",
+				titlePlural: "Unique SubCatchments",
+				cols: {
+					'id': 'ID',
+					'area': 'Area',
+				}
 			}
 		};
 
@@ -1552,7 +1624,7 @@
 		
 		//add pourpoint
 		$('#addPourpointBtn').on('click', function() {
-			addPourpoint($('#addAddrField').val());
+			addPourpoint();
 			
 			var nextId = "P" + ($('#pourpointList').children().length + 1);
 			$('#add_pourpointId').val(nextId);
@@ -1563,6 +1635,21 @@
 				currentPourpointMarker = null;
 			}
 		});
+		
+		$('#doPPCalc').on('click', runPourpoint);
+		$('#clearPPMapLayers').on('click', function(){
+			clearSelection();
+			$('#dataBar').empty();
+			// deselect the tool
+			switchTool(false);
+		});
+		$('#clearPPList').on('click', function(){
+			$('#pourpointList > .form-group').each(function(){
+				deletePourpoint(this);
+			});
+		});
+		
+		
 		
 		function addPourpoint() {
 			var $inputGroup = $('#pourpointAdd');
@@ -1584,7 +1671,7 @@
 			var locInput = document.createElement('input');
 			locInput.id = "add_pourpointLocation";
 			locInput.className="form-control input-sm";
-			locInput.style="width:120px";
+			locInput.style="width:115px";
 			locInput.value = $inputGroup.find('#add_pourpointLocation').val();
 			locInput.readOnly = "readonly";
 			div2.appendChild(locInput)
@@ -1622,7 +1709,7 @@
 			deleteBtnSpan.className = "glyphicon glyphicon-remove";
 			deleteBtnSpan.style = "color:red";
 			deleteBtn.appendChild(deleteBtnSpan);
-			buttonGrp.appendChild(deleteBtn);
+			buttonGrp.appendChild(deleteBtn);  
 			
 			$("#pourpointList").append(div);
 			
@@ -1652,7 +1739,327 @@
 			if (layer != null) centerMap(layer.getLatLng().toBounds(10), true);
 			
 		}
-		//selectFlowpaths("eflowpath/downstreamOf.json?point=-73.27468872070314,45.464946600971466");
+		
+		
+		var projectedPpLayer;
+		var catchmentPpLayer;
+		var uniqueCatchmentPpLayer;
+		var uniqueSubCatchmentPpLayer;
+		var pPLayer;
+		var highlightLayer;
+		
+		function clearPourpointLayers(){
+			//clear current results
+			if (highlightLayer != null){
+				map.removeLayer(highlightLayer);
+				highlightLayer = null;
+			}
+			if (projectedPpLayer != null){
+				map.removeLayer(projectedPpLayer);
+				projectedPpLayer = null;
+			}
+			if (pPLayer != null){
+				map.removeLayer(pPLayer);
+				pPLayer = null;
+			}
+			if (catchmentPpLayer != null){
+				map.removeLayer(catchmentPpLayer);
+				catchmentPpLayer = null;
+			}
+			if (uniqueCatchmentPpLayer != null){
+				map.removeLayer(uniqueCatchmentPpLayer);
+				uniqueCatchmentPpLayer = null;
+			}
+			if (uniqueSubCatchmentPpLayer != null){
+				map.removeLayer(uniqueSubCatchmentPpLayer);
+				uniqueSubCatchmentPpLayer = null;
+			}
+		}
+		
+		
+		function runPourpoint(){
+			clearPourpointLayers();
+			
+			var items = $('#pourpointList .input-group');
+			var query = "points=";
+			for (var i = 0; i < items.length; i ++){
+				query += $(items[i]).find("#add_pourpointId").val();
+				query += ",";
+				query += $(items[i]).find("#add_pourpointLocation").val();
+				query += ",";
+				query += $(items[i]).find("#add_pourpointCode").val();
+				query += ",";
+			}
+			query +="&output=";
+			if ($("#projectedpourpoints").is(':checked')) query +="ppp,";
+			if ($("#pourpointrelations").is(':checked')) query +="pr,";
+ 			if ($("#pourpointmindistance").is(':checked')) query +="pdmin,";
+ 			if ($("#pourpointmaxdistance").is(':checked')) query +="pdmax,";
+			if ($("#upstreamcatchments").is(':checked')) query +="pc,";
+			if ($("#uniquecatchments").is(':checked')) query +="puc,";
+			if ($("#uniquesubcatchments").is(':checked')) query +="pusc,";
+ 			if ($("#uniquesubcatchmentrelations").is(':checked')) query +="puscr,";		
+
+			var path = "pourpoint/compute.json?" + query;
+			var selectionRequest = $.ajax({
+				url: chyfApi + path,
+				xhrFields: {
+   					withCredentials: true
+				},
+				success: function(data) {
+					displayPourpointResults(data, path);
+				}
+			});
+		}
+		
+		
+		
+		function displayPourpointResults(data, path){
+			
+			var tabs = document.createElement('div');
+			$(tabs).attr("id", "tabs");
+			$(tabs).css("height", "100%");
+			$(tabs).css("width", "800px");
+			var ul = document.createElement('ul');
+			$(ul).addClass("nav").addClass("nav nav-tabs");
+			$(ul).appendTo($(tabs));
+			
+			var tabbody = document.createElement('div');
+			$(tabbody).addClass("tab-content");
+			$(tabbody).appendTo($(tabs));
+			
+			//create all tabs and map layers
+			var $ppTab = null;
+			var $puscTab = null;
+			var pourpointR = null;
+			var pourpointMin = null;
+			var pourpointMax = null;
+			var catchmentR = null;
+			for (var i = 0; i < data.length; i ++){
+				var item = data[i];
+				if (item.name=="ppp"){
+					addProjectedPourpointLayer(item);
+					$ppTab = createTab("ppp", item, $(ul), $(tabbody), i == 0, projectedPpLayer);
+				}else if (item.name=="pc"){
+					addPourpointCatchmentLayer(item);
+					createTab("pc", item, $(ul), $(tabbody), i == 0, catchmentPpLayer);
+				}else if (item.name =="puc"){
+					addPourpointUniqueCatchmentLayer(item);
+					createTab("puc", item, $(ul), $(tabbody), i == 0, uniqueCatchmentPpLayer);
+				}else if (item.name =="pusc"){
+					addPourpointUniqueSubCatchmentLayer(item);
+					 $puscTab = createTab("pusc", item, $(ul), $(tabbody), i == 0, uniqueSubCatchmentPpLayer);
+				}else if (item.name == "pr"){
+					pourpointR = item;
+				}else if (item.name == "pdmin"){
+					pourpointMin = item;
+				}else if (item.name == "pdmax"){
+					pourpointMax = item;
+				}else if (item.name == "puscr"){
+					catchmentR = item;
+				}
+			}
+			if ((pourpointR != null || pourpointMin != null || pourpointMax != null) && $ppTab == null){
+				$ppTab = createTab("ppp", null, $(ul), $(tabbody), i == 0, null);
+			}
+			if (catchmentR != null && $puscTab == null){
+				$puscTab = createTab("pusc", null, $(ul), $(tabbody), i == 0, null);
+			}
+			 
+			if (pourpointR != null){
+				var $table = createMatrixTable(pourpointR.headers, pourpointR.values, 0);
+				var $div = $('<div/>').append($('<div class="toolCat">Pourpoint Relationship</div>'));
+				$div.append($table);
+				$ppTab.append($div);
+			}
+			if (pourpointMin != null){
+				var $table = createMatrixTable(pourpointMin.headers, pourpointMin.values, 2);
+				var $div = $('<div/>').append($('<div class="toolCat">Pourpoint Minimum Distances</div>'));
+				$div.append($table);
+				$ppTab.append($div);
+			}
+			if (pourpointMax != null){
+				var $table = createMatrixTable(pourpointMax.headers, pourpointMax.values, 2);
+				var $div = $('<div/>').append($('<div class="toolCat">Pourpoint Maximum Distances</div>'));
+				$div.append($table);
+				$ppTab.append($div);
+			}
+			if (catchmentR != null){
+				var $table = createMatrixTable(catchmentR.headers, catchmentR.values, 0);
+				var $div = $('<div/>').append($('<div class="toolCat">Relationships</div>'));
+				$div.append($table);
+				$puscTab.append($div);
+			}
+			//add any matrix to existing tabs
+			
+			$('#dataBar').empty();
+			$('#dataBar').append($(tabs));
+		}
+		
+		function createTab(id, data, tabheaders, tabbody, active, maplayer){
+			var tab = document.createElement('li');
+			$(tab).attr("id", id + "_tab").appendTo(tabheaders);
+			if (active) $(tab).addClass("active");
+			var link = document.createElement('a');
+			$(link).attr("href", "#" + id + "_body").attr("data-toggle", "tab").html(dataMap[id].titlePlural).appendTo($(tab));
+			
+			var ppptabBody = document.createElement("div");
+			$(ppptabBody).addClass("tab-pane").attr("id", id + "_body").appendTo(tabbody);
+			$(ppptabBody).css("padding", "2px");
+			
+			if (active) $(ppptabBody).addClass("active");
+			
+			if (maplayer != null){
+				var $ctrl = $('<input/>', 
+						{type: 'checkbox', id: id + "_showhide"});
+				$ctrl.prop('checked', true);
+				var $lbl = $('<label/>', 
+						{'for': id + "_showhide"}).html("Visible On Map");
+				$lbl.addClass("form-check-label");
+				$lbl.css("font-weight", "normal");				
+				
+				$ctrl.appendTo(ppptabBody);
+				$lbl.appendTo(ppptabBody);
+				
+				$ctrl.click(function(){
+		 			if ($ctrl.is(':checked')){
+						map.addLayer(maplayer);
+					}else{
+						map.removeLayer(maplayer);
+					}
+				});
+			}
+			if (data == null) return;
+			if(data.type == 'FeatureCollection') {
+				if(!data.features || data.features.length == 0) {
+					return;
+				}
+			
+				var features = data.features;
+				
+				var cols = dataMap[id].cols;
+
+				var $table = $('<table class="pourpointFeatureTable"/>');
+				var $thead = $('<thead/>');
+				for(var i in cols) {
+					$thead.append('<th>' + cols[i] + '</th>');
+				}
+				$table.append($thead);
+				var $tbody = $('<tbody/>');
+				for(var f in features) {
+					var $row = $('<tr/>');
+					$row.data("geometry", features[f].geometry);
+					for(var c in cols) {
+						$row.append('<td>' + (features[f].properties[c] == null ? "" : features[f].properties[c]) + '</td>');
+					}
+					$tbody.append($row);
+					$row.hover(
+						function(){
+							
+							highlightLayer = L.geoJSON($(this).data("geometry"),{
+								style: function(feature){
+									return {color: "#FFFF00"};
+								},
+								pane: 'highlightpane'
+							}).addTo(map);
+						}, function(){
+							map.removeLayer(highlightLayer);
+						}	
+					
+					);
+				}
+				$table.append($tbody);
+				$table.appendTo($(ppptabBody));
+			}
+			return $(ppptabBody);
+		}
+		
+		function createMatrixTable(headers, data, percision){
+			
+			var $table = $('<table/>');
+			var $tbody = $('<tbody/>');
+			$table.append($tbody);
+			
+			var $row = $('<tr/>');
+			$row.append('<td/>');
+			$tbody.append($row);
+			for (var i = 0; i < headers.length; i ++){
+				$row.append('<td class="cellheader">' + headers[i] + '</td>');	
+			}
+			
+			for (var i = 0; i < data.length; i ++){
+				var $row = $('<tr/>');
+				$tbody.append($row);
+				$row.append('<td class="cellheader">' + headers[i] + '</td>');
+				for (var j = 0; j < data.length; j ++){
+					$row.append('<td>' + (data[i][j] == null ? "--" : data[i][j].toFixed(percision)) + '</td>');
+				}
+			}
+			return $table;
+			
+		}
+		
+		function addProjectedPourpointLayer(layerdata){
+			var myStyle = {
+					"fill": true,
+					"radius": 10,
+					"fillColor": "#08EE08",
+					"color": "#036B03",
+					"weight": 1,
+					"opacity": 1,
+					"fillOpacity": 1
+				};
+			
+			projectedPpLayer = L.geoJson(layerdata, {
+				  pointToLayer: function (feature, latlng) {
+					  label = String(feature.properties.id) + "*" // Must convert to string, .bindTooltip can't use straight 'feature.properties.attribute'
+				        return L.circleMarker(latlng, myStyle).bindTooltip(label,{
+				        	permanent:true,
+				        	direction:"center",
+				        	className:"pourpointPointStyle"}).openTooltip();
+				    },
+			  		pane: 'pourpointpane'
+			}).addTo(map);
+			
+			
+			var rawStyle = {
+					"fill": true,
+					"radius": 10,
+					"fillColor": "#B3FDB3",
+					"color": "#06CE06",
+					"weight": 1,
+					"opacity": 1,
+					"fillOpacity": 1
+				};
+			
+			pPLayer = L.geoJson(layerdata, {
+				  pointToLayer: function (feature, latlng) {
+					  label = String(feature.properties.id)
+				        return L.circleMarker(L.latLng(feature.properties['raw_y'], feature.properties['raw_x']), rawStyle).bindTooltip(label,{
+				        	permanent:true,
+				        	direction:"center",
+				        	className:"pourpointPointStyle"}).openTooltip();
+				    },
+			  		pane: 'pourpointpane'
+			}).addTo(map);
+		}
+		
+		function addPourpointCatchmentLayer(layerdata){
+			catchmentPpLayer = L.geoJson(layerdata, {
+				  pane: 'pourpointpane'
+			}).addTo(map);
+		}
+		function addPourpointUniqueCatchmentLayer(layerdata){
+			uniqueCatchmentPpLayer = L.geoJson(layerdata, {
+				  pane: 'pourpointpane'
+			}).addTo(map);
+		}
+		function addPourpointUniqueSubCatchmentLayer(layerdata){
+				uniqueSubCatchmentPpLayer = L.geoJson(layerdata, {
+					  pane: 'pourpointpane'
+				}).addTo(map);
+		}
+		
 	</script>
 </body>
 </html>

@@ -11,6 +11,7 @@ import net.refractions.chyf.hygraph.ECatchment;
 import net.refractions.chyf.hygraph.EFlowpath;
 import net.refractions.chyf.hygraph.Nexus;
 import net.refractions.chyf.indexing.SpatiallyIndexable;
+import net.refractions.chyf.pourpoint.PourpointOutput;
 import net.refractions.chyf.rest.GeotoolsGeometryReprojector;
 
 import com.vividsolutions.jts.geom.Coordinate;
@@ -239,6 +240,8 @@ public abstract class ConverterHelper {
 				dataObject(o, response, null);
 			}
 			featureCollectionFooter();
+		}else if (data instanceof PourpointOutput) {
+			(new PourpointJsonConverter(out)).convertResponse(response);
 		} else {
 			dataObject(data, response, response);
 		}
