@@ -7,9 +7,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.StringJoiner;
 
-import com.vividsolutions.jts.geom.Geometry;
-
+import net.refractions.chyf.hygraph.DrainageArea;
 import net.refractions.chyf.hygraph.ECatchment;
+import net.refractions.chyf.hygraph.HyGraph;
 
 public class UniqueSubCatchment {
 
@@ -23,9 +23,11 @@ public class UniqueSubCatchment {
 	private Set<UniqueSubCatchment> downstream = new HashSet<>();
 	
 	private String id = null;
+//	private boolean removeHoles;
 	
-	public UniqueSubCatchment(Pourpoint point) {
+	public UniqueSubCatchment(Pourpoint point, boolean removeHoles) {
 		this.point = point;
+//		this.removeHoles = removeHoles;
 	}
 	
 	/**
@@ -97,7 +99,7 @@ public class UniqueSubCatchment {
 		id = null;
 	}
 	
-	public Geometry getGeometry() {
-		return PourpointOutput.aggregateAreas(catchments);
+	public DrainageArea getDrainageArea() {
+		return HyGraph.buildDrainageArea(catchments, false);
 	}
 }

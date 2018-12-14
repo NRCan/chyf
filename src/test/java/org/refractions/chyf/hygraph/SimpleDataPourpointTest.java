@@ -19,6 +19,7 @@ import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKTReader;
 
 import net.refractions.chyf.ChyfDatastore;
+import net.refractions.chyf.hygraph.DrainageArea;
 import net.refractions.chyf.pourpoint.Pourpoint;
 import net.refractions.chyf.pourpoint.PourpointEngine;
 import net.refractions.chyf.pourpoint.PourpointOutput;
@@ -111,9 +112,9 @@ public class SimpleDataPourpointTest {
 		WKTReader reader = new WKTReader(BasicTestSuite.GF);
 		
 		for (Pourpoint point : results.getPoints()) {
-			Geometry actual = results.getCatchment(point);
+			DrainageArea actual = results.getCatchment(point);
 			Geometry expected = GeotoolsGeometryReprojector.reproject(reader.read(expectedCatchments.get(point.getId())), ChyfDatastore.BASE_SRS);
-			Assert.assertTrue("Pourpoint catchment incorrect (" + point.getId() + ")", expected.equalsExact(actual, 0.00001));
+			Assert.assertTrue("Pourpoint catchment incorrect (" + point.getId() + ")", expected.equalsExact(actual.getGeometry(), 0.00001));
 		}
 		
 		
@@ -126,9 +127,9 @@ public class SimpleDataPourpointTest {
 		expectedUniqueCoveratesCombined.put("P5", "POLYGON (( -73.45931415243606 45.11948593684481, -73.45803219773404 45.11734934567479, -73.46012130910029 45.114690476663206, -73.46045366772674 45.11369340078386, -73.46339741556099 45.11302868353096, -73.46486928947812 45.11397827960653, -73.46672100182546 45.11445307764431, -73.4685416483889 45.11506456249201, -73.47076943479914 45.115092834944605, -73.47320822109108 45.11425377913806, -73.47433042478657 45.115263762464004, -73.47484320734478 45.115719569182396, -73.47538447782286 45.11842592157285, -73.47413100934729 45.120106708846926, -73.47094036231853 45.12004973300712, -73.4708042649504 45.12261960389417, -73.4679554767237 45.12323684134329, -73.46501172888945 45.12261960389417, -73.46154570321363 45.123046922128175, -73.45855447557561 45.121527568407274, -73.45931415243606 45.11948593684481 ))");
 				
 		for (Pourpoint point : results.getPoints()) {
-			Geometry actual = results.getUniqueCatchment(point);
+			DrainageArea actual = results.getUniqueCatchment(point);
 			Geometry expected = GeotoolsGeometryReprojector.reproject(reader.read(expectedUniqueCoveratesCombined.get(point.getId())), ChyfDatastore.BASE_SRS);
-			Assert.assertTrue("Pourpoint catchment incorrect (" + point.getId() + ")", expected.equalsExact(actual, 0.00001));
+			Assert.assertTrue("Pourpoint catchment incorrect (" + point.getId() + ")", expected.equalsExact(actual.getGeometry(), 0.00001));
 		}
 		
 		//test non-overlapping single coverages
@@ -201,7 +202,7 @@ public class SimpleDataPourpointTest {
 		for (Pourpoint point : results.getPoints()) {
 			for (UniqueSubCatchment pcat : point.getUniqueSubCatchments()) {
 				Geometry expected = GeotoolsGeometryReprojector.reproject(reader.read(expectedMergedCoverages.get(pcat.getId())), ChyfDatastore.BASE_SRS);
-				if (!pcat.getGeometry().equalsExact(expected, 0.0001)) {
+				if (!pcat.getDrainageArea().getGeometry().equalsExact(expected, 0.0001)) {
 					Assert.fail("Pourpoint sub catchment polygon incorrect (pointid:" + point.getId() + " subcatchment: " + pcat.getId() + ")");
 
 				}

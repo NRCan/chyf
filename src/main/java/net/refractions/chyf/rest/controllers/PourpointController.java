@@ -37,7 +37,7 @@ public class PourpointController {
 		
 		params.resolveAndValidate();
 		
-		PourpointEngine engine = new PourpointEngine(params.getPourpoints(), hyGraph);
+		PourpointEngine engine = new PourpointEngine(params.getPourpoints(), hyGraph, params.getRemoveHoles());
 		PourpointOutput pout = engine.compute(params.getOutputTypes());
 		
 		ApiResponse resp = new ApiResponse(pout);

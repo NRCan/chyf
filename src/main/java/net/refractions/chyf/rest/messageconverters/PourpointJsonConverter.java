@@ -5,9 +5,9 @@ import java.io.Writer;
 import java.util.Collection;
 import java.util.List;
 
-import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.Point;
 
+import net.refractions.chyf.hygraph.DrainageArea;
 import net.refractions.chyf.pourpoint.Pourpoint;
 import net.refractions.chyf.pourpoint.PourpointEngine;
 import net.refractions.chyf.pourpoint.PourpointOutput;
@@ -101,10 +101,10 @@ public class PourpointJsonConverter extends JsonConverterHelper {
 		this.featureCollectionHeader(response, PourpointEngine.OutputType.CATCHMENTS);
 		int counter = 1;
 		for (Pourpoint p : result.getPoints()) {
-			Geometry g = result.getCatchment(p);
-			this.featureHeader(GeotoolsGeometryReprojector.reproject(g, response.getSrs()), counter++, null);
+			DrainageArea g = result.getCatchment(p);
+			this.featureHeader(GeotoolsGeometryReprojector.reproject(g.getGeometry(), response.getSrs()), counter++, null);
 			this.field("id", p.getId());
-			this.field("area", (double)g.getUserData());
+			this.field("area", g.getArea());
 			this.featureFooter();
 		}
 		this.featureCollectionFooter();
@@ -117,10 +117,10 @@ public class PourpointJsonConverter extends JsonConverterHelper {
 		for (Pourpoint p : result.getPoints()) {
 			Collection<UniqueSubCatchment> items =  result.getUniqueSubCatchments(p);
 			for (UniqueSubCatchment i : items) {
-				Geometry g = i.getGeometry();
-				this.featureHeader(GeotoolsGeometryReprojector.reproject(g, response.getSrs()), counter++, null);
+				DrainageArea g = i.getDrainageArea();
+				this.featureHeader(GeotoolsGeometryReprojector.reproject(g.getGeometry(), response.getSrs()), counter++, null);
 				this.field("id", i.getId());
-				this.field("area", (double)g.getUserData());
+				this.field("area", g.getArea());
 				this.featureFooter();
 			}
 		}
@@ -133,10 +133,10 @@ public class PourpointJsonConverter extends JsonConverterHelper {
 		this.featureCollectionHeader(response, PourpointEngine.OutputType.UNIQUE_CATCHMENTS);
 		int counter = 1;
 		for (Pourpoint p : result.getPoints()) {
-			Geometry g = result.getUniqueCatchment(p);
-			this.featureHeader(GeotoolsGeometryReprojector.reproject(g, response.getSrs()), counter++, null);
+			DrainageArea g = result.getUniqueCatchment(p);
+			this.featureHeader(GeotoolsGeometryReprojector.reproject(g.getGeometry(), response.getSrs()), counter++, null);
 			this.field("id", p.getId());
-			this.field("area", (double)g.getUserData());
+			this.field("area", g.getArea());
 			this.featureFooter();
 		}
 		this.featureCollectionFooter();

@@ -330,7 +330,7 @@ public class HyGraph {
 		return buildDrainageArea(getDownstreamECatchments(eCatchment, Integer.MAX_VALUE), removeHoles);
 	}
 
-	private DrainageArea buildDrainageArea(List<ECatchment> catchments, boolean removeHoles) {
+	public static DrainageArea buildDrainageArea(Collection<ECatchment> catchments, boolean removeHoles) {
 		List<Geometry> geoms = new ArrayList<Geometry>(catchments.size());
 		for(ECatchment c : catchments) {
 			geoms.add(c.getPolygon());
@@ -342,7 +342,7 @@ public class HyGraph {
 		return new DrainageArea(g);
 	}
 
-	private Geometry removeHoles(Geometry g) {
+	public static Geometry removeHoles(Geometry g) {
 		if(g instanceof Polygon) {
 			return g.getFactory().createPolygon(((Polygon)g).getExteriorRing().getCoordinateSequence());
 		}

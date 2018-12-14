@@ -28,9 +28,14 @@ import net.refractions.chyf.ChyfDatastore;
  *
  */
 @RunWith(Suite.class)
-@SuiteClasses({StreamOrderTest.class, FlowpathTest.class, 
-	DrainageTest.class, ElementaryDrainageTest.class,
-	MultiDimensionalDownstreamTest.class})
+@SuiteClasses({
+	StreamOrderTest.class, 
+	FlowpathTest.class, 
+	DrainageTest.class, 
+	ElementaryDrainageTest.class,
+	MultiDimensionalDownstreamTest.class,
+	PourpointProjectionTest.class,
+	PourpointTest.class})
 public class BasicTestSuite extends Suite {
 
 	protected static ChyfDatastore DATASTORE = null;
@@ -58,8 +63,8 @@ public class BasicTestSuite extends Suite {
 		protected void before() throws Throwable {
 			if (DATASTORE != null) return;
 			URL url = ClassLoader.getSystemResource("data/" + ChyfDatastore.FLOWPATH_FILE);
-//			Path datapath = Paths.get(url.toURI()).getParent();
-			Path datapath = Paths.get("C:\\data\\CHyF\\github\\chyf-pilot\\data\\data_small");
+			Path datapath = Paths.get(url.toURI()).getParent();
+//			Path datapath = Paths.get("C:\\data\\CHyF\\github\\chyf-pilot\\data\\data_small");
 //			Path datapath = Paths.get("C:\\data\\CHyF\\github\\chyf-pilot\\data\\data_small2");
 			DATASTORE = new ChyfDatastore(datapath.toString() + "/");
 		};

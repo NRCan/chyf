@@ -7,9 +7,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
-
-import org.refractions.chyf.hygraph.BasicTestSuite;
-
 import java.util.Objects;
 import java.util.Set;
 
@@ -19,21 +16,25 @@ import net.refractions.chyf.hygraph.ECatchment;
 import net.refractions.chyf.hygraph.EFlowpath;
 import net.refractions.chyf.hygraph.HyGraph;
 import net.refractions.chyf.hygraph.Nexus;
-import net.refractions.chyf.rest.GeotoolsGeometryReprojector;
 
-
-
+/**
+ * Computes the various pourpoint features.  See OutputType enum for
+ * various options
+ * 
+ * @author Emily
+ *
+ */
 public class PourpointEngine {
 
 	public enum OutputType{
-		PROJECTED("ppp"),
-		DISTANCE_MIN("pdmin"),
-		DISTANCE_MAX("pdmax"),
-		PP_RELATIONSHIP("pr"),
-		CATCHMENTS("pc"),
-		UNIQUE_CATCHMENTS("puc"),
-		UNIQUE_SUBCATCHMENTS("pusc"),
-		UNIQUE_SUBCATCHMENTS_RELATION("puscr");
+		PROJECTED("ppp"),	//pp projected to hydro nexus
+		DISTANCE_MIN("pdmin"), //min distance along flowpath between projected pp
+		DISTANCE_MAX("pdmax"),  //max distance along flowpath between projected pp
+		PP_RELATIONSHIP("pr"), //upstream/downstream relationship between pp
+		CATCHMENTS("pc"), //upstream catchments for pp
+		UNIQUE_CATCHMENTS("puc"), //unique upstream catchments for pp
+		UNIQUE_SUBCATCHMENTS("pusc"), //unique upstream subcatchments for pp
+		UNIQUE_SUBCATCHMENTS_RELATION("puscr"); //upstream/downstream relationships between upstream subcatchments
 		
 		public String key;
 		
@@ -49,23 +50,33 @@ public class PourpointEngine {
 		}
 		
 	}
+	
 	private List<Pourpoint> points;
 	private HyGraph hygraph;
-	
 	private boolean removeHoles = false;
 	
 	private HashMap<PourpointKey, Range> distanceValues = new HashMap<>();
 	private Set<OutputType> availableOutputs;
-	public static int TEST_DATA_SRID = 4617;
-	
+		
 	public PourpointEngine(List<Pourpoint> points, HyGraph hygraph) {
 		this.points = Collections.unmodifiableList(points);
 		this.hygraph = hygraph;
 	}
 	
+	public PourpointEngine(List<Pourpoint> points, HyGraph hygraph, boolean removeHoles) {
+		this.points = Collections.unmodifiableList(points);
+		this.hygraph = hygraph;
+		this.removeHoles = removeHoles;
+	}
+	
 	public Set<OutputType> getAvailableOutputs(){
 		return this.availableOutputs;
 	}
+	
+	public boolean getRemoveHoles() {
+		return this.removeHoles;
+	}
+	
 	/**
 	 * 
 	 * @param availableOutputs if null or empty everything is returned
@@ -182,7 +193,7 @@ public class PourpointEngine {
 	}
 	
 	public List<UniqueSubCatchment> getSortedUniqueSubCatchments(){
-		if (!availableOutputs.contains(OutputType.UNIQUE_SUBCATCHMENTS)) return null;
+		if (!availableOutputs.contains(OutputType.UNIQUE_SUBCATCHMENTS) && !availableOutputs.contains(OutputType.UNIQUE_SUBCATCHMENTS_RELATION)) return null;
 		Set<UniqueSubCatchment> allCatchments = new HashSet<>();
 		for (Pourpoint p : points) {
 			allCatchments.addAll(p.getUniqueSubCatchments());
@@ -436,7 +447,7 @@ public class PourpointEngine {
 			}
 			UniqueSubCatchment ppc = catchmentMapping.get(e);
 			if (ppc == null) {
-				ppc = new UniqueSubCatchment(point);
+				ppc = new UniqueSubCatchment(point, removeHoles);
 				catchmentMapping.put(e,ppc);
 			}
 			for (Pourpoint pp : inpoints) ppc.addUpstreamPourpoint(pp);
@@ -497,10 +508,10 @@ public class PourpointEngine {
 		
 		ArrayDeque<EFlowpath> toProcess = new ArrayDeque<>();
 		toProcess.add(root);
-		
+		Set<EFlowpath> visited = new HashSet<>();
 		while(!toProcess.isEmpty()) {
 			EFlowpath item = toProcess.removeFirst();
-			
+			visited.add(item);
 			if (catchments.containsKey(item)) {
 				otherCatchments.addAll(catchments.get(item));
 			}else {
@@ -512,7 +523,7 @@ public class PourpointEngine {
 						ECatchment cc = item.getCatchment();
 						uniqueCatchments.add(cc);
 						for(EFlowpath f: item.getFromNode().getUpFlows()) {
-							toProcess.addLast(f);
+							if (!visited.contains(f)) toProcess.addLast(f);
 						}
 					}
 				}

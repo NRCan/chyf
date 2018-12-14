@@ -12,7 +12,8 @@
 	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.0/dist/leaflet.css" />
 	
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-	
+	<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/themes/smoothness/jquery-ui.css">
+	  
 	<style>
 		/* make the map fullscreen */
 		html, body {
@@ -71,15 +72,22 @@
 			font-weight: bold;
 			color: #444466;
 		}
-		#dataBar {
+		#dataBarWrapper {
 			position: absolute;
 			z-index: 999;
 			background-color: white;
 			bottom: 0;
 			left: 300px;
 			height: 200px;
+			width: 800px;
 			border: 1px solid lightSlateGrey;
-			overflow: auto;
+			display:none;
+		}
+		#dataBar{
+			width:100%;
+			height: 100%;
+			display:flex;
+			flex-direction: column;
 		}
 		#dataTitle {
 			font-size: 1em;
@@ -191,6 +199,7 @@
 		.nav-tabs > li {
 			border-radius: 0px;
 		}
+		
 		.nav-tabs > li > a {
 			border-radius: 0px;
 			border: 0px;
@@ -198,6 +207,8 @@
 			background-color: #444466;
 			color: white;
 		}
+
+		
 		.nav-tabs > li.active > a,
 		.nav-tabs > li.active > a:hover,
 		.nav-tabs > li.active > a:focus {
@@ -236,9 +247,7 @@
         }
         
         #pourpointList{
-        	border-top:2px solid #AAAAAA;
         	margin-bottom:5px;
-        	overflow: auto;
         	padding-top: 5px;
         }
         #pourpointList > .form-group{
@@ -268,7 +277,9 @@
        		font-weight: bold;
        		background-color: #CCE0FF;
        }
-       
+       .ppinputlbl{
+    	   padding-top: 5px;
+       }
       
 	</style>
 </head>
@@ -329,25 +340,25 @@
 				<button id="catchmentsUpstreamOf" type="button" class="toolBtn tool">Upstream Of Point</button>
 				<button id="catchmentsDownstreamOf" type="button" class="toolBtn tool">Downstream Of Point</button>
 				<div class="toolCat">Waterbody Flows</div>
-				<button id="multiDimensionalDownstreamOf" type="button" class="toolBtn tool">Downstream Of Point</button>
 				<button id="multiDimensionalUpstreamOf" type="button" class="toolBtn tool">Upstream Of Point</button>
+				<button id="multiDimensionalDownstreamOf" type="button" class="toolBtn tool">Downstream Of Point</button>
 				<div class="toolCat">Catchment<br>(Drainage Area)</div>
-				<input id="removeHoles" type="checkbox"/>Remove Holes
+				<div><input id="removeHoles" type="checkbox"/>Remove Holes</div>
 				<button id="drainageAreaUpstreamOf" type="button" class="toolBtn tool">Upstream Of Point</button>
 				<button id="drainageAreaDownstreamOf" type="button" class="toolBtn tool">Downstream Of Point</button>
 				<button id="clearSelection" type="button" class="toolBtn">Clear Selection</button>
 			</div> <!-- maintab body -->
 			
 			<div class="tab-pane" id="pourpoint_body" >
-			<div class="toolCat">Input Pourpoints:</div>
+			<div class="toolCat">Add Pourpoint</div>
 			
 			<div id="pourpointAdd">
 				<div class="form-group">
-					<div class="input-group">
-						
-						<input type="text" id="add_pourpointId" class="form-control input-sm" style="width:55px" value="P1" />
-						<input type="text" id="add_pourpointLocation" class="form-control input-sm" style="width:115px" placeholder="click here then select on map"/>
-						<select id="add_pourpointCode" class="form-control input-sm" style="width:55px">
+					<div style="display:flex; flex-direction:row; width:100%">
+						<span class="ppinputlbl">ID:</span>
+						<input type="text" id="add_pourpointId" class="form-control input-sm" value="P1" style="width: 120px" />
+						<span class="ppinputlbl" style="margin-left: 5px">C-Code:</span>
+						<select id="add_pourpointCode" class="form-control input-sm" style="width: 55px">
 						<option value="-2">-2</option>
 						<option value="-1" selected>-1</option>
 						<option value="0">0</option>
@@ -355,15 +366,14 @@
 						<option value="2">2</option>
 						<option value="3">3</option>
 						</select>
-						<button id="addPourpointBtn" class="btn btn-default btn-sm" type="button" title="Add Pourpoint">
-							<span class="glyphicon glyphicon-plus" style="color: green" aria-label="Add Pourpoint"></span>
-						</button>
-						
 					</div>
+					<input type="text" id="add_pourpointLocation" class="form-control input-sm" style="width:100%; margin-top:5px" placeholder="click here then select on map"/>
+					<button id="addPourpointBtn" class="btn btn-default btn-sm" style="width:100%; margin-top:5px" type="button" title="Add Pourpoint">Add Point</button>
 				</div>
 			</div>
+			<div class="toolCat">Input Pourpoints</div>
 			<div id="pourpointList"></div>
-			<button id="clearPPList" class="btn btn-default btn-sm" style="margin-top:10px; width:100%" type="button" title="Remove All" >Remove All</button>
+			<button id="clearPPList" class="btn btn-default btn-sm" style="margin-top:5px; width:100%" type="button" title="Remove All" >Remove All</button>
 			<div class="toolCat">Output Layers</div>
 			<div id="pourpointOut">
 			<div class="form-check">
@@ -392,20 +402,27 @@
 			</div>
 			<div class="form-check">
   				<input class="form-check-input" type="checkbox" value="" id="uniquesubcatchments" checked>
-  				<label class="form-check-label" for=""uniquesubcatchments">Unique SubCatchments</label>
+  				<label class="form-check-label" for="uniquesubcatchments">Unique SubCatchments</label>
 			</div>
 			<div class="form-check">
   				<input class="form-check-input" type="checkbox" value="" id="uniquesubcatchmentrelations" checked>
-  				<label class="form-check-label" for=""uniquesubcatchmentrelations">Unique SubCatchments Relations</label>
+  				<label class="form-check-label" for="uniquesubcatchmentrelations">Unique SubCatchments Relations</label>
 			</div>
 			</div> <!-- pourpoint output -->
+			
+			<div class="toolCat">Options</div>
+			<div class="form-check">
+				<input class="form-check-input" type="checkbox" value="" id="ppholes" checked>
+				<label class="form-check-label" for="ppholes" style="font-weight:normal">Remove Holes (Catchments Only)</label>
+				</div>
+			
 			<button id="doPPCalc" class="btn btn-default btn-sm" type="button" title="DoIt!" >Do It!</button>
 			<button id="clearPPMapLayers" class="btn btn-default btn-sm" style="margin-top:10px; width:100%" type="button" title="Clear Map" >Clear Map</button>
 			</div> <!-- pourpoint tab body -->
 			</div><!-- tabContent -->
 		</div> <!-- tabs -->
 		<div id="map"><div id="mapCover"></div></div>
-		<div id="dataBar"></div> <!-- dataBar -->
+		<div id="dataBarWrapper"><div id="dataBar"></div></div><!-- dataBar -->
 	</div> <!-- container -->
 	<script src="https://unpkg.com/clipboard@1.7.1/dist/clipboard.min.js"></script>
 	<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCO2a43ItOYdAuRFcbCSLLn8AQwnMlf6sI"></script>
@@ -421,15 +438,18 @@
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" crossorigin="anonymous"
 		integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"></script>
 		 -->
-			<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/jquery-ui.min.js"></script> 
 	<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-	<!-- 
-	 <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
-  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script> -->
-	<!--script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" crossorigin="anonymous"
-		integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"></script-->
 	<script>
-		
+		$('#dataBarWrapper').resizable({
+			handles: "n, e, ne",
+			stop: function(event, ui){
+				$('#dataBarWrapper').css("bottom", "0px");
+				$('#dataBarWrapper').css("top", "");
+				
+			}
+		});
 		// parse query params
 		var queryParams = {};
 		location.search.substr(1).split("&").forEach(function(item) {
@@ -1009,6 +1029,7 @@
 		$('#clearSelection').on("click", function() {
 			clearSelection();
 			$('#dataBar').empty();
+			$('#dataBarWrapper').css("display", "none");
 			// deselect the tool
 			switchTool(false);
 		});
@@ -1530,7 +1551,9 @@
 			if(!data) {
 				return;
 			}
+			var $div = $('<div style="overflow:auto;"/>');
 			var $table = $('<table/>');
+			$div.append($table);
 			var features;
 			if(data.type == 'Feature') {
 				features = [data];
@@ -1567,9 +1590,10 @@
 					+ ' <button id="urlButtonJson" type="button" data-clipboard-text="' + url + '">Copy Url (JSON)</button>'
 					+ ' <button id="urlButtonGeoPkg" type="button" data-clipboard-text="' + geopkgurl + '">Copy Url (GeoPkg)</button></div>');
 			//$('#dataBar').append('<div id="dataUrl">' + url + '</div>');
-			$('#dataBar').append($table);
+			$('#dataBar').append($div);
 			new Clipboard('#urlButtonJson');
 			new Clipboard('#urlButtonGeoPkg');
+			$('#dataBarWrapper').css("display", "block");
 		}
 
 		function makeFeatureTable(type, feature) {
@@ -1640,6 +1664,7 @@
 		$('#clearPPMapLayers').on('click', function(){
 			clearSelection();
 			$('#dataBar').empty();
+			$('#dataBarWrapper').css("display", "none");
 			// deselect the tool
 			switchTool(false);
 		});
@@ -1747,6 +1772,7 @@
 		var uniqueSubCatchmentPpLayer;
 		var pPLayer;
 		var highlightLayer;
+		var ppRequest;
 		
 		function clearPourpointLayers(){
 			//clear current results
@@ -1778,9 +1804,32 @@
 		
 		
 		function runPourpoint(){
-			clearPourpointLayers();
-			
 			var items = $('#pourpointList .input-group');
+			if (items.length == 0){
+				alert('Nothing to do.  Please add at least one Pourpoint');
+				return;
+			}
+			
+			if (ppRequest != null){
+				ppRequest.abort();
+			}
+			
+			//clear map layers/data bar
+			clearPourpointLayers();
+			$('#dataBar').empty();
+			
+			var tabs = document.createElement('div');
+			$(tabs).append($('<label style="padding:10px">Processing...</label><button id="btnCancelPp" class="btn btn-default btn-sm" type="button" title="Cancel" >Cancel</button>'));
+			$('#dataBar').append($(tabs));
+			$(tabs).css("height", "100%");
+			$(tabs).css("width", "100%");
+			$('#dataBarWrapper').css("display", "block");
+			$('#btnCancelPp').on('click', function(){
+				ppRequest.abort();
+				$('#dataBar').empty();
+				$('#dataBar').append($('<p>Cancelled</p>'));
+			});
+			//determine inputs
 			var query = "points=";
 			for (var i = 0; i < items.length; i ++){
 				query += $(items[i]).find("#add_pourpointId").val();
@@ -1800,14 +1849,25 @@
 			if ($("#uniquesubcatchments").is(':checked')) query +="pusc,";
  			if ($("#uniquesubcatchmentrelations").is(':checked')) query +="puscr,";		
 
+ 			query +="&removeHoles=";
+ 			if ($("#ppholes").is(':checked')){
+ 				query +="true";
+ 			}else{
+ 				query +="false";
+ 			}
+ 			
+ 			//send request
 			var path = "pourpoint/compute.json?" + query;
-			var selectionRequest = $.ajax({
+			ppRequest = $.ajax({
 				url: chyfApi + path,
 				xhrFields: {
    					withCredentials: true
 				},
 				success: function(data) {
 					displayPourpointResults(data, path);
+				},
+				error: function(xhr, text, error){
+					alert('Error occurred processing Pourpoints: ' + error);
 				}
 			});
 		}
@@ -1819,7 +1879,7 @@
 			var tabs = document.createElement('div');
 			$(tabs).attr("id", "tabs");
 			$(tabs).css("height", "100%");
-			$(tabs).css("width", "800px");
+			$(tabs).css("width", "100%");
 			var ul = document.createElement('ul');
 			$(ul).addClass("nav").addClass("nav nav-tabs");
 			$(ul).appendTo($(tabs));
@@ -1829,71 +1889,84 @@
 			$(tabbody).appendTo($(tabs));
 			
 			//create all tabs and map layers
-			var $ppTab = null;
-			var $puscTab = null;
-			var pourpointR = null;
-			var pourpointMin = null;
-			var pourpointMax = null;
-			var catchmentR = null;
+			var layers = {};
 			for (var i = 0; i < data.length; i ++){
 				var item = data[i];
 				if (item.name=="ppp"){
 					addProjectedPourpointLayer(item);
-					$ppTab = createTab("ppp", item, $(ul), $(tabbody), i == 0, projectedPpLayer);
+					layers.ppp = item;
+					
 				}else if (item.name=="pc"){
 					addPourpointCatchmentLayer(item);
-					createTab("pc", item, $(ul), $(tabbody), i == 0, catchmentPpLayer);
+					layers.pc = item;
 				}else if (item.name =="puc"){
 					addPourpointUniqueCatchmentLayer(item);
-					createTab("puc", item, $(ul), $(tabbody), i == 0, uniqueCatchmentPpLayer);
+					layers.puc = item;
 				}else if (item.name =="pusc"){
 					addPourpointUniqueSubCatchmentLayer(item);
-					 $puscTab = createTab("pusc", item, $(ul), $(tabbody), i == 0, uniqueSubCatchmentPpLayer);
+					layers.pusc = item;
 				}else if (item.name == "pr"){
-					pourpointR = item;
+					layers.pr = item;
 				}else if (item.name == "pdmin"){
-					pourpointMin = item;
+					layers.pdmin = item;
 				}else if (item.name == "pdmax"){
-					pourpointMax = item;
+					layers.pdmax = item;
 				}else if (item.name == "puscr"){
-					catchmentR = item;
+					layers.puscr = item;
 				}
 			}
-			if ((pourpointR != null || pourpointMin != null || pourpointMax != null) && $ppTab == null){
-				$ppTab = createTab("ppp", null, $(ul), $(tabbody), i == 0, null);
+			var isActive = true;
+			if (layers.ppp != null){
+				layers.ppp_tab = createTab("ppp", layers.ppp, $(ul), $(tabbody), isActive, projectedPpLayer);
+				isActive = false;
+			}else if (layers.pr != null || layers.pdmin != null || layers.pdmax != null){
+				layers.ppp_tab = createTab("ppp", null, $(ul), $(tabbody), isActive, null);
+				isActive = false;
 			}
-			if (catchmentR != null && $puscTab == null){
-				$puscTab = createTab("pusc", null, $(ul), $(tabbody), i == 0, null);
+			if (layers.pc != null){
+				createTab("pc", layers.pc, $(ul), $(tabbody), isActive, catchmentPpLayer);
+				isActive = false;
 			}
-			 
-			if (pourpointR != null){
-				var $table = createMatrixTable(pourpointR.headers, pourpointR.values, 0);
+			if (layers.puc != null){
+				createTab("puc", layers.puc, $(ul), $(tabbody), isActive, uniqueCatchmentPpLayer);
+				isActive = false;
+			}
+			if (layers.pusc != null){
+				layers.pusc_tab = createTab("pusc", layers.pusc, $(ul), $(tabbody), i == 0, uniqueSubCatchmentPpLayer);
+				isActive = false;
+			}else if (layers.puscr != null){
+				layers.pusc_tab = createTab("pusc", null, $(ul), $(tabbody), i == 0, null);
+				isActive = false;
+			}
+			if (layers.pr != null){
+				var $table = createMatrixTable(layers.pr.headers, layers.pr.values, 0);
 				var $div = $('<div/>').append($('<div class="toolCat">Pourpoint Relationship</div>'));
 				$div.append($table);
-				$ppTab.append($div);
+				layers.ppp_tab.append($div);
 			}
-			if (pourpointMin != null){
-				var $table = createMatrixTable(pourpointMin.headers, pourpointMin.values, 2);
+			if (layers.pdmin != null){
+				var $table = createMatrixTable(layers.pdmin.headers, layers.pdmin.values, 2);
 				var $div = $('<div/>').append($('<div class="toolCat">Pourpoint Minimum Distances</div>'));
 				$div.append($table);
-				$ppTab.append($div);
+				layers.ppp_tab.append($div);
 			}
-			if (pourpointMax != null){
-				var $table = createMatrixTable(pourpointMax.headers, pourpointMax.values, 2);
+			if (layers.pdmax != null){
+				var $table = createMatrixTable(layers.pdmax.headers, layers.pdmax.values, 2);
 				var $div = $('<div/>').append($('<div class="toolCat">Pourpoint Maximum Distances</div>'));
 				$div.append($table);
-				$ppTab.append($div);
+				layers.ppp_tab.append($div);
 			}
-			if (catchmentR != null){
-				var $table = createMatrixTable(catchmentR.headers, catchmentR.values, 0);
+			if (layers.puscr != null){
+				var $table = createMatrixTable(layers.puscr.headers, layers.puscr.values, 0);
 				var $div = $('<div/>').append($('<div class="toolCat">Relationships</div>'));
 				$div.append($table);
-				$puscTab.append($div);
+				layers.pusc_tab.append($div);
 			}
 			//add any matrix to existing tabs
 			
 			$('#dataBar').empty();
 			$('#dataBar').append($(tabs));
+			$('#dataBarWrapper').css("display", "block");
 		}
 		
 		function createTab(id, data, tabheaders, tabbody, active, maplayer){
@@ -1901,7 +1974,8 @@
 			$(tab).attr("id", id + "_tab").appendTo(tabheaders);
 			if (active) $(tab).addClass("active");
 			var link = document.createElement('a');
-			$(link).attr("href", "#" + id + "_body").attr("data-toggle", "tab").html(dataMap[id].titlePlural).appendTo($(tab));
+			$(link).attr("href", "#" + id + "_body").attr("data-toggle", "tab").html("<span style='padding-left:5px'>" + dataMap[id].titlePlural + "</span>").appendTo($(tab));
+			
 			
 			var ppptabBody = document.createElement("div");
 			$(ppptabBody).addClass("tab-pane").attr("id", id + "_body").appendTo(tabbody);
@@ -1913,13 +1987,12 @@
 				var $ctrl = $('<input/>', 
 						{type: 'checkbox', id: id + "_showhide"});
 				$ctrl.prop('checked', true);
-				var $lbl = $('<label/>', 
-						{'for': id + "_showhide"}).html("Visible On Map");
-				$lbl.addClass("form-check-label");
-				$lbl.css("font-weight", "normal");				
-				
-				$ctrl.appendTo(ppptabBody);
-				$lbl.appendTo(ppptabBody);
+				$ctrl.prependTo($(link));
+				//https://stackoverflow.com/questions/8094483/checkbox-inside-an-anchor-click-behavior
+				$ctrl.click(function(e) {
+				    setTimeout(function() { $ctrl.prop('checked', !$ctrl.prop('checked')); }, 10);       
+				    return false;
+				});
 				
 				$ctrl.click(function(){
 		 			if ($ctrl.is(':checked')){
@@ -1929,10 +2002,10 @@
 					}
 				});
 			}
-			if (data == null) return;
-			if(data.type == 'FeatureCollection') {
+			
+			if(data != null && data.type == 'FeatureCollection') {
 				if(!data.features || data.features.length == 0) {
-					return;
+					return $(ppptabBody);
 				}
 			
 				var features = data.features;
