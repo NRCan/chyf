@@ -280,7 +280,9 @@
        .ppinputlbl{
     	   padding-top: 5px;
        }
-      
+       .pplink-sm{
+    	   font-size: 0.8em;
+       }
 	</style>
 </head>
 
@@ -371,7 +373,7 @@
 					<button id="addPourpointBtn" class="btn btn-default btn-sm" style="width:100%; margin-top:5px" type="button" title="Add Pourpoint">Add Point</button>
 				</div>
 			</div>
-			<div class="toolCat">Input Pourpoints</div>
+			<div class="toolCat">Input Pourpoints<span style="float: right;"><a id="ppImport" class="pplink-sm" href="">import</a>|<a id="ppOutput" class="pplink-sm" href="">export</a></span></div>
 			<div id="pourpointList"></div>
 			<button id="clearPPList" class="btn btn-default btn-sm" style="margin-top:5px; width:100%" type="button" title="Remove All" >Remove All</button>
 			<div class="toolCat">Output Layers</div>
@@ -408,6 +410,7 @@
   				<input class="form-check-input" type="checkbox" value="" id="uniquesubcatchmentrelations" checked>
   				<label class="form-check-label" for="uniquesubcatchmentrelations">Unique SubCatchments Relations</label>
 			</div>
+			<a id="ppall" href="">All</a>|<a id="ppnone" href="">None</a>
 			</div> <!-- pourpoint output -->
 			
 			<div class="toolCat">Options</div>
@@ -614,8 +617,16 @@
 						color = "#faf020";
 						break;
 				}
+				var dasharray = "";
+				var weight = 3;
+				if (data.properties.rank == 'Secondary'){
+					weight = 2;
+					dasharray = "20 3";
+				}
 				path.setStyle({
-        			color: color
+        			color: color,
+        			weight: weight,
+        			dashArray: dasharray
 				});
 				path.bindPopup(makeFeatureTable('eFlowpath', data));
 				return path;
@@ -1644,7 +1655,64 @@
 			}
 		}
 
-		//Pourpoint functions
+		//----------- POUROINT FUNCTIONS ----------------------
+		
+		$('#ppall').on('click', function(){
+			var items = $('#pourpointOut input');
+			for (var i = 0; i < items.length; i ++){
+				$(items[i]).prop('checked', true);
+			}
+			return false;
+		});
+		$('#ppnone').on('click', function(){
+			var items = $('#pourpointOut input');
+			for (var i = 0; i < items.length; i ++){
+				$(items[i]).prop('checked', false);
+			}
+			return false;
+		});
+		
+		$('#ppOutput').on('click', function(){
+			var items = $('#pourpointList .input-group');
+			var query = "";
+			for (var i = 0; i < items.length; i ++){
+				query += $(items[i]).find("#add_pourpointId").val();
+				query += ",";
+				query += $(items[i]).find("#add_pourpointCode").val();
+				query += ",";
+				query += $(items[i]).find("#add_pourpointLocation").val();
+				query += "\n";
+			}
+			$(this).attr({
+				"href": 'data:application/csv;charset=utf-8,' + encodeURIComponent(query),
+				"download":"pourpointdata.csv",
+				"target": "_blank"
+			});
+			
+		});
+		
+		var fileSelector = $('<input type="file">');
+		fileSelector.on("change", function(evt){
+			var file = evt.target.files[0];
+			if (file == null) return false;
+			var freader = new FileReader();
+			freader.onload = function(e){
+				var text = e.target.result;
+				var lines = text.split("\n");
+				for (var i = 0; i < lines.length; i ++) {
+					if(lines[i].trim() != "") {
+						var parts = lines[i].split(",");
+						addPourpointRow(parts[0],parts[1],parts[2],parts[3]);
+					}
+				}
+			}
+			freader.readAsText(file);
+			
+		});
+		$('#ppImport').on('click', function(){
+			fileSelector.click();
+			return false;
+		});
 		
 		//add pourpoint
 		$('#addPourpointBtn').on('click', function() {
@@ -1675,10 +1743,15 @@
 		});
 		
 		
-		
 		function addPourpoint() {
 			var $inputGroup = $('#pourpointAdd');
-			
+			var id = $inputGroup.find('#add_pourpointId').val();
+			var ccode = $inputGroup.find('#add_pourpointCode').val();
+			var loc = $inputGroup.find('#add_pourpointLocation').val();
+			addPourpointRow(id, ccode, loc.split(",")[0], loc.split(",")[1]);
+		}
+		
+		function addPourpointRow(id, ccode, x, y) {
 			var div = document.createElement('div');
 			div.className="form-group";
 			
@@ -1690,14 +1763,14 @@
 			idInput.id = "add_pourpointId";
 			idInput.className="form-control input-sm";
 			idInput.style="width:40px";
-			idInput.value = $inputGroup.find('#add_pourpointId').val();
+			idInput.value = id;
 			div2.appendChild(idInput)
 			
 			var locInput = document.createElement('input');
 			locInput.id = "add_pourpointLocation";
 			locInput.className="form-control input-sm";
 			locInput.style="width:115px";
-			locInput.value = $inputGroup.find('#add_pourpointLocation').val();
+			locInput.value = x + "," + y;
 			locInput.readOnly = "readonly";
 			div2.appendChild(locInput)
 			
@@ -1705,7 +1778,7 @@
 			codeInput.id = "add_pourpointCode";
 			codeInput.className="form-control input-sm";
 			codeInput.style="width:40px";
-			codeInput.value = $inputGroup.find('#add_pourpointCode').val();
+			codeInput.value = ccode;
 			div2.appendChild(codeInput)
 			
 			//delete and zoom to buttons

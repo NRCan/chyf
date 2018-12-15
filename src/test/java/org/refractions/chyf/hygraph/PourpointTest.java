@@ -43,7 +43,7 @@ public class PourpointTest {
 		points.add(p2);
 		points.add(p3);
 		points.add(p4);
-		
+			
 		PourpointEngine engine = new PourpointEngine(points, BasicTestSuite.DATASTORE.getHyGraph());
 		PourpointOutput out = engine.compute(null);
 		
@@ -167,6 +167,7 @@ public class PourpointTest {
 		row = new HashMap<>();
 		cexpected.put("P3", row);
 		row.put("P3_P4", 1);
+		row.put("P2_P1_P3", 1);
 		
 		row = new HashMap<>();
 		cexpected.put("P3_P4", row);
@@ -185,16 +186,13 @@ public class PourpointTest {
 		row.put("P3_P4", -1);
 		row.put("P4", -1);
 		row.put("P1", -1);
-		
+		row.put("P3", -1);
 		
 		for (int i = 0; i < out.getUniqueSubCatchments().size(); i ++) {
 			for (int j = 0; j < out.getUniqueSubCatchments().size(); j ++) {
-				System.out.println(out.getUniqueSubCatchments().get(i).getId());
-				System.out.println(out.getUniqueSubCatchments().get(j).getId());
-				System.out.println(cexpected.get(out.getUniqueSubCatchments().get(i).getId()).get(out.getUniqueSubCatchments().get(j).getId()));
-				System.out.println(out.getPourpointCatchmentRelationship()[i][j]);
 				Assert.assertEquals("Invalid Unique SubCatchments Relationships", cexpected.get(out.getUniqueSubCatchments().get(i).getId()).get(out.getUniqueSubCatchments().get(j).getId()), out.getPourpointCatchmentRelationship()[i][j]);
 			}
+			System.out.println();
 		}
 				
 	}
@@ -202,3 +200,4 @@ public class PourpointTest {
 	
 	
 }
+

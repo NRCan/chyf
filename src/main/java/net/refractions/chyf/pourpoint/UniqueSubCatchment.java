@@ -20,7 +20,8 @@ public class UniqueSubCatchment {
 	//main pouroint
 	private Pourpoint point;
 	//downstream subcatchments
-	private Set<UniqueSubCatchment> downstream = new HashSet<>();
+	private Set<UniqueSubCatchment> immediateDownstream = new HashSet<>();
+	private Set<UniqueSubCatchment> upstream = new HashSet<>();
 	
 	private String id = null;
 //	private boolean removeHoles;
@@ -58,21 +59,24 @@ public class UniqueSubCatchment {
 	 * @param down
 	 * @return
 	 */
-	public boolean isDownstream(UniqueSubCatchment down) {
-		return downstream.contains(down);
+	public boolean isUpstream(UniqueSubCatchment down) {
+		return upstream.contains(down);
 	}
 	
 	public void addDownstreamCatchment(UniqueSubCatchment catchment) {
-		downstream.add(catchment);
-		
+		if (this == catchment) return;
+		immediateDownstream.add(catchment);
+	}
+	
+	public void computeUpstreamCatchments() {
+		//add to everything else downstream
 		ArrayDeque<UniqueSubCatchment> toprocess = new ArrayDeque<>();
-		toprocess.add(catchment);
+		toprocess.addAll(immediateDownstream);
 		while(!toprocess.isEmpty()) {
 			UniqueSubCatchment dd = toprocess.removeFirst();
-			downstream.add(dd);
-			toprocess.addAll(dd.downstream);
+			dd.upstream.add(this);
+			toprocess.addAll(dd.immediateDownstream);
 		}
-		
 	}
 	
 	public Set<ECatchment> getCatchments(){

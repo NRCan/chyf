@@ -14,6 +14,7 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Point;
 
 import net.refractions.chyf.ChyfDatastore;
+import net.refractions.chyf.enumTypes.CatchmentType;
 import net.refractions.chyf.enumTypes.FlowpathType;
 import net.refractions.chyf.enumTypes.NexusType;
 import net.refractions.chyf.hygraph.ECatchment;
@@ -160,22 +161,29 @@ public class Pourpoint {
 				return;
 			}
 			ECatchment c = catchments.get(0);
-			//find the flowpath "nearest" to 
-			double distance = Double.MAX_VALUE;
-			EFlowpath closest = null;
-			for (EFlowpath p : c.getFlowpaths()) {
-				double tdistance = p.getToNode().getPoint().getCoordinate().distance(location.getCoordinate());
-				if (tdistance < distance) {
-					closest = p;
-				}
-			}
-			if (closest != null) {
-				for (EFlowpath p : closest.getToNode().getUpFlows()) {
-					if (p.getCatchment() == c) {
-						downstreamFlowpaths.add(p);
+			
+			if (c.getType() == CatchmentType.BANK) {
+				EFlowpath path = c.getDownNexuses().get(0).getDownFlows().get(0);
+				//should be a bank type
+				downstreamFlowpaths.add(path);
+			}else {
+				//find the flowpath "nearest" to 
+				double distance = Double.MAX_VALUE;
+				EFlowpath closest = null;
+				for (EFlowpath p : c.getFlowpaths()) {
+					double tdistance = p.getToNode().getPoint().getCoordinate().distance(location.getCoordinate());
+					if (tdistance < distance) {
+						closest = p;
+						distance = tdistance;
 					}
 				}
-				
+				if (closest != null) {
+					for (EFlowpath p : closest.getToNode().getUpFlows()) {
+						if (p.getCatchment() == c) {
+							downstreamFlowpaths.add(p);
+						}
+					}
+				}
 			}
 		}else if (this.type == CType.NEAREST_FLOWPATH) {
 			//The intended pourpoint is the nearest point on the nearest flowpath 
