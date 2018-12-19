@@ -35,37 +35,37 @@ public class PourpointJsonConverter extends JsonConverterHelper {
 			writeProjectedPoutpoint(response);
 		}
 		if (result.getAvailableOutputs().contains(PourpointEngine.OutputType.DISTANCE_MIN)){
-			writeRelationship(PourpointEngine.OutputType.DISTANCE_MIN, result.getPourpointMinDistanceMatrix());
+			writeRelationship(PourpointEngine.OutputType.DISTANCE_MIN, result.getProjectedPourpointMinDistanceMatrix());
 		}
 		if (result.getAvailableOutputs().contains(PourpointEngine.OutputType.DISTANCE_MAX)){
-			writeRelationship(PourpointEngine.OutputType.DISTANCE_MAX, result.getPourpointMaxDistanceMatrix());
+			writeRelationship(PourpointEngine.OutputType.DISTANCE_MAX, result.getProjectedPourpointMaxDistanceMatrix());
 		}
 		
-		if (result.getAvailableOutputs().contains(PourpointEngine.OutputType.PP_RELATIONSHIP)){
+		if (result.getAvailableOutputs().contains(PourpointEngine.OutputType.NONOVERLAPPINGCATCHMENT_RELATIONSHIP)){
 			String[] headers =new String[result.getPoints().size()];
 			for (int i = 0; i < headers.length; i ++) {
 				headers[i] = result.getPoints().get(i).getId();
 			}
-			writeRelationship(PourpointEngine.OutputType.PP_RELATIONSHIP, headers, result.getPourpointRelationship());
+			writeRelationship(PourpointEngine.OutputType.NONOVERLAPPINGCATCHMENT_RELATIONSHIP, headers, result.getNonOverlappingCatchmentRelationship());
 		}
 		
-		if (result.getAvailableOutputs().contains(PourpointEngine.OutputType.UNIQUE_SUBCATCHMENTS_RELATION)){
-			List<UniqueSubCatchment> items = result.getUniqueSubCatchments();
+		if (result.getAvailableOutputs().contains(PourpointEngine.OutputType.TRAVERSAL_COMPLIANT_CATCHMENT_RELATION)){
+			List<UniqueSubCatchment> items = result.getTraversalCompliantCatchments();
 			String[] headers =new String[items.size()];
 			for (int i = 0; i < headers.length; i ++) {
 				headers[i] = items.get(i).getId();
 			}
-			writeRelationship(PourpointEngine.OutputType.UNIQUE_SUBCATCHMENTS_RELATION, headers, result.getPourpointCatchmentRelationship());
+			writeRelationship(PourpointEngine.OutputType.TRAVERSAL_COMPLIANT_CATCHMENT_RELATION, headers, result.getTraversalCompliantCatchmentRelationship());
 		}
 		
 		if (result.getAvailableOutputs().contains(PourpointEngine.OutputType.CATCHMENTS)){
 			writeCatchments(response);
 		}
-		if (result.getAvailableOutputs().contains(PourpointEngine.OutputType.UNIQUE_CATCHMENTS)){
+		if (result.getAvailableOutputs().contains(PourpointEngine.OutputType.NONOVERLAPPING_CATCHMENTS)){
 			writeUniqueCatchments(response);
 		}
 		
-		if (result.getAvailableOutputs().contains(PourpointEngine.OutputType.UNIQUE_SUBCATCHMENTS)){
+		if (result.getAvailableOutputs().contains(PourpointEngine.OutputType.TRAVERSAL_COMPLIANT_CATCHMENTS)){
 			writeUniqueSubCatchments(response);
 		}
 		
@@ -112,10 +112,10 @@ public class PourpointJsonConverter extends JsonConverterHelper {
 	}
 	
 	private void writeUniqueSubCatchments(ApiResponse response) throws IOException {
-		this.featureCollectionHeader(response, PourpointEngine.OutputType.UNIQUE_SUBCATCHMENTS);
+		this.featureCollectionHeader(response, PourpointEngine.OutputType.TRAVERSAL_COMPLIANT_CATCHMENTS);
 		int counter = 1;
 		for (Pourpoint p : result.getPoints()) {
-			Collection<UniqueSubCatchment> items =  result.getUniqueSubCatchments(p);
+			Collection<UniqueSubCatchment> items =  result.getTraversalCompliantCatchments(p);
 			for (UniqueSubCatchment i : items) {
 				DrainageArea g = i.getDrainageArea();
 				this.featureHeader(GeotoolsGeometryReprojector.reproject(g.getGeometry(), response.getSrs()), counter++, null);
@@ -130,10 +130,10 @@ public class PourpointJsonConverter extends JsonConverterHelper {
 	
 	
 	private void writeUniqueCatchments(ApiResponse response) throws IOException {
-		this.featureCollectionHeader(response, PourpointEngine.OutputType.UNIQUE_CATCHMENTS);
+		this.featureCollectionHeader(response, PourpointEngine.OutputType.NONOVERLAPPING_CATCHMENTS);
 		int counter = 1;
 		for (Pourpoint p : result.getPoints()) {
-			DrainageArea g = result.getUniqueCatchment(p);
+			DrainageArea g = result.getNonOverlappingCatchments(p);
 			this.featureHeader(GeotoolsGeometryReprojector.reproject(g.getGeometry(), response.getSrs()), counter++, null);
 			this.field("id", p.getId());
 			this.field("area", g.getArea());

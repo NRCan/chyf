@@ -25,6 +25,28 @@ public class PourpointProjectionTest {
 	
 	
 	@Test
+	public void test_FindDownstreamFlowpathsSpecialCases() throws ParseException {
+		
+		Coordinate[] points = new Coordinate[] {
+				//this is a flowpath nexus with a single input and output 
+				//and no catchment files
+				new Coordinate(-73.16500, 45.42785),
+				
+		};
+		
+		String[][] expectedResults = new String[][] {
+			{
+				"LINESTRING ( -73.160894 45.4279347, -73.1602026 45.4281576, -73.160177 45.4281575, -73.1601259 45.4281484, -73.1601005 45.4281483, -73.1599599 45.4281389, -73.1598193 45.4281385, -73.1597808 45.4281744, -73.1597679 45.4281923, -73.1597677 45.4282193, -73.1597672 45.4283183, -73.159767 45.4283453, -73.1597541 45.4283633, -73.1597283 45.4284081, -73.159728 45.4284442, -73.1597407 45.4284622, -73.1597405 45.4284892, -73.1597272 45.4285881, -73.1597267 45.4286781, -73.1597265 45.4287051, -73.1597259 45.4287951, -73.1597002 45.428831, -73.1595847 45.4289027, -73.1595591 45.4289116, -73.1594564 45.4289922, -73.1594562 45.4290193, -73.1594688 45.4290463, -73.1594814 45.4290643, -73.1595069 45.4290914, -73.159545 45.4291275, -73.1595704 45.4291546, -73.159583 45.4291816, -73.1596207 45.4292987, -73.1596456 45.4293977, -73.1596705 45.4295148, -73.1596829 45.4295688 )"				
+			},
+		};
+		
+		for (Pourpoint.CType type : Pourpoint.CType.values()) {
+			testData(points, expectedResults, type.ccode);
+		}
+		
+	}
+	
+	@Test
 	public void test_FindDownstreamFlowpathsCcodeM2() throws ParseException {
 		
 		Coordinate[] points = new Coordinate[] {

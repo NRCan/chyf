@@ -5,7 +5,6 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import net.refractions.chyf.hygraph.HyGraph;
@@ -31,10 +30,6 @@ public class PourpointController {
 		if(bindingResult.hasErrors()) {
 			throw new InvalidParameterException(bindingResult);
 		}
-//		PourpointParameters params = new PourpointParameters();
-//		params.setOutput(output);
-//		params.setPoints(points);
-		
 		params.resolveAndValidate();
 		
 		PourpointEngine engine = new PourpointEngine(params.getPourpoints(), hyGraph, params.getRemoveHoles());

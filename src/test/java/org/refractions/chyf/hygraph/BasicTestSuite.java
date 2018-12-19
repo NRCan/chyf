@@ -62,9 +62,9 @@ public class BasicTestSuite extends Suite {
 		protected void before() throws Throwable {
 			if (DATASTORE != null) return;
 			URL url = ClassLoader.getSystemResource("data/" + ChyfDatastore.FLOWPATH_FILE);
-//			Path datapath = Paths.get(url.toURI()).getParent();
+			Path datapath = Paths.get(url.toURI()).getParent();
 //			Path datapath = Paths.get("C:\\data\\CHyF\\github\\chyf-pilot\\data\\data_small");
-			Path datapath = Paths.get("C:\\data\\CHyF\\github\\chyf-pilot\\src\\test\\resources\\data");
+//			Path datapath = Paths.get("C:\\data\\CHyF\\github\\chyf-pilot\\src\\test\\resources\\data");
 			DATASTORE = new ChyfDatastore(datapath.toString() + "/");
 		};
 

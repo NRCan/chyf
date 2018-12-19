@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import org.refractions.chyf.hygraph.BasicTestSuite;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,7 +23,6 @@ import net.refractions.chyf.enumTypes.CatchmentType;
 import net.refractions.chyf.enumTypes.FlowpathType;
 import net.refractions.chyf.enumTypes.NexusType;
 import net.refractions.chyf.enumTypes.Rank;
-import net.refractions.chyf.rest.GeotoolsGeometryReprojector;
 
 public class HyGraphBuilder {
 	static final Logger logger = LoggerFactory.getLogger(HyGraphBuilder.class.getCanonicalName());

@@ -9,6 +9,9 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.vividsolutions.jts.algorithm.Angle;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Point;
@@ -25,6 +28,8 @@ import net.refractions.chyf.rest.GeotoolsGeometryReprojector;
 
 public class Pourpoint {
 	
+	static final Logger logger = LoggerFactory.getLogger(Pourpoint.class.getCanonicalName());
+
 	public enum CType{
 		NEAREST_INCATCHMENT(-2),
 		NEAREST_FLOWPATH(-1),
@@ -58,11 +63,9 @@ public class Pourpoint {
 
 	//catchments only used by this pourpoint
 	private Set<ECatchment> uniqueCatchments;
+	
 	//all other catchments
 	private Set<ECatchment> sharedCatchments;
-	
-	
-	
 	
 	/**
 	 * 
@@ -95,11 +98,11 @@ public class Pourpoint {
 	public int getCcode() {
 		return this.ccode;
 	}
-	public void setUniqueSubCatchments( Collection<UniqueSubCatchment> mergedCatchments) {
+	public void setTraversalCompliantCatchments( Collection<UniqueSubCatchment> mergedCatchments) {
 		this.uniqueMergedSubCatchments = mergedCatchments;
 	}
 	
-	public Collection<UniqueSubCatchment> getUniqueSubCatchments(){
+	public Collection<UniqueSubCatchment> getTraversalCompliantCatchments(){
 		return this.uniqueMergedSubCatchments;
 	}
 	
@@ -108,7 +111,7 @@ public class Pourpoint {
 		this.sharedCatchments.addAll(sharedCatchments);
 	}
 	
-	public Set<ECatchment> getUniqueCatchments(){
+	public Set<ECatchment> getNonOverlappingCatchments(){
 		return this.uniqueCatchments;
 	}
 	
@@ -157,7 +160,7 @@ public class Pourpoint {
 			
 			List<ECatchment> catchments = graph.findECatchments(location, 1, 0, null);
 			if (catchments.isEmpty() || catchments.size() > 1) {
-				//TODO: some sort of error
+				logger.error("Pourpoint not located in any catchment (" + raw.getX() + ", " + raw.getY()+ ")");
 				return;
 			}
 			ECatchment c = catchments.get(0);
@@ -192,7 +195,7 @@ public class Pourpoint {
 			List<EFlowpath> nearestPaths = graph.findEFlowpaths(location, 4, null, e->e.getType() != FlowpathType.BANK);
 			
 			if (nearestPaths.isEmpty()) {
-				//TODO: error
+				logger.error("Pourpoint not located near any flowpaths(" + raw.getX() + ", " + raw.getY()+ ")");
 			}else {
 				double d0 = nearestPaths.get(0).distance(location);
 				double d1 = nearestPaths.get(1).distance(location);
@@ -213,7 +216,6 @@ public class Pourpoint {
 						}
 					}
 					downstreamFlowpaths.add(toAdd);
-					
 				}
 			}
 			
@@ -225,7 +227,7 @@ public class Pourpoint {
 			
 			List<Nexus> nearestNexus = graph.findNexuses(location, 1, null, e->e.getType() != NexusType.BANK);
 			if (nearestNexus.isEmpty()) {
-				//TODO: error
+				logger.error("Pourpoint not located near any nexuses (" + raw.getX() + ", " + raw.getY()+ ")");
 			}else {
 				nearestNexus.get(0).getUpFlows()
 					.stream()
@@ -243,7 +245,7 @@ public class Pourpoint {
 			//clockwise direction from the outflowing flowpath.
 			List<Nexus> nearestNexus = graph.findNexuses(location, 1, null, e->e.getType() != NexusType.BANK);
 			if (nearestNexus.isEmpty()) {
-				//TODO: error
+				logger.error("Pourpoint near any nexuses (" + raw.getX() + ", " + raw.getY()+ ")");
 			}else {
 				//first filter out bank flows
 				List<EFlowpath> temp = new ArrayList<>();
@@ -253,14 +255,14 @@ public class Pourpoint {
 					.forEach(f->temp.add(f));
 				
 				if (this.ccode > temp.size()) {
-					//TODO: error
+					logger.error("Pourpoint projection - no non-back flowpaths found (" + raw.getX() + ", " + raw.getY()+ ")");
 				}
 				if (temp.size() == 1 && this.ccode == 1) {
 					//only one to return so we are 
 					downstreamFlowpaths.add(temp.get(0));
 				}else {
 					if (nearestNexus.get(0).getDownFlows().isEmpty()) {
-						//TODO: error
+						logger.error("Pourpoint projection - no down flows from nexus (" + raw.getX() + ", " + raw.getY()+ ")");
 					}
 					
 					//sort outputs by type
@@ -291,6 +293,27 @@ public class Pourpoint {
 					
 				}
 			}
+		}
+		
+		if (downstreamFlowpaths.size() == 1) {
+			EFlowpath down = downstreamFlowpaths.get(0);
+			if (down.getToNode().getType() == NexusType.FLOWPATH 
+					&& down.getToNode().getDownFlows().size() == 1 
+					&& down.getToNode().getUpFlows().size() == 1 
+					&& down.getToNode().getDownFlows().get(0).getCatchment() == down.getCatchment()) {
+				//two degree nexus node on single line flow path
+				//for this special case we walk down until we meet a catchment boundary
+				while(down.getToNode().getType() == NexusType.FLOWPATH 
+						&& down.getToNode().getDownFlows().size() == 1 
+						&& down.getToNode().getUpFlows().size() == 1 
+						&& down.getToNode().getDownFlows().get(0).getCatchment() == down.getCatchment()) {
+					
+					down = down.getToNode().getDownFlows().get(0);
+				}
+				downstreamFlowpaths.clear();
+				downstreamFlowpaths.add(down);
+			}
+			
 		}
 		
 	}

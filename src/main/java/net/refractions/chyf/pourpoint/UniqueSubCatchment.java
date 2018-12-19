@@ -72,10 +72,14 @@ public class UniqueSubCatchment {
 		//add to everything else downstream
 		ArrayDeque<UniqueSubCatchment> toprocess = new ArrayDeque<>();
 		toprocess.addAll(immediateDownstream);
+		Set<UniqueSubCatchment> processed = new HashSet<>();
 		while(!toprocess.isEmpty()) {
 			UniqueSubCatchment dd = toprocess.removeFirst();
+			processed.add(dd);
 			dd.upstream.add(this);
-			toprocess.addAll(dd.immediateDownstream);
+			for (UniqueSubCatchment d : dd.immediateDownstream) {
+				if (!processed.contains(d)) toprocess.add(d);
+			}
 		}
 	}
 	

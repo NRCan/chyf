@@ -19,9 +19,9 @@ import net.refractions.chyf.hygraph.HyGraph;
 public class PourpointOutput {
 
 	private List<Pourpoint> points;
-	private Integer[][] pourpointRelationship;
-	private Integer[][] uniqueSubCatchmentRelationship;
-	private List<UniqueSubCatchment> uniqueSubCatchments;
+	private Integer[][] nocr;
+	private Integer[][] tccr;
+	private List<UniqueSubCatchment> tcc;
 	
 	private Double[][] minPpDistance;
 	private Double[][] maxPpDistance;
@@ -33,11 +33,11 @@ public class PourpointOutput {
 	public PourpointOutput(PourpointEngine engine) {
 		this.points = engine.getPoints();
 		this.removeHoles = engine.getRemoveHoles();
-		this.pourpointRelationship = engine.getPourpointRelationshipMatrix();
-		this.uniqueSubCatchmentRelationship = engine.getUniqueSubCatchmentRelationship();
-		this.uniqueSubCatchments = engine.getSortedUniqueSubCatchments();
-		minPpDistance = engine.getPourpointMinDistanceMatrix();
-		maxPpDistance = engine.getPourpointMaxDistanceMatrix();
+		this.nocr = engine.getNonOverlappingCoverageRelationship();
+		this.tccr = engine.getTraversalCompliantCoverageRelationship();
+		this.tcc = engine.getSortedTraveralCompliantCoverages();
+		minPpDistance = engine.getProjectedPourpointMinDistanceMatrix();
+		maxPpDistance = engine.getProjectedPourpointMaxDistanceMatrix();
 		this.outputs = engine.getAvailableOutputs();
 	}
 
@@ -48,42 +48,42 @@ public class PourpointOutput {
 		return points;
 	}
 
-	public Double[][] getPourpointMinDistanceMatrix(){
+	public Double[][] getProjectedPourpointMinDistanceMatrix(){
 		return minPpDistance;
 	}
-	public Double[][] getPourpointMaxDistanceMatrix(){
+	public Double[][] getProjectedPourpointMaxDistanceMatrix(){
 		return maxPpDistance;
 	}
 	
 	
-	public Integer[][] getPourpointRelationship() {
-		return pourpointRelationship;
+	public Integer[][] getNonOverlappingCatchmentRelationship() {
+		return nocr;
 	}
 
-	public Integer[][] getPourpointCatchmentRelationship() {
-		return uniqueSubCatchmentRelationship;
+	public Integer[][] getTraversalCompliantCatchmentRelationship() {
+		return tccr;
 	}
 
-	public List<UniqueSubCatchment> getUniqueSubCatchments() {
-		return uniqueSubCatchments;
+	public List<UniqueSubCatchment> getTraversalCompliantCatchments() {
+		return tcc;
 	}
 	
 	public DrainageArea getCatchment(Pourpoint point) {
 		Set<ECatchment> items = new HashSet<>();
 		items.addAll(point.getSharedCatchments());
-		items.addAll(point.getUniqueCatchments());
+		items.addAll(point.getNonOverlappingCatchments());
 		return HyGraph.buildDrainageArea(items, removeHoles);
 		
 	}
 	
-	public DrainageArea getUniqueCatchment(Pourpoint point) {
-		return HyGraph.buildDrainageArea(point.getUniqueCatchments(), false);
+	public DrainageArea getNonOverlappingCatchments(Pourpoint point) {
+		return HyGraph.buildDrainageArea(point.getNonOverlappingCatchments(), false);
 	}
 	
 	
 	
-	public Collection<UniqueSubCatchment> getUniqueSubCatchments(Pourpoint point){
-		return point.getUniqueSubCatchments();
+	public Collection<UniqueSubCatchment> getTraversalCompliantCatchments(Pourpoint point){
+		return point.getTraversalCompliantCatchments();
 	}
 	
 

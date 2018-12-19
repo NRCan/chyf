@@ -84,7 +84,7 @@ public class SimpleDataPourpointTest {
 		
 		
 		//test pourpoint relationship
-		Integer[][] ppRel = results.getPourpointRelationship();
+		Integer[][] ppRel = results.getNonOverlappingCatchmentRelationship();
 		Integer[][] expectedRel = new Integer[][]{
 				{null, -1, -1, -1, -1},
 				{1, null, null, null, null},
@@ -92,7 +92,6 @@ public class SimpleDataPourpointTest {
 				{1, null, null, null, null},
 				{1, null, null, null, null},
 		};
-		
 		for (int i = 0; i < expectedRel.length; i ++) {
 			for (int j = 0; j < expectedRel.length; j ++) {
 				if (ppRel[i][j] != expectedRel[i][j]) {
@@ -127,7 +126,7 @@ public class SimpleDataPourpointTest {
 		expectedUniqueCoveratesCombined.put("P5", "POLYGON (( -73.45931415243606 45.11948593684481, -73.45803219773404 45.11734934567479, -73.46012130910029 45.114690476663206, -73.46045366772674 45.11369340078386, -73.46339741556099 45.11302868353096, -73.46486928947812 45.11397827960653, -73.46672100182546 45.11445307764431, -73.4685416483889 45.11506456249201, -73.47076943479914 45.115092834944605, -73.47320822109108 45.11425377913806, -73.47433042478657 45.115263762464004, -73.47484320734478 45.115719569182396, -73.47538447782286 45.11842592157285, -73.47413100934729 45.120106708846926, -73.47094036231853 45.12004973300712, -73.4708042649504 45.12261960389417, -73.4679554767237 45.12323684134329, -73.46501172888945 45.12261960389417, -73.46154570321363 45.123046922128175, -73.45855447557561 45.121527568407274, -73.45931415243606 45.11948593684481 ))");
 				
 		for (Pourpoint point : results.getPoints()) {
-			DrainageArea actual = results.getUniqueCatchment(point);
+			DrainageArea actual = results.getNonOverlappingCatchments(point);
 			Geometry expected = GeotoolsGeometryReprojector.reproject(reader.read(expectedUniqueCoveratesCombined.get(point.getId())), ChyfDatastore.BASE_SRS);
 			Assert.assertTrue("Pourpoint catchment incorrect (" + point.getId() + ")", expected.equalsExact(actual.getGeometry(), 0.00001));
 		}
@@ -143,7 +142,7 @@ public class SimpleDataPourpointTest {
 		expectedMergedCoverages.put("P5", "POLYGON (( -73.45931415243606 45.11948593684484, -73.45803219773404 45.11734934567477, -73.4601213091003 45.11469047666323, -73.46045366772674 45.11369340078384, -73.46339741556099 45.113028683530985, -73.46486928947812 45.113978279606485, -73.46672100182545 45.11445307764433, -73.4685416483889 45.115064562491945, -73.47076943479914 45.11509283494458, -73.47320822109107 45.114253779138096, -73.47433042478657 45.11526376246401, -73.47484320734478 45.11571956918242, -73.47538447782284 45.11842592157284, -73.47413100934729 45.120106708846954, -73.47094036231852 45.12004973300711, -73.4708042649504 45.12261960389417, -73.4679554767237 45.12323684134334, -73.46501172888945 45.12261960389417, -73.46154570321363 45.1230469221282, -73.45855447557561 45.1215275684073, -73.45931415243606 45.11948593684484 ))");
 			
 		for (Pourpoint point : results.getPoints()) {
-			for (UniqueSubCatchment pcat : point.getUniqueSubCatchments()) {
+			for (UniqueSubCatchment pcat : point.getTraversalCompliantCatchments()) {
 				Geometry expected = GeotoolsGeometryReprojector.reproject(reader.read(expectedMergedCoverages.get(pcat.getId())), ChyfDatastore.BASE_SRS);
 				if (!pcat.getDrainageArea().getGeometry().equalsExact(expected, 0.0001)) {
 					Assert.fail("Pourpoint sub catchment polygon incorrect (pointid:" + point.getId() + " subcatchment: " + pcat.getId() + ")");
@@ -152,7 +151,7 @@ public class SimpleDataPourpointTest {
 			}
 		}
 		
-		Integer[][] catRel = results.getPourpointCatchmentRelationship();
+		Integer[][] catRel = results.getTraversalCompliantCatchmentRelationship();
 		Integer[][] expectedCatRel = new Integer[][]{
 			new Integer[]{null,-1,-1,-1,-1,-1,-1},
 			new Integer[]{1,null,-1,null,-1,-1,-1},
@@ -165,17 +164,18 @@ public class SimpleDataPourpointTest {
 				
 		for (int i = 0; i < expectedCatRel.length; i ++) {
 			for (int j = 0; j < expectedCatRel.length; j ++) {
-				Assert.assertEquals("Catchment relationship matrix incorrect (" + results.getUniqueSubCatchments().get(i).getId() + " to " + results.getUniqueSubCatchments().get(j).getId() + ")", expectedCatRel[i][j],catRel[i][j]);
+				Assert.assertEquals("Catchment relationship matrix incorrect (" + results.getTraversalCompliantCatchments().get(i).getId() + " to " + results.getTraversalCompliantCatchments().get(j).getId() + ")", expectedCatRel[i][j],catRel[i][j]);
 			}
 		}
 		
-		Double[][] actualDistances = results.getPourpointMinDistanceMatrix();
+		Double[][] actualDistances = results.getProjectedPourpointMinDistanceMatrix();
 		Double[][] expectedDistances = new Double[][]{
-			new Double[]{null,-395.82822539062494,-795.773832897013,-1759.582034487193,-1656.453622900341},
-			new Double[]{395.82822539062494,null,null,null,null},
-			new Double[]{795.773832897013,null,null,null,null},
-			new Double[]{1759.582034487193,null,null,null,null},
-			new Double[]{1656.453622900341,null,null,null,null}
+			new Double[]{null,395.82822539062494,795.773832897013,1759.582034487193,1656.453622900341},
+			new Double[]{-395.82822539062494,null,399.94560750638806,1363.753809096568,1260.625397509716},
+			new Double[]{-795.773832897013,-399.94560750638806,null,963.8082015901799,860.6797900033281},
+			new Double[]{-1759.582034487193,-1363.753809096568,-963.8082015901799,null,null},
+			new Double[]{-1656.453622900341,-1260.625397509716,-860.6797900033281,null,null}
+
 		};
 		for (int i = 0; i < actualDistances.length; i ++) {
 			for (int j = 0; j < actualDistances.length; j ++) {
@@ -183,15 +183,8 @@ public class SimpleDataPourpointTest {
 			}
 		}
 		
-		actualDistances = results.getPourpointMinDistanceMatrix();
-		expectedDistances = new Double[][]{
-			new Double[]{null,-395.82822539062494,-795.773832897013,-1759.582034487193,-1656.453622900341},
-			new Double[]{395.82822539062494,null,null,null,null},
-			new Double[]{795.773832897013,null,null,null,null},
-			new Double[]{1759.582034487193,null,null,null,null},
-			new Double[]{1656.453622900341,null,null,null,null}
-		};
-				
+		//max distance matrix should be the same as the min distance matrix
+		actualDistances = results.getProjectedPourpointMaxDistanceMatrix();
 		for (int i = 0; i < actualDistances.length; i ++) {
 			for (int j = 0; j < actualDistances.length; j ++) {
 				Assert.assertEquals("Maximum pourpoint distance matrix incorrect", expectedDistances[i][j],actualDistances[i][j]);

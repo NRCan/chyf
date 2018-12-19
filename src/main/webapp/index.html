@@ -283,6 +283,8 @@
        .pplink-sm{
     	   font-size: 0.8em;
        }
+       
+       .ui-dialog { z-index: 1000 !important ;}
 	</style>
 </head>
 
@@ -380,35 +382,31 @@
 			<div id="pourpointOut">
 			<div class="form-check">
   				<input class="form-check-input" type="checkbox" value="" id="projectedpourpoints" checked>
-  				<label class="form-check-label" for="projectedpourpoints">Projected Pourpoint</label>
+  				<label class="form-check-label" for="projectedpourpoints">Projected Pourpoints</label>
 			</div>
 			<div class="form-check">
-  				<input class="form-check-input" type="checkbox" value="" id="pourpointrelations" checked>
-  				<label class="form-check-label" for="pourpointrelations">Pourpoint Relations</label>
-			</div>
-			<div class="form-check">
-  				<input class="form-check-input" type="checkbox" value="" id="pourpointmindistance" checked>
-  				<label class="form-check-label" for="pourpointmindistance">Pourpoint Min Distance</label>
-			</div>
-			<div class="form-check">
-  				<input class="form-check-input" type="checkbox" value="" id="pourpointmaxdistance" checked>
-  				<label class="form-check-label" for="pourpointmaxdistance">Pourpoint Max Distance</label>
+  				<input class="form-check-input" type="checkbox" value="" id="pourpointdistance" checked>
+  				<label class="form-check-label" for="pourpointdistance">Projected Pourpoint Distances</label>
 			</div>
 			<div class="form-check">
   				<input class="form-check-input" type="checkbox" value="" id="upstreamcatchments" checked>
   				<label class="form-check-label" for="upstreamcatchments">Upstream Catchments</label>
 			</div>
 			<div class="form-check">
-  				<input class="form-check-input" type="checkbox" value="" id="uniquecatchments" checked>
-  				<label class="form-check-label" for="uniquecatchments">Unique Catchments</label>
+  				<input class="form-check-input" type="checkbox" value="" id="nonoverlappingcatchments" checked>
+  				<label class="form-check-label" for="nonoverlappingcatchments">NonOverlapping Catchments</label>
 			</div>
 			<div class="form-check">
-  				<input class="form-check-input" type="checkbox" value="" id="uniquesubcatchments" checked>
-  				<label class="form-check-label" for="uniquesubcatchments">Unique SubCatchments</label>
+				<input class="form-check-input" type="checkbox" value="" id="nonoverlappingcoveragerelations" checked>
+				<label class="form-check-label" for="nonoverlappingcoveragerelations">NonOverlapping Catchment Relations</label>
+				</div>
+			<div class="form-check">
+  				<input class="form-check-input" type="checkbox" value="" id="traversalcompliantcatchments" checked>
+  				<label class="form-check-label" for="traversalcompliantcatchments">Traversal Compliant Catchments</label>
 			</div>
 			<div class="form-check">
-  				<input class="form-check-input" type="checkbox" value="" id="uniquesubcatchmentrelations" checked>
-  				<label class="form-check-label" for="uniquesubcatchmentrelations">Unique SubCatchments Relations</label>
+  				<input class="form-check-input" type="checkbox" value="" id="traversalcompliantcatchmentrelations" checked>
+  				<label class="form-check-label" for="traversalcompliantcatchmentrelations">Traversal Compliant Relations</label>
 			</div>
 			<a id="ppall" href="">All</a>|<a id="ppnone" href="">None</a>
 			</div> <!-- pourpoint output -->
@@ -418,7 +416,7 @@
 				<input class="form-check-input" type="checkbox" value="" id="ppholes" checked>
 				<label class="form-check-label" for="ppholes" style="font-weight:normal">Remove Holes (Catchments Only)</label>
 				</div>
-			
+			<div class="toolCat">Actions</div>
 			<button id="doPPCalc" class="btn btn-default btn-sm" type="button" title="DoIt!" >Do It!</button>
 			<button id="clearPPMapLayers" class="btn btn-default btn-sm" style="margin-top:10px; width:100%" type="button" title="Clear Map" >Clear Map</button>
 			</div> <!-- pourpoint tab body -->
@@ -427,6 +425,12 @@
 		<div id="map"><div id="mapCover"></div></div>
 		<div id="dataBarWrapper"><div id="dataBar"></div></div><!-- dataBar -->
 	</div> <!-- container -->
+
+	<!-- dialog -->
+	<div id="pp_import_dialog" title="Import Pourpoints" style="display:none">
+		<p>The import file must be a comma seperated file, with a header line continaing the fields, 'ID', 'CCode', 'X','Y'.  There must also be no commas inside quoated strings.</p>
+	</div>
+
 	<script src="https://unpkg.com/clipboard@1.7.1/dist/clipboard.min.js"></script>
 	<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCO2a43ItOYdAuRFcbCSLLn8AQwnMlf6sI"></script>
 	<script src="https://unpkg.com/leaflet@1.3.0/dist/leaflet.js"></script>
@@ -1524,8 +1528,8 @@
 			},
 			
 			ppp:{
-				title: "Pourpoint",
-				titlePlural: "Pourpoints",
+				title: "Pourpoint Output",
+				titlePlural: "Pourpoint Outputs",
 				cols: {
 					'id': 'ID',
 					'ccode': 'C Code',
@@ -1540,17 +1544,17 @@
 					'area': 'Area',
 				}
 			},
-			puc:{
-				title: "Unique Catchment",
-				titlePlural: "Unique Catchments",
+			noc:{
+				title: "Non Overlapping Catchment",
+				titlePlural: "Non Overlapping Catchments",
 				cols: {
 					'id': 'ID',
 					'area': 'Area',
 				}
 			},
-			pusc:{
-				title: "Unique SubCatchment",
-				titlePlural: "Unique SubCatchments",
+			tcc:{
+				title: "Traversal Compliant Catchment",
+				titlePlural: "Traversal Compliant Catchments",
 				cols: {
 					'id': 'ID',
 					'area': 'Area',
@@ -1657,6 +1661,7 @@
 
 		//----------- POUROINT FUNCTIONS ----------------------
 		
+		//select all outputs
 		$('#ppall').on('click', function(){
 			var items = $('#pourpointOut input');
 			for (var i = 0; i < items.length; i ++){
@@ -1664,6 +1669,7 @@
 			}
 			return false;
 		});
+		//select no output
 		$('#ppnone').on('click', function(){
 			var items = $('#pourpointOut input');
 			for (var i = 0; i < items.length; i ++){
@@ -1672,9 +1678,11 @@
 			return false;
 		});
 		
+		//export pourpoints to csv
 		$('#ppOutput').on('click', function(){
 			var items = $('#pourpointList .input-group');
 			var query = "";
+			query += "ID,CCode,X,Y\n";
 			for (var i = 0; i < items.length; i ++){
 				query += $(items[i]).find("#add_pourpointId").val();
 				query += ",";
@@ -1691,6 +1699,7 @@
 			
 		});
 		
+		//import pourpoints
 		var fileSelector = $('<input type="file">');
 		fileSelector.on("change", function(evt){
 			var file = evt.target.files[0];
@@ -1699,10 +1708,43 @@
 			freader.onload = function(e){
 				var text = e.target.result;
 				var lines = text.split("\n");
-				for (var i = 0; i < lines.length; i ++) {
+				var line1 = lines[0].split(",");
+				//assume line1 is a header and skip processing
+				var idCol = -1;
+				var ccodeCol = -1;
+				var xCol = -1;
+				var yCol = -1;
+				for (var i = 0; i < line1.length; i ++){
+					if (line1[i].trim().toUpperCase() == "ID"){
+						idCol = i;
+					}else if (line1[i].trim().toUpperCase() == "CCODE"){
+						ccodeCol = i;
+					}else if (line1[i].trim().toUpperCase() == "X"){
+						xCol = i;
+					}else if (line1[i].trim().toUpperCase() == "Y"){
+						yCol = i;
+					}
+				}
+				if (idCol == -1){
+					alert("No 'ID' column found in file.");
+					return;
+				}
+				if (ccodeCol == -1){
+					alert("No 'CCode' column found in file.");
+					return;
+				}
+				if (xCol == -1){
+					alert("No 'X' column found in file.");
+					return;
+				}
+				if (yCol == -1){
+					alert("No 'Y' column found in file.");
+					return;
+				}
+				for (var i = 1; i < lines.length; i ++) {
 					if(lines[i].trim() != "") {
 						var parts = lines[i].split(",");
-						addPourpointRow(parts[0],parts[1],parts[2],parts[3]);
+						addPourpointRow(parts[idCol].replace(/^"|"$/g, ""),parts[ccodeCol],parts[xCol],parts[yCol]);
 					}
 				}
 			}
@@ -1710,7 +1752,17 @@
 			
 		});
 		$('#ppImport').on('click', function(){
-			fileSelector.click();
+			$("#pp_import_dialog").dialog({
+				modal: true,
+			    height: "auto",
+			    width: 400,
+			    buttons: {
+			          "OK": function() {
+			            $( this ).dialog( "close" );
+			            fileSelector.click();
+			          }}
+			});
+			
 			return false;
 		});
 		
@@ -1766,6 +1818,13 @@
 			idInput.value = id;
 			div2.appendChild(idInput)
 			
+			var codeInput = document.createElement('input');
+			codeInput.id = "add_pourpointCode";
+			codeInput.className="form-control input-sm";
+			codeInput.style="width:40px";
+			codeInput.value = ccode;
+			div2.appendChild(codeInput)
+			
 			var locInput = document.createElement('input');
 			locInput.id = "add_pourpointLocation";
 			locInput.className="form-control input-sm";
@@ -1773,13 +1832,6 @@
 			locInput.value = x + "," + y;
 			locInput.readOnly = "readonly";
 			div2.appendChild(locInput)
-			
-			var codeInput = document.createElement('input');
-			codeInput.id = "add_pourpointCode";
-			codeInput.className="form-control input-sm";
-			codeInput.style="width:40px";
-			codeInput.value = ccode;
-			div2.appendChild(codeInput)
 			
 			//delete and zoom to buttons
 			var buttonGrp = document.createElement('div');
@@ -1914,13 +1966,12 @@
 			}
 			query +="&output=";
 			if ($("#projectedpourpoints").is(':checked')) query +="ppp,";
-			if ($("#pourpointrelations").is(':checked')) query +="pr,";
- 			if ($("#pourpointmindistance").is(':checked')) query +="pdmin,";
- 			if ($("#pourpointmaxdistance").is(':checked')) query +="pdmax,";
+			if ($("#nonoverlappingcoveragerelations").is(':checked')) query +="nocr,";
+ 			if ($("#pourpointdistance").is(':checked')) query +="pppdmin,pppdmax,";
 			if ($("#upstreamcatchments").is(':checked')) query +="pc,";
-			if ($("#uniquecatchments").is(':checked')) query +="puc,";
-			if ($("#uniquesubcatchments").is(':checked')) query +="pusc,";
- 			if ($("#uniquesubcatchmentrelations").is(':checked')) query +="puscr,";		
+			if ($("#nonoverlappingcatchments").is(':checked')) query +="noc,";
+			if ($("#traversalcompliantcatchments").is(':checked')) query +="tcc,";
+ 			if ($("#traversalcompliantcatchmentrelations").is(':checked')) query +="tccr,";		
 
  			query +="&removeHoles=";
  			if ($("#ppholes").is(':checked')){
@@ -1972,68 +2023,85 @@
 				}else if (item.name=="pc"){
 					addPourpointCatchmentLayer(item);
 					layers.pc = item;
-				}else if (item.name =="puc"){
+				}else if (item.name =="noc"){
 					addPourpointUniqueCatchmentLayer(item);
-					layers.puc = item;
-				}else if (item.name =="pusc"){
+					layers.noc = item;
+				}else if (item.name =="tcc"){
 					addPourpointUniqueSubCatchmentLayer(item);
-					layers.pusc = item;
-				}else if (item.name == "pr"){
-					layers.pr = item;
-				}else if (item.name == "pdmin"){
-					layers.pdmin = item;
-				}else if (item.name == "pdmax"){
-					layers.pdmax = item;
-				}else if (item.name == "puscr"){
-					layers.puscr = item;
+					layers.tcc = item;
+				}else if (item.name == "nocr"){
+					layers.nocr = item;
+				}else if (item.name == "pppdmin"){
+					layers.pppdmin = item;
+				}else if (item.name == "pppdmax"){
+					layers.pppdmax = item;
+				}else if (item.name == "tccr"){
+					layers.tccr = item;
 				}
 			}
 			var isActive = true;
+			
+			if (layers.pc != null){
+				layers.pc_tab = createTab("pc", layers.pc, $(ul), $(tabbody), isActive, catchmentPpLayer);
+				isActive = false;
+			}
+			if (layers.noc != null){
+				layers.noc_tab = createTab("noc", layers.noc, $(ul), $(tabbody), isActive, uniqueCatchmentPpLayer);
+				isActive = false;
+			}else if (layers.nocr != null ){
+				layers.noc_tab = createTab("noc", null, $(ul), $(tabbody), isActive, null);
+				isActive = false;
+			}
+			if (layers.tcc != null){
+				layers.tcc_tab = createTab("tcc", layers.tcc, $(ul), $(tabbody), i == 0, uniqueSubCatchmentPpLayer);
+				isActive = false;
+			}else if (layers.tccr != null){
+				layers.tcc_tab = createTab("tcc", null, $(ul), $(tabbody), i == 0, null);
+				isActive = false;
+			}
 			if (layers.ppp != null){
 				layers.ppp_tab = createTab("ppp", layers.ppp, $(ul), $(tabbody), isActive, projectedPpLayer);
 				isActive = false;
-			}else if (layers.pr != null || layers.pdmin != null || layers.pdmax != null){
+			} else if ( layers.ppdmin != null || layers.pdmax != null){
 				layers.ppp_tab = createTab("ppp", null, $(ul), $(tabbody), isActive, null);
 				isActive = false;
 			}
-			if (layers.pc != null){
-				createTab("pc", layers.pc, $(ul), $(tabbody), isActive, catchmentPpLayer);
-				isActive = false;
+			
+			if (layers.nocr != null){
+				var $table = createMatrixTable(layers.nocr.headers, layers.nocr.values, 0);
+				var $div = $('<div/>').append($('<div class="toolCat">Catchment Flow Relationship</div>'));
+				$div.append($table);
+				layers.noc_tab.append($div);
 			}
-			if (layers.puc != null){
-				createTab("puc", layers.puc, $(ul), $(tabbody), isActive, uniqueCatchmentPpLayer);
-				isActive = false;
-			}
-			if (layers.pusc != null){
-				layers.pusc_tab = createTab("pusc", layers.pusc, $(ul), $(tabbody), i == 0, uniqueSubCatchmentPpLayer);
-				isActive = false;
-			}else if (layers.puscr != null){
-				layers.pusc_tab = createTab("pusc", null, $(ul), $(tabbody), i == 0, null);
-				isActive = false;
-			}
-			if (layers.pr != null){
-				var $table = createMatrixTable(layers.pr.headers, layers.pr.values, 0);
-				var $div = $('<div/>').append($('<div class="toolCat">Pourpoint Relationship</div>'));
+			if (layers.pppdmin != null || layers.pppdmax != null){
+				
+				var data = [[]];
+				//combine results into a single matrix and output that
+				for (var i = 0; i < layers.pppdmin.values.length; i ++){
+					data[i] = [];
+					for (var j = 0; j < layers.pppdmin.values.length; j ++){
+						if (layers.pppdmin.values[i][j] == layers.pppdmax.values[i][j]){
+							if (layers.pppdmin.values[i][j]==null){
+								data[i][j] = null;
+							}else{
+								data[i][j] = layers.pppdmin.values[i][j].toFixed(2);
+							}
+						}else{
+							data[i][j] = "(" + layers.pppdmin.values[i][j].toFixed(2) + ", " + layers.pppdmax.values[i][j].toFixed(2) + ")";
+						}
+					}
+				}
+				var $table = createMatrixTable(layers.pppdmin.headers, data, -1);
+				var $div = $('<div/>').append($('<div class="toolCat">Projected Pourpoint Distances</div>'));
 				$div.append($table);
 				layers.ppp_tab.append($div);
 			}
-			if (layers.pdmin != null){
-				var $table = createMatrixTable(layers.pdmin.headers, layers.pdmin.values, 2);
-				var $div = $('<div/>').append($('<div class="toolCat">Pourpoint Minimum Distances</div>'));
+
+			if (layers.tccr != null){
+				var $table = createMatrixTable(layers.tccr.headers, layers.tccr.values, 0);
+				var $div = $('<div/>').append($('<div class="toolCat">Catchment Flow Relationships</div>'));
 				$div.append($table);
-				layers.ppp_tab.append($div);
-			}
-			if (layers.pdmax != null){
-				var $table = createMatrixTable(layers.pdmax.headers, layers.pdmax.values, 2);
-				var $div = $('<div/>').append($('<div class="toolCat">Pourpoint Maximum Distances</div>'));
-				$div.append($table);
-				layers.ppp_tab.append($div);
-			}
-			if (layers.puscr != null){
-				var $table = createMatrixTable(layers.puscr.headers, layers.puscr.values, 0);
-				var $div = $('<div/>').append($('<div class="toolCat">Relationships</div>'));
-				$div.append($table);
-				layers.pusc_tab.append($div);
+				layers.tcc_tab.append($div);
 			}
 			//add any matrix to existing tabs
 			
@@ -2138,7 +2206,7 @@
 				$tbody.append($row);
 				$row.append('<td class="cellheader">' + headers[i] + '</td>');
 				for (var j = 0; j < data.length; j ++){
-					$row.append('<td>' + (data[i][j] == null ? "--" : data[i][j].toFixed(percision)) + '</td>');
+					$row.append('<td>' + (data[i][j] == null ? "--" : (percision < 0 ? data[i][j] : data[i][j].toFixed(percision))) + '</td>');
 				}
 			}
 			return $table;
