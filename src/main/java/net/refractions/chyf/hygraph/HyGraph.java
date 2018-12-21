@@ -11,6 +11,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Point;
@@ -20,6 +21,7 @@ import com.vividsolutions.jts.operation.union.UnaryUnionOp;
 import net.refractions.chyf.ChyfDatastore;
 import net.refractions.chyf.enumTypes.CatchmentType;
 import net.refractions.chyf.enumTypes.NexusType;
+import net.refractions.chyf.indexing.BboxIntersectsFilter;
 import net.refractions.chyf.indexing.ECatchmentContainsPointFilter;
 import net.refractions.chyf.indexing.Filter;
 import net.refractions.chyf.indexing.RTree;
@@ -143,6 +145,45 @@ public class HyGraph {
 			return eCatchments.get(0);
 		}
 		return null;
+	}
+	
+	/**
+	 * Finds all ecatchments with interior intersections with
+	 * the given polygon
+	 * 
+	 * @param p
+	 * @return
+	 */
+	public List<ECatchment> findECatchments(Polygon p) {
+		Envelope e = p.getEnvelopeInternal();
+		int distance = (int) Math.ceil( Math.sqrt( (e.getWidth() * e.getWidth()) + (e.getHeight() * e.getHeight())) / 2);
+		BboxIntersectsFilter<ECatchment> filter = new BboxIntersectsFilter<>(e);
+		Point center = p.getFactory().createPoint(e.centre());
+		
+		List<ECatchment> items = new ArrayList<>();
+		for (ECatchment cat : eCatchmentIndex.search(center, 1000, distance, filter)) {
+			if (cat.getPolygon().relate(p, "2********")) {
+				items.add(cat);
+			}	
+		}
+		return items;
+	}
+	
+	/**
+	 * Finds all flow paths within the given envelope
+	 * @param e
+	 * @return
+	 */
+	public List<EFlowpath> findEFlowpaths(Envelope e, Filter<EFlowpath> filter) {
+		int distance = (int) Math.ceil( Math.sqrt( (e.getWidth() * e.getWidth()) + (e.getHeight() * e.getHeight())) / 2);
+		BboxIntersectsFilter<EFlowpath> bboxfilter = new BboxIntersectsFilter<>(e);
+		Point center = eFlowpaths[0].getLineString().getFactory().createPoint(e.centre());
+		Filter<EFlowpath> combined = item->filter.pass(item) && bboxfilter.pass(item);
+		List<EFlowpath> items = new ArrayList<>();
+		for (EFlowpath cat : eFlowpathIndex.search(center, 1000, distance, combined)) {
+			items.add(cat);
+		}
+		return items;
 	}
 	
 	public List<ECatchment> findECatchments(Point p, int maxResults, Integer maxDistance, Filter<ECatchment> f) {

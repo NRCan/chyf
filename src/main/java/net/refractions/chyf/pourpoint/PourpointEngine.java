@@ -13,9 +13,16 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.vividsolutions.jts.geom.Envelope;
+import com.vividsolutions.jts.geom.LineString;
+import com.vividsolutions.jts.geom.Polygon;
+import com.vividsolutions.jts.operation.distance.DistanceOp;
+
 import net.refractions.chyf.enumTypes.CatchmentType;
 import net.refractions.chyf.enumTypes.FlowpathType;
 import net.refractions.chyf.enumTypes.NexusType;
+import net.refractions.chyf.enumTypes.Rank;
+import net.refractions.chyf.hygraph.DrainageArea;
 import net.refractions.chyf.hygraph.ECatchment;
 import net.refractions.chyf.hygraph.EFlowpath;
 import net.refractions.chyf.hygraph.HyGraph;
@@ -33,10 +40,11 @@ public class PourpointEngine {
 	static final Logger logger = LoggerFactory.getLogger(PourpointEngine.class.getCanonicalName());
 	
 	public enum OutputType{
-		PROJECTED("ppp"),	//pp projected to hydro nexus
-		DISTANCE_MIN("pppdmin"), //min distance along flowpath between projected pp
-		DISTANCE_MAX("pppdmax"),  //max distance along flowpath between projected pp
+		OUTPUT_PP("op"),	//pp projected to hydro nexus
+		DISTANCE_MIN("opdmin"), //min distance along flowpath between projected pp
+		DISTANCE_MAX("opdmax"),  //max distance along flowpath between projected pp
 		CATCHMENTS("pc"), //upstream catchments for pp
+		CATCHMENT_CONTAINMENT("pcc"), //pourpoint catchment contains relationship
 		NONOVERLAPPING_CATCHMENTS("noc"), //unique upstream catchments for pp
 		NONOVERLAPPINGCATCHMENT_RELATIONSHIP("nocr"), //upstream/downstream relationship between nonoverlapping catchments
 		TRAVERSAL_COMPLIANT_CATCHMENTS("tcc"), //unique upstream subcatchments for pp
@@ -63,7 +71,8 @@ public class PourpointEngine {
 	
 	private HashMap<PourpointKey, Range> distanceValues = new HashMap<>();
 	private Set<OutputType> availableOutputs;
-		
+	private Set<PourpointKey> catchmentContainment;
+	
 	public PourpointEngine(List<Pourpoint> points, HyGraph hygraph) {
 		this.points = Collections.unmodifiableList(points);
 		this.hygraph = hygraph;
@@ -108,7 +117,7 @@ public class PourpointEngine {
 					availableOutputs.contains(OutputType.DISTANCE_MIN)) {
 				computeUpstreamDownstreamPourpointRelationship();
 			}
-			
+
 			//catchments for pourpoints
 			if (availableOutputs.contains(OutputType.CATCHMENTS) ||
 				availableOutputs.contains(OutputType.NONOVERLAPPING_CATCHMENTS) ||
@@ -117,11 +126,19 @@ public class PourpointEngine {
 				computeUniqueCatchments();
 			}
 			
+			
+			if (availableOutputs.contains(OutputType.CATCHMENT_CONTAINMENT) || removeHoles) {
+				computeCatchmentContainsRelationship();
+			}
+			
 			//catchment relationships
 			if (availableOutputs.contains(OutputType.TRAVERSAL_COMPLIANT_CATCHMENT_RELATION)) {
 				computeUniqueSubCatchmentRelationship();
 			}
 	
+			if (removeHoles) {
+				processHoles();
+			}
 			return new PourpointOutput(this);
 		}catch(Throwable t) {
 			logger.error("Pourpoint computation error", t);
@@ -133,6 +150,34 @@ public class PourpointEngine {
 	public List<Pourpoint> getPoints(){
 		return this.points;
 	}
+	
+	/**
+	 * sorted by pourpoint id
+	 * @return
+	 */
+	public Integer[][] getCatchmentContainment(){
+		if (!availableOutputs.contains(OutputType.CATCHMENT_CONTAINMENT) ) return null;
+
+		ArrayList<Pourpoint> sorted = new ArrayList<>(points);
+		sorted.sort((a,b)->a.getId().compareTo(b.getId()));
+		
+		Integer[][] results = new Integer[sorted.size()][sorted.size()];
+		for (int i = 0; i < results.length; i ++) {
+			for (int j = 0; j < results.length; j ++) {
+				PourpointKey key1 = new PourpointKey(sorted.get(i),  sorted.get(j));
+				PourpointKey key2 = new PourpointKey(sorted.get(j),  sorted.get(i));
+				if (catchmentContainment.contains(key1)) {
+					results[i][j] = 1;
+				}else if (catchmentContainment.contains(key2) ) {
+					results[i][j] = -1;
+				}else {
+					results[i][j] = null;
+				}
+			}
+		}
+		return results;
+	}
+	
 	
 	public Double[][] getProjectedPourpointMinDistanceMatrix(){
 		if (!availableOutputs.contains(OutputType.DISTANCE_MIN) ) return null;
@@ -155,10 +200,10 @@ public class PourpointEngine {
 				Pourpoint pj = points.get(j);
 				
 				Range range = distanceValues.get(new PourpointKey(pi, pj));
-				int offset = 1;
+				int offset = -1;
 				if (range == null) {
 					range = distanceValues.get(new PourpointKey(pj, pi));
-					offset = -1;
+					offset = 1;
 				}
 				if (range == null) {
 					values[i][j] = null;	
@@ -419,13 +464,16 @@ public class PourpointEngine {
 			if (pp.getUpstreamPourpoints().isEmpty()) toProcess.add(pp);
 		}
 		
+		//tracks the secondary flow to post-process
+		ArrayList<Object[]> secondaryPostProcess = new ArrayList<>(); 
+		
 		HashMap<EFlowpath, Set<ECatchment>> catchments = new HashMap<>();
 		Set<Pourpoint> processed = new HashSet<>();
 		while(!toProcess.isEmpty()) {
 			Pourpoint item = toProcess.removeFirst();
 			processed.add(item);
 			for (EFlowpath path : item.getDownstreamFlowpaths()) {
-				List<ECatchment>[] results = findUpstreamCatchments(path, catchments);
+				List<ECatchment>[] results = findUpstreamCatchments(item, path, catchments, secondaryPostProcess);
 					
 				List<ECatchment> uniqueCatchments = results[0];
 				List<ECatchment> otherCatchments = results[1];
@@ -447,10 +495,82 @@ public class PourpointEngine {
 			}
 		}
 		
+		//TODO: fix this it doesn't work
+		//post process secondary flows; if e catchment
+		//is also in another catchment then walk upstream and remove
+		//this from the nonoverlapping and traversal compliant catchments
+		for (Object[] post : secondaryPostProcess) {
+			Pourpoint item = (Pourpoint)post[0];
+			EFlowpath path = (EFlowpath)post[1];
+			
+			for (EFlowpath inflow : path.getFromNode().getUpFlows()) {
+				
+				ECatchment inCatchment = inflow.getCatchment();
+//				if (item.getUniqueCatchments().contains(inCatchment)) continue;
+				//if this catchment is part of another catchment we walk upstream removing all catchments from this pourpoint
+				//ASSUME the other outflow at this node is primary outflow
+				boolean remove = false;
+				for (Pourpoint p : points) {
+					if (p == item) continue;
+//					if (p.getSharedCatchments().contains(inCatchment) || p.getUniqueCatchments().contains(inCatchment)) {
+					if (p.getUniqueCatchments().contains(inCatchment)) {
+						remove = true;
+						break;
+					}
+				}
+				if (!remove) continue;
+				//walk upstream removing this catchments
+				ArrayDeque<EFlowpath> up = new ArrayDeque<>();
+				Set<EFlowpath> visited = new HashSet<>();
+				up.add(inflow);
+				while(!up.isEmpty()) {
+					EFlowpath p = up.removeFirst();
+					visited.add(p);
+					if (p.getType() == FlowpathType.BANK) {
+						item.moveToSecondaryCatchment(p.getFromNode().getBankCatchment());
+					}else {
+						item.moveToSecondaryCatchment(p.getCatchment());
+					}
+					
+					for (EFlowpath in : p.getFromNode().getUpFlows()) {
+						if (!visited.contains(in)) up.addLast(in);
+					}
+				}
+			}
+		}
+		
 		points.forEach(p->createUniqueSubCatchments(p));
 		
 	}
 	
+	/*
+	 * compute catchment containment relationship
+	 */
+	private void computeCatchmentContainsRelationship() {
+		catchmentContainment = new HashSet<>();
+		for (Pourpoint point1 : points) {
+			for (Pourpoint point2 : points) {
+				if (point1 == point2) continue;
+				
+				PourpointKey key;
+				if (point2.getSharedCatchments().size() > point1.getSharedCatchments().size()) {
+					//point2 contains point2
+					key = new PourpointKey(point2, point1);
+				}else {
+					//point1 contains point2
+					key = new PourpointKey(point1, point2);
+				}
+				if (catchmentContainment.contains(key)) continue;
+				
+				for (ECatchment c : point1.getSharedCatchments()) {
+					if (point2.getSharedCatchments().contains(c) || point2.getUniqueCatchments().contains(c)) {
+						catchmentContainment.add(key);
+						break;
+					}
+				}
+			}	
+		}
+	}
 	
 	/*
 	 * Computes the unique subcatchments
@@ -458,7 +578,7 @@ public class PourpointEngine {
 	private void createUniqueSubCatchments(Pourpoint point) {
 		HashMap<ECatchment, UniqueSubCatchment> catchmentMapping = new HashMap<>();
 		
-		for (ECatchment e : point.getNonOverlappingCatchments()) {
+		for (ECatchment e : point.getUniqueCatchments()) {
 			UniqueSubCatchment ppc = catchmentMapping.get(e);
 			if (ppc == null) {
 				ppc = new UniqueSubCatchment(point, removeHoles);
@@ -491,12 +611,12 @@ public class PourpointEngine {
 				upCatchments.add(e);
 				for (Nexus upN : e.getUpNexuses()) {
 					if (upN.getType() == NexusType.BANK) {
-						if (point.getNonOverlappingCatchments().contains(upN.getBankCatchment())) {
+						if (point.getUniqueCatchments().contains(upN.getBankCatchment())) {
 							upCatchments.add(upN.getBankCatchment());
 						}
 					}else {
 						for (EFlowpath inFlow : upN.getUpFlows()) {
-							if (point.getNonOverlappingCatchments().contains(inFlow.getCatchment())) {
+							if (point.getUniqueCatchments().contains(inFlow.getCatchment())) {
 								upCatchments.add(inFlow.getCatchment());
 							}
 						}
@@ -516,7 +636,7 @@ public class PourpointEngine {
 			
 		}
 		
-		for (ECatchment e : point.getNonOverlappingCatchments()) {
+		for (ECatchment e : point.getUniqueCatchments()) {
 			if (e.getType() == CatchmentType.BANK) {
 				ECatchment addToo = e.getDownNexuses().get(0).getDownFlows().get(0).getCatchment();
 				UniqueSubCatchment usc = catchmentMapping.get(addToo);
@@ -541,6 +661,7 @@ public class PourpointEngine {
 		}
 		for (ECatchment e : root.getCatchments()) catchmentMapping.put(e, root);
 		
+		
 		Set<UniqueSubCatchment> items = new HashSet<>();
 		items.addAll(catchmentMapping.values());
 		point.setTraversalCompliantCatchments(items);
@@ -548,10 +669,12 @@ public class PourpointEngine {
 	
 	}
 	
-	private List<ECatchment>[] findUpstreamCatchments(EFlowpath root, HashMap<EFlowpath, Set<ECatchment>> catchments){
+	private List<ECatchment>[] findUpstreamCatchments(Pourpoint point, EFlowpath root, HashMap<EFlowpath, Set<ECatchment>> catchments, ArrayList<Object[]> secondaryPostProcess ){
 		
 		List<ECatchment> uniqueCatchments = new ArrayList<ECatchment>();
 		List<ECatchment> otherCatchments = new ArrayList<ECatchment>();
+		
+		EFlowpath firstSecondary = null;
 		
 		ArrayDeque<EFlowpath> toProcess = new ArrayDeque<>();
 		toProcess.add(root);
@@ -569,14 +692,108 @@ public class PourpointEngine {
 					if(item.getCatchment() != null) {
 						ECatchment cc = item.getCatchment();
 						uniqueCatchments.add(cc);
+						
+						if (item.getRank() == Rank.SECONDARY && firstSecondary == null) {
+							firstSecondary = item;
+							secondaryPostProcess.add(new Object[] {point, firstSecondary});
+						}
 						for(EFlowpath f: item.getFromNode().getUpFlows()) {
 							if (!visited.contains(f)) toProcess.addLast(f);
 						}
+						
+					}
+				}
+			}	
+		}
+		return new List[] {uniqueCatchments, otherCatchments};
+	}
+	
+	private void processHoles() {
+		
+		//find all the ecatchments that represent holes
+		Set<ECatchment> holes = new HashSet<>();
+		Set<ECatchment> wbholes = new HashSet<>();
+		for (Pourpoint point : points) {
+			DrainageArea area = point.getCatchmentDrainageAreaWithoutHoles();
+			Polygon p = ((Polygon)area.getGeometry());
+			
+			for (int i = 0; i < p.getNumInteriorRing(); i ++) {
+				LineString ls = p.getInteriorRingN(i);
+				Polygon poly = p.getFactory().createPolygon(ls.getCoordinates());
+
+				//this hole should get added to the unique catchments of this pourpoint
+				List<ECatchment> findCatchments = hygraph.findECatchments(poly);
+				for (ECatchment e : findCatchments) {
+					if (e.getType().isWaterbody()) {
+						wbholes.add(e);
+					}else {
+						holes.add(e);
 					}
 				}
 			}
 		}
-		return new List[] {uniqueCatchments, otherCatchments};
+		
+		//if this catchment is wholly contained within another isolated catchment then merge these two and ignore 
+		// the inner one - this is the case with lakes
+		HashMap<ECatchment, Pourpoint> holeMapping = new HashMap<>();
+		for (ECatchment hole : holes) {
+			//find the closest non-isolated flowpath edge
+			List<EFlowpath> items = new ArrayList<>();
+			Envelope env = hole.getEnvelope();
+			items = hygraph.findEFlowpaths(env, item->item.getHackOrder() != null && item.getHackOrder() != 1001);
+			double d = Math.max(env.getWidth(), env.getHeight());
+			while(items.isEmpty()) {
+				//TODO: add maximum limit here so we don't search forever
+				env.expandBy(d);
+				items = hygraph.findEFlowpaths(env, item->item.getHackOrder() != null && item.getHackOrder() != 1001);	
+			}
+			//find the nearest edge
+			
+			EFlowpath closest = null;
+			double distance = Math.max(env.getWidth(), env.getHeight()) * 2;
+			for (EFlowpath p : items) {
+				double pathd = DistanceOp.distance(p.getLineString(), hole.getPolygon());
+				if (pathd < distance) {
+					distance = pathd;
+					closest = p;
+				}
+			}
+			
+			//merge hole with closest
+			for (Pourpoint p : points) {
+				if (p.getUniqueCatchments().contains(closest.getCatchment())) {
+					p.getUniqueCatchments().add(hole);
+					holeMapping.put(hole, p);
+					
+					for (UniqueSubCatchment sub : p.getTraversalCompliantCatchments()) {
+						if (sub.getCatchments().contains(closest.getCatchment())){
+							sub.getCatchments().add(hole);
+						}
+					}
+					
+					break;
+				}
+			}
+			
+		}
+		for (ECatchment wbhole : wbholes) {
+			//these need to be merged with their surround catchment
+			for (EFlowpath flow : wbhole.getFlowpaths()) {
+				if (flow.getType() == FlowpathType.BANK) {
+					ECatchment merge = flow.getFromNode().getBankCatchment();
+					Pourpoint p = holeMapping.get(merge);
+					p.getUniqueCatchments().add(wbhole);
+					for (UniqueSubCatchment sub : p.getTraversalCompliantCatchments()) {
+						if (sub.getCatchments().contains(merge)){
+							sub.getCatchments().add(wbhole);
+						}
+					}
+					break;
+				}
+			}
+		}
+	
+		
 	}
 
 	

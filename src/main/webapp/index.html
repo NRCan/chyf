@@ -381,12 +381,12 @@
 			<div class="toolCat">Output Layers</div>
 			<div id="pourpointOut">
 			<div class="form-check">
-  				<input class="form-check-input" type="checkbox" value="" id="projectedpourpoints" checked>
-  				<label class="form-check-label" for="projectedpourpoints">Projected Pourpoints</label>
+  				<input class="form-check-input" type="checkbox" value="" id="outputpourpoints" checked>
+  				<label class="form-check-label" for="outputpourpoints">Output Pourpoints</label>
 			</div>
 			<div class="form-check">
   				<input class="form-check-input" type="checkbox" value="" id="pourpointdistance" checked>
-  				<label class="form-check-label" for="pourpointdistance">Projected Pourpoint Distances</label>
+  				<label class="form-check-label" for="pourpointdistance">Output Pourpoint Distances</label>
 			</div>
 			<div class="form-check">
   				<input class="form-check-input" type="checkbox" value="" id="upstreamcatchments" checked>
@@ -414,7 +414,7 @@
 			<div class="toolCat">Options</div>
 			<div class="form-check">
 				<input class="form-check-input" type="checkbox" value="" id="ppholes" checked>
-				<label class="form-check-label" for="ppholes" style="font-weight:normal">Remove Holes (Catchments Only)</label>
+				<label class="form-check-label" for="ppholes" style="font-weight:normal">Remove Holes</label>
 				</div>
 			<div class="toolCat">Actions</div>
 			<button id="doPPCalc" class="btn btn-default btn-sm" type="button" title="DoIt!" >Do It!</button>
@@ -428,23 +428,17 @@
 
 	<!-- dialog -->
 	<div id="pp_import_dialog" title="Import Pourpoints" style="display:none">
-		<p>The import file must be a comma seperated file, with a header line continaing the fields, 'ID', 'CCode', 'X','Y'.  There must also be no commas inside quoated strings.</p>
+		<p>The import file must be a comma seperated file, with a header line continaing the fields, 'ID', 'CCode', 'X','Y'.  There must also be no commas inside quoted strings.</p>
 	</div>
 
 	<script src="https://unpkg.com/clipboard@1.7.1/dist/clipboard.min.js"></script>
-	<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCO2a43ItOYdAuRFcbCSLLn8AQwnMlf6sI"></script>
 	<script src="https://unpkg.com/leaflet@1.3.0/dist/leaflet.js"></script>
-	<!-- script src="https://bbecquet.github.io/Leaflet.PolylineDecorator/dist/leaflet.polylineDecorator.js"></script -->
+	<!--<script src = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.4/leaflet.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>-->
+	
+	<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCO2a43ItOYdAuRFcbCSLLn8AQwnMlf6sI"></script>
 	<script src='https://unpkg.com/leaflet.gridlayer.googlemutant@latest/Leaflet.GoogleMutant.js'></script>
-	<!-- script src="https://unpkg.com/esri-leaflet@2.1.1/dist/esri-leaflet.js"
-		integrity="sha512-ECQqaYZke9cSdqlFG08zSkudgrdF6I1d8ViSa7I3VIszJyVqw4ng1G8sehEXlumdMnFYfzY0tMgdQa4WCs9IUw=="
-		crossorigin=""></script -->
-	 <script src="leaflet-layerjson.js"></script>
-	 <!-- 
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
-	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" crossorigin="anonymous"
-		integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"></script>
-		 -->
+	<script src="leaflet-layerjson.js"></script>
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 	<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/jquery-ui.min.js"></script> 
 	<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
@@ -551,6 +545,9 @@
 			layers: 'cdem.color-shaded-relief'
 		});
 		baseLayers['Canada DEM'] = demLayer;
+		
+		var noneLayer = L.tileLayer('');
+		baseLayers['None'] = noneLayer;
 
 		var catchmentLayer = new L.layerJSON({
 			url: chyfApi + "ecatchment/within.json?bbox={lon1},{lat1},{lon2},{lat2}",
@@ -1527,9 +1524,9 @@
 				}
 			},
 			
-			ppp:{
-				title: "Pourpoint Output",
-				titlePlural: "Pourpoint Outputs",
+			op:{
+				title: "Output Pourpoints",
+				titlePlural: "Output Pourpoints",
 				cols: {
 					'id': 'ID',
 					'ccode': 'C Code',
@@ -1891,7 +1888,7 @@
 		}
 		
 		
-		var projectedPpLayer;
+		var outputPpLayer;
 		var catchmentPpLayer;
 		var uniqueCatchmentPpLayer;
 		var uniqueSubCatchmentPpLayer;
@@ -1905,8 +1902,8 @@
 				map.removeLayer(highlightLayer);
 				highlightLayer = null;
 			}
-			if (projectedPpLayer != null){
-				map.removeLayer(projectedPpLayer);
+			if (outputPpLayer != null){
+				map.removeLayer(outputPpLayer);
 				projectedPpLayer = null;
 			}
 			if (pPLayer != null){
@@ -1965,10 +1962,10 @@
 				query += ",";
 			}
 			query +="&output=";
-			if ($("#projectedpourpoints").is(':checked')) query +="ppp,";
+			if ($("#outputpourpoints").is(':checked')) query +="op,";
 			if ($("#nonoverlappingcoveragerelations").is(':checked')) query +="nocr,";
- 			if ($("#pourpointdistance").is(':checked')) query +="pppdmin,pppdmax,";
-			if ($("#upstreamcatchments").is(':checked')) query +="pc,";
+ 			if ($("#pourpointdistance").is(':checked')) query +="opdmin,opdmax,";
+			if ($("#upstreamcatchments").is(':checked')) query +="pc,pcc,";
 			if ($("#nonoverlappingcatchments").is(':checked')) query +="noc,";
 			if ($("#traversalcompliantcatchments").is(':checked')) query +="tcc,";
  			if ($("#traversalcompliantcatchmentrelations").is(':checked')) query +="tccr,";		
@@ -2016,9 +2013,9 @@
 			var layers = {};
 			for (var i = 0; i < data.length; i ++){
 				var item = data[i];
-				if (item.name=="ppp"){
-					addProjectedPourpointLayer(item);
-					layers.ppp = item;
+				if (item.name=="op"){
+					addOutputPourpointLayer(item);
+					layers.op = item;
 					
 				}else if (item.name=="pc"){
 					addPourpointCatchmentLayer(item);
@@ -2031,18 +2028,23 @@
 					layers.tcc = item;
 				}else if (item.name == "nocr"){
 					layers.nocr = item;
-				}else if (item.name == "pppdmin"){
-					layers.pppdmin = item;
-				}else if (item.name == "pppdmax"){
-					layers.pppdmax = item;
+				}else if (item.name == "opdmin"){
+					layers.opdmin = item;
+				}else if (item.name == "opdmax"){
+					layers.opdmax = item;
 				}else if (item.name == "tccr"){
 					layers.tccr = item;
+				}else if (item.name == "pcc"){
+					layers.pcc = item;
 				}
 			}
 			var isActive = true;
 			
 			if (layers.pc != null){
 				layers.pc_tab = createTab("pc", layers.pc, $(ul), $(tabbody), isActive, catchmentPpLayer);
+				isActive = false;
+			}else if (layers.pcc != null){
+				layers.pc_tab = createTab("pc", null, $(ul), $(tabbody), isActive, null);
 				isActive = false;
 			}
 			if (layers.noc != null){
@@ -2059,11 +2061,11 @@
 				layers.tcc_tab = createTab("tcc", null, $(ul), $(tabbody), i == 0, null);
 				isActive = false;
 			}
-			if (layers.ppp != null){
-				layers.ppp_tab = createTab("ppp", layers.ppp, $(ul), $(tabbody), isActive, projectedPpLayer);
+			if (layers.op != null){
+				layers.op_tab = createTab("op", layers.op, $(ul), $(tabbody), isActive, outputPpLayer);
 				isActive = false;
 			} else if ( layers.ppdmin != null || layers.pdmax != null){
-				layers.ppp_tab = createTab("ppp", null, $(ul), $(tabbody), isActive, null);
+				layers.op_tab = createTab("op", null, $(ul), $(tabbody), isActive, null);
 				isActive = false;
 			}
 			
@@ -2071,38 +2073,50 @@
 				var $table = createMatrixTable(layers.nocr.headers, layers.nocr.values, 0);
 				var $div = $('<div/>').append($('<div class="toolCat">Catchment Flow Relationship</div>'));
 				$div.append($table);
+				$div.append( $('<div>[i,j]<br>1 = i upstream of j;<br>-1 = i downstream of j</div>' ));
 				layers.noc_tab.append($div);
 			}
-			if (layers.pppdmin != null || layers.pppdmax != null){
+			if (layers.opdmin != null || layers.opdmax != null){
 				
 				var data = [[]];
 				//combine results into a single matrix and output that
-				for (var i = 0; i < layers.pppdmin.values.length; i ++){
+				for (var i = 0; i < layers.opdmin.values.length; i ++){
 					data[i] = [];
-					for (var j = 0; j < layers.pppdmin.values.length; j ++){
-						if (layers.pppdmin.values[i][j] == layers.pppdmax.values[i][j]){
-							if (layers.pppdmin.values[i][j]==null){
+					for (var j = 0; j < layers.opdmin.values.length; j ++){
+						if (layers.opdmin.values[i][j] == layers.opdmax.values[i][j]){
+							if (layers.opdmin.values[i][j]==null){
 								data[i][j] = null;
 							}else{
-								data[i][j] = layers.pppdmin.values[i][j].toFixed(2);
+								data[i][j] = layers.opdmin.values[i][j].toFixed(2);
 							}
 						}else{
-							data[i][j] = "(" + layers.pppdmin.values[i][j].toFixed(2) + ", " + layers.pppdmax.values[i][j].toFixed(2) + ")";
+							data[i][j] = "(" + layers.opdmin.values[i][j].toFixed(2) + ", " + layers.opdmax.values[i][j].toFixed(2) + ")";
 						}
 					}
 				}
-				var $table = createMatrixTable(layers.pppdmin.headers, data, -1);
-				var $div = $('<div/>').append($('<div class="toolCat">Projected Pourpoint Distances</div>'));
+				var $table = createMatrixTable(layers.opdmin.headers, data, -1);
+				var $div = $('<div/>').append($('<div class="toolCat">Outpout Pourpoint Distances</div>'));
 				$div.append($table);
-				layers.ppp_tab.append($div);
+				$div.append( $('<div>[i,j]<br>distance from i to j<br>> 0 i is upstream of j<br>< 0 i is downstream of j</div>' ));
+				layers.op_tab.append($div);
 			}
 
 			if (layers.tccr != null){
 				var $table = createMatrixTable(layers.tccr.headers, layers.tccr.values, 0);
 				var $div = $('<div/>').append($('<div class="toolCat">Catchment Flow Relationships</div>'));
 				$div.append($table);
+				$div.append( $('<div>[i,j]<br>1 = i upstream of j;<br>-1 = i downstream of j</div>' ));
 				layers.tcc_tab.append($div);
 			}
+			
+			if (layers.pcc != null){
+				var $table = createMatrixTable(layers.pcc.headers, layers.pcc.values, 0);
+				var $div = $('<div/>').append($('<div class="toolCat">Catchment Containment</div>'));
+				$div.append($table);
+				$div.append( $('<div>[i,j]<br>1 = i contains j;<br>-1 = i contained by j</div>' ));
+				layers.pc_tab.append($div);
+			}
+			
 			//add any matrix to existing tabs
 			
 			$('#dataBar').empty();
@@ -2118,11 +2132,11 @@
 			$(link).attr("href", "#" + id + "_body").attr("data-toggle", "tab").html("<span style='padding-left:5px'>" + dataMap[id].titlePlural + "</span>").appendTo($(tab));
 			
 			
-			var ppptabBody = document.createElement("div");
-			$(ppptabBody).addClass("tab-pane").attr("id", id + "_body").appendTo(tabbody);
-			$(ppptabBody).css("padding", "2px");
+			var optabBody = document.createElement("div");
+			$(optabBody).addClass("tab-pane").attr("id", id + "_body").appendTo(tabbody);
+			$(optabBody).css("padding", "2px");
 			
-			if (active) $(ppptabBody).addClass("active");
+			if (active) $(optabBody).addClass("active");
 			
 			if (maplayer != null){
 				var $ctrl = $('<input/>', 
@@ -2146,7 +2160,7 @@
 			
 			if(data != null && data.type == 'FeatureCollection') {
 				if(!data.features || data.features.length == 0) {
-					return $(ppptabBody);
+					return $(optabBody);
 				}
 			
 				var features = data.features;
@@ -2183,9 +2197,9 @@
 					);
 				}
 				$table.append($tbody);
-				$table.appendTo($(ppptabBody));
+				$table.appendTo($(optabBody));
 			}
-			return $(ppptabBody);
+			return $(optabBody);
 		}
 		
 		function createMatrixTable(headers, data, percision){
@@ -2213,7 +2227,7 @@
 			
 		}
 		
-		function addProjectedPourpointLayer(layerdata){
+		function addOutputPourpointLayer(layerdata){
 			var myStyle = {
 					"fill": true,
 					"radius": 10,
@@ -2224,7 +2238,7 @@
 					"fillOpacity": 1
 				};
 			
-			projectedPpLayer = L.geoJson(layerdata, {
+			outputPpLayer = L.geoJson(layerdata, {
 				  pointToLayer: function (feature, latlng) {
 					  label = String(feature.properties.id) + "*" // Must convert to string, .bindTooltip can't use straight 'feature.properties.attribute'
 				        return L.circleMarker(latlng, myStyle).bindTooltip(label,{

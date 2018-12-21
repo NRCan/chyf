@@ -20,6 +20,7 @@ import net.refractions.chyf.ChyfDatastore;
 import net.refractions.chyf.enumTypes.CatchmentType;
 import net.refractions.chyf.enumTypes.FlowpathType;
 import net.refractions.chyf.enumTypes.NexusType;
+import net.refractions.chyf.hygraph.DrainageArea;
 import net.refractions.chyf.hygraph.ECatchment;
 import net.refractions.chyf.hygraph.EFlowpath;
 import net.refractions.chyf.hygraph.HyGraph;
@@ -63,9 +64,14 @@ public class Pourpoint {
 
 	//catchments only used by this pourpoint
 	private Set<ECatchment> uniqueCatchments;
-	
+	//catchments upstream of a secondary flow that are also contained
+	//by another poutpoint
+	private Set<ECatchment> secondaryCatchments;
 	//all other catchments
 	private Set<ECatchment> sharedCatchments;
+	
+	
+	private DrainageArea cachedDrainageArea;
 	
 	/**
 	 * 
@@ -93,6 +99,7 @@ public class Pourpoint {
 		
 		uniqueCatchments = new HashSet<>();
 		sharedCatchments = new HashSet<>();
+		secondaryCatchments = new HashSet<>();
 	}
 	
 	public int getCcode() {
@@ -106,12 +113,17 @@ public class Pourpoint {
 		return this.uniqueMergedSubCatchments;
 	}
 	
+	public void moveToSecondaryCatchment(ECatchment catchment) {
+		secondaryCatchments.add(catchment);
+		this.uniqueCatchments.remove(catchment);
+		this.sharedCatchments.remove(catchment);
+	}
 	public void addUpstreamCatchments(Collection<ECatchment> uniqueCatchments, Collection<ECatchment> sharedCatchments) {
 		this.uniqueCatchments.addAll(uniqueCatchments);
 		this.sharedCatchments.addAll(sharedCatchments);
 	}
 	
-	public Set<ECatchment> getNonOverlappingCatchments(){
+	public Set<ECatchment> getUniqueCatchments(){
 		return this.uniqueCatchments;
 	}
 	
@@ -145,6 +157,29 @@ public class Pourpoint {
 		return this.downstreamFlowpaths;
 	}
 	
+	
+	public DrainageArea getCatchmentDrainageAreaWithoutHoles() {
+		if (this.cachedDrainageArea == null) {
+			Set<ECatchment> items = new HashSet<>();
+			items.addAll(getSharedCatchments());
+			items.addAll(getUniqueCatchments());
+			items.addAll(secondaryCatchments);
+			cachedDrainageArea = HyGraph.buildDrainageArea(items, false);
+		}
+		return cachedDrainageArea;
+	}
+	
+	public DrainageArea getCatchmentDrainageArea(boolean removeHoles) {
+		if (this.cachedDrainageArea == null) {
+			getCatchmentDrainageAreaWithoutHoles();
+		}
+		if (removeHoles) {
+			DrainageArea da = new DrainageArea(HyGraph.removeHoles(this.cachedDrainageArea.getGeometry()));
+			return da;
+		}else {
+			return this.cachedDrainageArea;
+		}
+	}
 	/**
 	 * Finds the most downstream flowpath edges
 	 * based code on of the point

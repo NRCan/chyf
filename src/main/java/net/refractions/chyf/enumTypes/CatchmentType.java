@@ -23,6 +23,13 @@ public enum CatchmentType {
 		this.subTypeLabel = subTypeLabel;
 	}
 	
+	public boolean isWaterbody() {
+		return this == CatchmentType.WATER_LAKE || 
+				this == CatchmentType.WATER_POND || 
+				this == CatchmentType.WATER_RIVER || 
+				this == CatchmentType.WATER_CANAL;
+	}
+	
 	/**
 	 * Takes a string value and returns the corresponding CatchmentType object.
 	 * 

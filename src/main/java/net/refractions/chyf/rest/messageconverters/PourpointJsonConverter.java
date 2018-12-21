@@ -2,6 +2,7 @@ package net.refractions.chyf.rest.messageconverters;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -31,7 +32,7 @@ public class PourpointJsonConverter extends JsonConverterHelper {
 		//		responseMetadata(responseMetadata);
 		jw.beginArray();
 		
-		if (result.getAvailableOutputs().contains(PourpointEngine.OutputType.PROJECTED)){
+		if (result.getAvailableOutputs().contains(PourpointEngine.OutputType.OUTPUT_PP)){
 			writeProjectedPoutpoint(response);
 		}
 		if (result.getAvailableOutputs().contains(PourpointEngine.OutputType.DISTANCE_MIN)){
@@ -62,11 +63,14 @@ public class PourpointJsonConverter extends JsonConverterHelper {
 			writeCatchments(response);
 		}
 		if (result.getAvailableOutputs().contains(PourpointEngine.OutputType.NONOVERLAPPING_CATCHMENTS)){
-			writeUniqueCatchments(response);
+			writeNonOverlappingCatchments(response);
 		}
 		
 		if (result.getAvailableOutputs().contains(PourpointEngine.OutputType.TRAVERSAL_COMPLIANT_CATCHMENTS)){
-			writeUniqueSubCatchments(response);
+			writeTraversalCompliantCatchments(response);
+		}
+		if (result.getAvailableOutputs().contains(PourpointEngine.OutputType.CATCHMENT_CONTAINMENT)) {
+			writeCatchmentContainment(response);
 		}
 		
 		jw.endArray();
@@ -82,7 +86,7 @@ public class PourpointJsonConverter extends JsonConverterHelper {
 	}
 	
 	private void writeProjectedPoutpoint(ApiResponse response) throws IOException {
-		this.featureCollectionHeader(response, PourpointEngine.OutputType.PROJECTED);
+		this.featureCollectionHeader(response, PourpointEngine.OutputType.OUTPUT_PP);
 		int counter = 1;
 		for (Pourpoint p : result.getPoints()) {
 			this.featureHeader(GeotoolsGeometryReprojector.reproject(p.getProjectedPoint(), response.getSrs()), counter++, null);
@@ -95,6 +99,16 @@ public class PourpointJsonConverter extends JsonConverterHelper {
 		}
 		this.featureCollectionFooter();
 		
+	}
+	
+	private void writeCatchmentContainment(ApiResponse response) throws IOException {
+		List<Pourpoint> pnts = new ArrayList<>(result.getPoints());
+		pnts.sort((a,b)->a.getId().compareTo(b.getId()));
+		String[] headers = new String[pnts.size()];
+		for (int i = 0; i < pnts.size(); i ++) {
+			headers[i] = pnts.get(i).getId();
+		}
+		writeRelationship(PourpointEngine.OutputType.CATCHMENT_CONTAINMENT, headers, result.getCatchmentContainment());
 	}
 	
 	private void writeCatchments(ApiResponse response) throws IOException {
@@ -111,7 +125,7 @@ public class PourpointJsonConverter extends JsonConverterHelper {
 		
 	}
 	
-	private void writeUniqueSubCatchments(ApiResponse response) throws IOException {
+	private void writeTraversalCompliantCatchments(ApiResponse response) throws IOException {
 		this.featureCollectionHeader(response, PourpointEngine.OutputType.TRAVERSAL_COMPLIANT_CATCHMENTS);
 		int counter = 1;
 		for (Pourpoint p : result.getPoints()) {
@@ -129,7 +143,7 @@ public class PourpointJsonConverter extends JsonConverterHelper {
 	}
 	
 	
-	private void writeUniqueCatchments(ApiResponse response) throws IOException {
+	private void writeNonOverlappingCatchments(ApiResponse response) throws IOException {
 		this.featureCollectionHeader(response, PourpointEngine.OutputType.NONOVERLAPPING_CATCHMENTS);
 		int counter = 1;
 		for (Pourpoint p : result.getPoints()) {

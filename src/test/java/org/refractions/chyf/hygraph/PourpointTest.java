@@ -84,10 +84,10 @@ public class PourpointTest {
 		
 		// test PP Distances
 		Double[][] distances = {
-				{null,-493.3206295697041,null,null},
-				{493.3206295697041,null,1254.2579560971265,3361.317362294776},
-				{null,-1254.2579560971265,null,2107.059406197649},
-				{null,-3361.317362294776,-2107.059406197649,null}
+				{null,493.3206295697041,null,null},
+				{-493.3206295697041,null,-1254.2579560971265,-3361.317362294776},
+				{null,1254.2579560971265,null,-2107.059406197649},
+				{null,3361.317362294776,2107.059406197649,null}
 		};
 		Double[][] actual1 = out.getProjectedPourpointMinDistanceMatrix();
 		Double[][] actual2 = out.getProjectedPourpointMaxDistanceMatrix();
