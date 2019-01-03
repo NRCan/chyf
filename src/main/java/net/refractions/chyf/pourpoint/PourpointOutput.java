@@ -1,12 +1,10 @@
 package net.refractions.chyf.pourpoint;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import net.refractions.chyf.hygraph.DrainageArea;
-import net.refractions.chyf.hygraph.ECatchment;
 import net.refractions.chyf.hygraph.HyGraph;
 
 /**

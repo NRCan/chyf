@@ -18,6 +18,13 @@ import net.refractions.chyf.hygraph.EFlowpath;
 import net.refractions.chyf.pourpoint.Pourpoint;
 import net.refractions.chyf.rest.GeotoolsGeometryReprojector;
 
+/**
+ * Tests the projection of various pourpoints 
+ * and ccodes.
+ * 
+ * @author Emily
+ *
+ */
 public class PourpointProjectionTest {
 
 	@Rule

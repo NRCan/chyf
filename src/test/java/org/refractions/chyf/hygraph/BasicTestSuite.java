@@ -34,7 +34,9 @@ import net.refractions.chyf.ChyfDatastore;
 	MultiDimensionalDownstreamTest.class,
 	PourpointProjectionTest.class,
 	PourpointTest.class,
-	SimpleDataPourpointTest.class})
+	SimpleDataPourpointTest.class,
+	PourpointSecondaryTest.class})
+
 public class BasicTestSuite extends Suite {
 
 	protected static ChyfDatastore DATASTORE = null;

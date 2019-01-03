@@ -15,6 +15,7 @@ public class UniqueSubCatchment {
 
 	//immediate upstream poutpoint
 	private Set<Pourpoint> upPoints = new HashSet<>();
+	private Set<Pourpoint> downPoints = new HashSet<>();
 	//elementary catchments
 	private Set<ECatchment> catchments = new HashSet<>();
 	//main pouroint
@@ -24,11 +25,9 @@ public class UniqueSubCatchment {
 	private Set<UniqueSubCatchment> upstream = new HashSet<>();
 	
 	private String id = null;
-//	private boolean removeHoles;
 	
-	public UniqueSubCatchment(Pourpoint point, boolean removeHoles) {
+	public UniqueSubCatchment(Pourpoint point) {
 		this.point = point;
-//		this.removeHoles = removeHoles;
 	}
 	
 	/**
@@ -43,14 +42,23 @@ public class UniqueSubCatchment {
 	private void updateId() {
 		StringBuilder sb = new StringBuilder();
 		sb.append(point.getId());
+		sb.append("|");
 		if (!upPoints.isEmpty()) {
 			List<Pourpoint> sortedPoints = new ArrayList<>(upPoints);
 			sortedPoints.sort((a,b)->(a.getId().compareTo(b.getId())));
-			sb.append("_");
 			StringJoiner joiner = new StringJoiner("_");
 			sortedPoints.forEach(p->joiner.add(p.getId()));
 			sb.append(joiner.toString());
 		}
+		sb.append("|");
+		if (!downPoints.isEmpty()) {
+			List<Pourpoint> sortedPoints = new ArrayList<>(downPoints);
+			sortedPoints.sort((a,b)->(a.getId().compareTo(b.getId())));
+			StringJoiner joiner = new StringJoiner("_");
+			sortedPoints.forEach(p->joiner.add(p.getId()));
+			sb.append(joiner.toString());
+		}
+		
 		id = sb.toString();
 	}
 	
@@ -100,10 +108,16 @@ public class UniqueSubCatchment {
 	public void mergeCatchment(UniqueSubCatchment pc){
 		catchments.addAll(pc.getCatchments());
 		upPoints.addAll(pc.upPoints);
+		downPoints.addAll(pc.downPoints);
 	}
 	
 	public void addUpstreamPourpoint(Pourpoint up) {
 		upPoints.add(up);
+		id = null;
+	}
+	
+	public void addDownstreamPourpoint(Pourpoint up) {
+		downPoints.add(up);
 		id = null;
 	}
 	

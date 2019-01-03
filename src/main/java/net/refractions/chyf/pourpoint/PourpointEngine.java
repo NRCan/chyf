@@ -18,6 +18,7 @@ import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.Polygon;
 import com.vividsolutions.jts.operation.distance.DistanceOp;
 
+import net.refractions.chyf.ChyfDatastore;
 import net.refractions.chyf.enumTypes.CatchmentType;
 import net.refractions.chyf.enumTypes.FlowpathType;
 import net.refractions.chyf.enumTypes.NexusType;
@@ -401,13 +402,11 @@ public class PourpointEngine {
 	}
 	
 	private void processPourpointRel(Pourpoint point, EFlowpath path, HashMap<Nexus, HashMap<Pourpoint, Range>> nodedistances) {
-		
 		//TODO: stop once we've visited all pourpoints as there won't be any more relationships downstream
 		//this stop would only be useful if all the pourpoints are on the same network, if they are on
 		//different trees it might not be useful
 		ArrayDeque<EFlowpath> toProcess = new ArrayDeque<>();
 		toProcess.add(path);
-		
 		while(!toProcess.isEmpty()) {
 			EFlowpath item = toProcess.removeFirst();
 		
@@ -465,9 +464,9 @@ public class PourpointEngine {
 		}
 		
 		//tracks the secondary flow to post-process
-		ArrayList<Object[]> secondaryPostProcess = new ArrayList<>(); 
+		ArrayList<EFlowpath> secondaryPostProcess = new ArrayList<>(); 
 		
-		HashMap<EFlowpath, Set<ECatchment>> catchments = new HashMap<>();
+		HashMap<ECatchment, Set<ECatchment>> catchments = new HashMap<>();
 		Set<Pourpoint> processed = new HashSet<>();
 		while(!toProcess.isEmpty()) {
 			Pourpoint item = toProcess.removeFirst();
@@ -483,7 +482,7 @@ public class PourpointEngine {
 				Set<ECatchment> all = new HashSet<>();
 				all.addAll(uniqueCatchments);
 				all.addAll(otherCatchments);
-				catchments.put(path, all);
+				catchments.put(path.getCatchment(), all);
 			}
 			//remove pourpoint and find the next to process
 			for (Pourpoint pp : points) {
@@ -495,30 +494,51 @@ public class PourpointEngine {
 			}
 		}
 		
-		//TODO: fix this it doesn't work
+		//SECONDARY FLOW CATCHMENTS
 		//post process secondary flows; if e catchment
 		//is also in another catchment then walk upstream and remove
 		//this from the nonoverlapping and traversal compliant catchments
-		for (Object[] post : secondaryPostProcess) {
-			Pourpoint item = (Pourpoint)post[0];
-			EFlowpath path = (EFlowpath)post[1];
+		//note that the post processing order will be from the most upstream
+		//to the most downstream pourpoints
+		for (EFlowpath path : secondaryPostProcess) {
 			
-			for (EFlowpath inflow : path.getFromNode().getUpFlows()) {
-				
-				ECatchment inCatchment = inflow.getCatchment();
-//				if (item.getUniqueCatchments().contains(inCatchment)) continue;
-				//if this catchment is part of another catchment we walk upstream removing all catchments from this pourpoint
-				//ASSUME the other outflow at this node is primary outflow
-				boolean remove = false;
-				for (Pourpoint p : points) {
-					if (p == item) continue;
-//					if (p.getSharedCatchments().contains(inCatchment) || p.getUniqueCatchments().contains(inCatchment)) {
-					if (p.getUniqueCatchments().contains(inCatchment)) {
-						remove = true;
-						break;
+			//find the primary flow catchments that the source
+			//nexus flows into
+			EFlowpath primary = null;
+			for (EFlowpath outflow: path.getFromNode().getDownFlows()) {
+				if (outflow.getRank() == Rank.PRIMARY) {
+					primary = outflow;
+					break;
+				}
+			}
+			if (primary == null) continue; //TODO: walk upstream until we find out primary node?
+			
+			Pourpoint primaryPourpoint = null;
+			for (Pourpoint p : points) {
+				if (p.getUniqueCatchments().contains(primary.getCatchment())) {
+					if (primaryPourpoint == null) {
+						primaryPourpoint = p;
+					}else if (primaryPourpoint.getUpstreamPourpoints().contains(p)){
+						primaryPourpoint = p;
 					}
 				}
-				if (!remove) continue;
+			}
+			if (primaryPourpoint == null) continue;
+			
+			Set<Pourpoint> removeFrom = new HashSet<>();
+			for (EFlowpath inflow : path.getFromNode().getUpFlows()) {
+				ECatchment inCatchment = inflow.getCatchment();
+				//we walk upstream removing this catchment from all pourpoints
+				//except the primary one
+				
+				removeFrom.clear();
+				for (Pourpoint p : points) {
+					if (p.getUniqueCatchments().contains(inCatchment) && p != primaryPourpoint) {
+						removeFrom.add(p);
+					}
+				}
+				
+				if (removeFrom.isEmpty()) continue;
 				//walk upstream removing this catchments
 				ArrayDeque<EFlowpath> up = new ArrayDeque<>();
 				Set<EFlowpath> visited = new HashSet<>();
@@ -527,9 +547,9 @@ public class PourpointEngine {
 					EFlowpath p = up.removeFirst();
 					visited.add(p);
 					if (p.getType() == FlowpathType.BANK) {
-						item.moveToSecondaryCatchment(p.getFromNode().getBankCatchment());
+						removeFrom.forEach(cat -> cat.moveToSecondaryCatchment(p.getFromNode().getBankCatchment()));
 					}else {
-						item.moveToSecondaryCatchment(p.getCatchment());
+						removeFrom.forEach(cat -> cat.moveToSecondaryCatchment(p.getCatchment()));
 					}
 					
 					for (EFlowpath in : p.getFromNode().getUpFlows()) {
@@ -538,6 +558,7 @@ public class PourpointEngine {
 				}
 			}
 		}
+		
 		
 		points.forEach(p->createUniqueSubCatchments(p));
 		
@@ -581,7 +602,7 @@ public class PourpointEngine {
 		for (ECatchment e : point.getUniqueCatchments()) {
 			UniqueSubCatchment ppc = catchmentMapping.get(e);
 			if (ppc == null) {
-				ppc = new UniqueSubCatchment(point, removeHoles);
+				ppc = new UniqueSubCatchment(point);
 				ppc.addCatchment(e);
 				catchmentMapping.put(e,ppc);
 			}
@@ -598,6 +619,16 @@ public class PourpointEngine {
 						if (pp == point) continue;
 						if (pp.getDownstreamFlowpaths().contains(inFlow)) {
 							inpoints.add(pp);
+						}
+					}
+				}
+			}
+			for (Nexus downN : e.getDownNexuses()) {
+				for (EFlowpath out : downN.getUpFlows()) {
+					for (Pourpoint pp : points) {
+						if (pp == point) continue;
+						if (pp.getDownstreamFlowpaths().contains(out)) {
+							ppc.addDownstreamPourpoint(pp);
 						}
 					}
 				}
@@ -665,16 +696,13 @@ public class PourpointEngine {
 		Set<UniqueSubCatchment> items = new HashSet<>();
 		items.addAll(catchmentMapping.values());
 		point.setTraversalCompliantCatchments(items);
-		
-	
 	}
 	
-	private List<ECatchment>[] findUpstreamCatchments(Pourpoint point, EFlowpath root, HashMap<EFlowpath, Set<ECatchment>> catchments, ArrayList<Object[]> secondaryPostProcess ){
+	
+	private List<ECatchment>[] findUpstreamCatchments(Pourpoint point, EFlowpath root, HashMap<ECatchment, Set<ECatchment>> catchments, ArrayList<EFlowpath> secondaryPostProcess ){
 		
 		List<ECatchment> uniqueCatchments = new ArrayList<ECatchment>();
 		List<ECatchment> otherCatchments = new ArrayList<ECatchment>();
-		
-		EFlowpath firstSecondary = null;
 		
 		ArrayDeque<EFlowpath> toProcess = new ArrayDeque<>();
 		toProcess.add(root);
@@ -682,32 +710,27 @@ public class PourpointEngine {
 		while(!toProcess.isEmpty()) {
 			EFlowpath item = toProcess.removeFirst();
 			visited.add(item);
-			if (catchments.containsKey(item)) {
-				otherCatchments.addAll(catchments.get(item));
+			if (catchments.containsKey(item.getCatchment())) {
+				otherCatchments.addAll(catchments.get(item.getCatchment()));
 			}else {
+				ECatchment c = item.getCatchment();
 				if(item.getType() == FlowpathType.BANK) {
-					ECatchment cc = item.getFromNode().getBankCatchment();
-					uniqueCatchments.add(cc);
-				}else {
-					if(item.getCatchment() != null) {
-						ECatchment cc = item.getCatchment();
-						uniqueCatchments.add(cc);
-						
-						if (item.getRank() == Rank.SECONDARY && firstSecondary == null) {
-							firstSecondary = item;
-							secondaryPostProcess.add(new Object[] {point, firstSecondary});
-						}
-						for(EFlowpath f: item.getFromNode().getUpFlows()) {
-							if (!visited.contains(f)) toProcess.addLast(f);
-						}
-						
-					}
+					c = item.getFromNode().getBankCatchment();
 				}
+				uniqueCatchments.add(c);
+				if (item.getType() != FlowpathType.BANK && item.getRank() == Rank.SECONDARY) {
+					//track secondary flows for post processing
+					secondaryPostProcess.add(item);
+				}
+				for(EFlowpath f: item.getFromNode().getUpFlows()) {
+					if (!visited.contains(f)) toProcess.addLast(f);
+				}
+				
 			}	
 		}
 		return new List[] {uniqueCatchments, otherCatchments};
 	}
-	
+
 	private void processHoles() {
 		
 		//find all the ecatchments that represent holes
@@ -742,13 +765,14 @@ public class PourpointEngine {
 			Envelope env = hole.getEnvelope();
 			items = hygraph.findEFlowpaths(env, item->item.getHackOrder() != null && item.getHackOrder() != 1001);
 			double d = Math.max(env.getWidth(), env.getHeight());
+			int count = 0;
 			while(items.isEmpty()) {
-				//TODO: add maximum limit here so we don't search forever
 				env.expandBy(d);
-				items = hygraph.findEFlowpaths(env, item->item.getHackOrder() != null && item.getHackOrder() != 1001);	
+				items = hygraph.findEFlowpaths(env, item-> item.getCatchment() != null && item.getCatchment().getHackOrder() != null && item.getCatchment().getHackOrder() != 1001);
+				count ++;
+				if (count > ChyfDatastore.MAX_RESULTS) break;
 			}
 			//find the nearest edge
-			
 			EFlowpath closest = null;
 			double distance = Math.max(env.getWidth(), env.getHeight()) * 2;
 			for (EFlowpath p : items) {
@@ -758,19 +782,21 @@ public class PourpointEngine {
 					closest = p;
 				}
 			}
-			
+			if (closest == null) {
+				//nothing found skip this hole
+				continue;
+			}
 			//merge hole with closest
 			for (Pourpoint p : points) {
 				if (p.getUniqueCatchments().contains(closest.getCatchment())) {
 					p.getUniqueCatchments().add(hole);
-					holeMapping.put(hole, p);
 					
+					holeMapping.put(hole, p);
 					for (UniqueSubCatchment sub : p.getTraversalCompliantCatchments()) {
 						if (sub.getCatchments().contains(closest.getCatchment())){
 							sub.getCatchments().add(hole);
 						}
-					}
-					
+					}	
 					break;
 				}
 			}

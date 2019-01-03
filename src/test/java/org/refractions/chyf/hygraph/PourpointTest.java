@@ -23,6 +23,14 @@ import net.refractions.chyf.pourpoint.PourpointOutput;
 import net.refractions.chyf.pourpoint.UniqueSubCatchment;
 import net.refractions.chyf.rest.GeotoolsGeometryReprojector;
 
+/**
+ * A simple pourpoint test, that test all aspects
+ * of the pourpoint processing.  The expected results are
+ * stotred in the pourpoint1.json file in the results test folder
+ * 
+ * @author Emily
+ *
+ */
 public class PourpointTest {
 
 	@Rule
@@ -121,7 +129,7 @@ public class PourpointTest {
 
 		//upstream catchments
 		for (Pourpoint p : out.getPoints()) {
-			String wkt = typeidgeom.get("pc").get(p.getId());
+			String wkt = typeidgeom.get(PourpointEngine.OutputType.CATCHMENTS.key).get(p.getId());
 			Geometry g = reader.read(wkt);
 			Geometry a = GeotoolsGeometryReprojector.reproject(out.getCatchment(p).getGeometry(), BasicTestSuite.TEST_DATA_SRID);
 			if (!g.equalsExact(a, 0.00001)) {
@@ -131,22 +139,24 @@ public class PourpointTest {
 		
 		//upstream unique catchments
 		for (Pourpoint p : out.getPoints()) {
-			String wkt = typeidgeom.get("puc").get(p.getId());
+			String wkt = typeidgeom.get(PourpointEngine.OutputType.NONOVERLAPPING_CATCHMENTS.key).get(p.getId());
 			Geometry g = reader.read(wkt);
 			Geometry a = GeotoolsGeometryReprojector.reproject(out.getNonOverlappingCatchments(p).getGeometry(), BasicTestSuite.TEST_DATA_SRID);
 			if (!g.equalsExact(a, 0.00001)) {
-				Assert.fail("unique catchment incorrect for pp: " + p.getId());
+				System.out.println(g.toText());
+				System.out.println(a.toText());
+				Assert.fail("non overlapping catchments incorrect for pp: " + p.getId());
 			}
 		}
 		
 		//upstream unique sub catchments
 		for (Pourpoint p : out.getPoints()) {
 			for (UniqueSubCatchment s : out.getTraversalCompliantCatchments(p)) {
-				String wkt = typeidgeom.get("pusc").get(s.getId());
+				String wkt = typeidgeom.get(PourpointEngine.OutputType.TRAVERSAL_COMPLIANT_CATCHMENTS.key).get(s.getId());
 				Geometry g = reader.read(wkt);
 				Geometry a = GeotoolsGeometryReprojector.reproject(s.getDrainageArea().getGeometry(), BasicTestSuite.TEST_DATA_SRID);
 				if (!g.equalsExact(a, 0.00001)) {
-					Assert.fail("unique sub catchment incorrect for pp: " + p.getId());
+					Assert.fail("traversal compliant catchments incorrect for pp: " + p.getId());
 				}
 			}
 		}
@@ -157,36 +167,36 @@ public class PourpointTest {
 		HashMap<String, HashMap<String, Integer>> cexpected = new HashMap<>();
 		
 		HashMap<String, Integer> row = new HashMap<>();
-		cexpected.put("P1", row);
-		row.put("P2_P1_P3", 1);
+		cexpected.put("P1||", row);
+		row.put("P2|P1_P3|", 1);
 		
 		row = new HashMap<>();
-		cexpected.put("P2", row);
-		row.put("P2_P1_P3", 1);
+		cexpected.put("P2||P3", row);
+		row.put("P2|P1_P3|", 1);
 		
 		row = new HashMap<>();
-		cexpected.put("P3", row);
-		row.put("P3_P4", 1);
-		row.put("P2_P1_P3", 1);
+		cexpected.put("P3||P4", row);
+		row.put("P3|P4|", 1);
+		row.put("P2|P1_P3|", 1);
 		
 		row = new HashMap<>();
-		cexpected.put("P3_P4", row);
-		row.put("P3", -1);
-		row.put("P4", -1);
-		row.put("P2_P1_P3", 1);
+		cexpected.put("P3|P4|", row);
+		row.put("P3||P4", -1);
+		row.put("P4||", -1);
+		row.put("P2|P1_P3|", 1);
 		
 		row = new HashMap<>();
-		cexpected.put("P4", row);
-		row.put("P3_P4", 1);
-		row.put("P2_P1_P3", 1);
+		cexpected.put("P4||", row);
+		row.put("P3|P4|", 1);
+		row.put("P2|P1_P3|", 1);
 		
 		row = new HashMap<>();
-		cexpected.put("P2_P1_P3", row);
-		row.put("P2", -1);
-		row.put("P3_P4", -1);
-		row.put("P4", -1);
-		row.put("P1", -1);
-		row.put("P3", -1);
+		cexpected.put("P2|P1_P3|", row);
+		row.put("P2||P3", -1);
+		row.put("P3|P4|", -1);
+		row.put("P4||", -1);
+		row.put("P1||", -1);
+		row.put("P3||P4", -1);
 		
 		for (int i = 0; i < out.getTraversalCompliantCatchments().size(); i ++) {
 			for (int j = 0; j < out.getTraversalCompliantCatchments().size(); j ++) {
