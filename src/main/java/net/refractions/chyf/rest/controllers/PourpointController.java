@@ -35,6 +35,10 @@ public class PourpointController {
 		PourpointEngine engine = new PourpointEngine(params.getPourpoints(), hyGraph, params.getRemoveHoles());
 		PourpointOutput pout = engine.compute(params.getOutputTypes());
 		
+		//flag for memory cleanup
+		engine = null;
+		System.gc();
+
 		ApiResponse resp = new ApiResponse(pout);
 		resp.setParams(params);
 		

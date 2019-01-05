@@ -71,7 +71,7 @@ public class Pourpoint {
 	private Set<ECatchment> sharedCatchments;
 	
 	
-	private DrainageArea cachedDrainageArea;
+//	private DrainageArea cachedDrainageArea;
 	
 	/**
 	 * 
@@ -131,6 +131,10 @@ public class Pourpoint {
 		return this.sharedCatchments;
 	}
 	
+	public Set<ECatchment> getSecondaryCatchments(){
+		return this.secondaryCatchments;
+	}
+	
 	public String getId() {
 		return id;
 	}
@@ -159,26 +163,33 @@ public class Pourpoint {
 	
 	
 	public DrainageArea getCatchmentDrainageAreaWithoutHoles() {
-		if (this.cachedDrainageArea == null) {
+//		if (this.cachedDrainageArea == null) {
 			Set<ECatchment> items = new HashSet<>();
 			items.addAll(getSharedCatchments());
 			items.addAll(getUniqueCatchments());
 			items.addAll(secondaryCatchments);
-			cachedDrainageArea = HyGraph.buildDrainageArea(items, false);
-		}
-		return cachedDrainageArea;
+//			cachedDrainageArea = HyGraph.buildDrainageArea(items, false);
+			return HyGraph.buildDrainageArea(items, false);
+//		}
+//		return cachedDrainageArea;
 	}
 	
 	public DrainageArea getCatchmentDrainageArea(boolean removeHoles) {
-		if (this.cachedDrainageArea == null) {
-			getCatchmentDrainageAreaWithoutHoles();
-		}
-		if (removeHoles) {
-			DrainageArea da = new DrainageArea(HyGraph.removeHoles(this.cachedDrainageArea.getGeometry()));
-			return da;
-		}else {
-			return this.cachedDrainageArea;
-		}
+		Set<ECatchment> items = new HashSet<>();
+		items.addAll(getSharedCatchments());
+		items.addAll(getUniqueCatchments());
+		items.addAll(secondaryCatchments);
+//		cachedDrainageArea = HyGraph.buildDrainageArea(items, false);
+		return HyGraph.buildDrainageArea(items, false);
+//		if (this.cachedDrainageArea == null) {
+//			getCatchmentDrainageAreaWithoutHoles();
+//		}
+//		if (removeHoles) {
+//			DrainageArea da = new DrainageArea(HyGraph.removeHoles(this.cachedDrainageArea.getGeometry()));
+//			return da;
+//		}else {
+//			return this.cachedDrainageArea;
+//		}
 	}
 	/**
 	 * Finds the most downstream flowpath edges

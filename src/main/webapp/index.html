@@ -419,6 +419,8 @@
 			<div class="toolCat">Actions</div>
 			<button id="doPPCalc" class="btn btn-default btn-sm" type="button" title="DoIt!" >Do It!</button>
 			<button id="clearPPMapLayers" class="btn btn-default btn-sm" style="margin-top:10px; width:100%" type="button" title="Clear Map" >Clear Map</button>
+			
+			<button id="ppUrlButtonJson" class="btn btn-default btn-sm" style="margin-top:10px; width:100%" type="button" title="Copy the json url to the clipboard" disabled=true>Copy URL (JSON)</button>
 			</div> <!-- pourpoint tab body -->
 			</div><!-- tabContent -->
 		</div> <!-- tabs -->
@@ -720,6 +722,9 @@
 		});
 		overlays['Canada NHN'] = nhnLayer;
 
+		
+		new Clipboard('#ppUrlButtonJson');
+		
 		var layerControl = L.control.layers(baseLayers, overlays).addTo(map);
 
 		// selection layer shows items returned from selectionRequest
@@ -1778,6 +1783,7 @@
 		});
 		
 		$('#doPPCalc').on('click', runPourpoint);
+		
 		$('#clearPPMapLayers').on('click', function(){
 			clearSelection();
 			$('#dataBar').empty();
@@ -1785,10 +1791,12 @@
 			// deselect the tool
 			switchTool(false);
 		});
+		
 		$('#clearPPList').on('click', function(){
 			$('#pourpointList > .form-group').each(function(){
 				deletePourpoint(this);
 			});
+			$('#add_pourpointId').val("P1");
 		});
 		
 		
@@ -1939,6 +1947,7 @@
 			//clear map layers/data bar
 			clearPourpointLayers();
 			$('#dataBar').empty();
+			$('#ppUrlButtonJson').prop('disabled', true);
 			
 			var tabs = document.createElement('div');
 			$(tabs).append($('<label style="padding:10px">Processing...</label><button id="btnCancelPp" class="btn btn-default btn-sm" type="button" title="Cancel" >Cancel</button>'));
@@ -1985,10 +1994,15 @@
    					withCredentials: true
 				},
 				success: function(data) {
-					displayPourpointResults(data, path);
+					displayPourpointResults(data, chyfApi + path);
 				},
 				error: function(xhr, text, error){
-					alert('Error occurred processing Pourpoints: ' + error);
+					try{
+						var json = JSON.parse(xhr.responseText);
+						alert('PROCESSING ERROR\n' + json.error);
+					}catch (err){
+						alert('Unknown error occurred processing Pourpoints.');
+					}
 				}
 			});
 		}
@@ -2118,6 +2132,8 @@
 			}
 			
 			//add any matrix to existing tabs
+			$('#ppUrlButtonJson').attr("data-clipboard-text", path);
+			$('#ppUrlButtonJson').prop('disabled', false);
 			
 			$('#dataBar').empty();
 			$('#dataBar').append($(tabs));

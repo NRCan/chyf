@@ -10,8 +10,17 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import net.refractions.chyf.pourpoint.PourpointException;
+
 @ControllerAdvice
 public class ExceptionMapper {
+	
+	
+	@ExceptionHandler(PourpointException.class)
+	public ResponseEntity<ErrorMessage> handleRuntimeException(PourpointException pe) {
+		return new ResponseEntity<ErrorMessage>(new ErrorMessage(pe.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+	}
+	
 	
 	@ExceptionHandler(RuntimeException.class)
 	public ResponseEntity<ErrorMessage> handleRuntimeException(RuntimeException re) {

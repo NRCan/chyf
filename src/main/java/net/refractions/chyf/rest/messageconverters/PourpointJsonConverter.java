@@ -74,6 +74,7 @@ public class PourpointJsonConverter extends JsonConverterHelper {
 		}
 		
 		jw.endArray();
+		jw.flush();
 	}
 	
 	protected void featureCollectionHeader(ApiResponse responseMetadata,  PourpointEngine.OutputType layername) throws IOException {

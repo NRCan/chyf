@@ -31,6 +31,7 @@ import net.refractions.chyf.hygraph.ECatchment;
 import net.refractions.chyf.hygraph.EFlowpath;
 import net.refractions.chyf.hygraph.Nexus;
 import net.refractions.chyf.indexing.SpatiallyIndexable;
+import net.refractions.chyf.pourpoint.PourpointOutput;
 import net.refractions.chyf.rest.GeotoolsGeometryReprojector;
 
 /**
@@ -53,60 +54,67 @@ public class GeoPackageHelper {
 	
 	public void convertResponse(ApiResponse response)  throws IOException {
 		Path tempFile = Files.createTempFile("geopackage", ".gpk");
-		
 		geopkg = new GeoPackage(tempFile.toFile());
-		try{
 		
-			Object data = response.getData();
-			
-			if(data == null) {
-				data = Collections.emptySet();
-			}else if (!(data instanceof Iterable<?>)) {
-				data = Collections.singleton(data);
-			}
-			
-			//features must be collected together by type 
-			//Layers include: Nexus, EFlowpath, ECatchment, DraingeArea, Other??
-			HashMap<Class<?>, List<Object>> collections = new HashMap<>();
-				
-			for (Object o : ((Iterable<?>)data)) {
-				Class<?> root = null;
-				if (o instanceof ECatchment) root = ECatchment.class;
-				else if (o instanceof Nexus) root = Nexus.class;
-				else if (o instanceof EFlowpath) root = EFlowpath.class;
-				else if (o instanceof DrainageArea)  root = DrainageArea.class;
-				else if (o instanceof SpatiallyIndexable) root = SpatiallyIndexable.class;
-				else continue;
-								
-				List<Object> objs = collections.get(root);
-				if (objs == null) {
-					objs = new ArrayList<>();
-					collections.put(root, objs);
-				}
-				objs.add(o);
-			}
-				
-			for (Entry<Class<?>, List<Object>> collection : collections.entrySet()) {
-				Class<?> type = collection.getKey();
-				if (type == Nexus.class) {
-					writeNexus(collection.getValue(), response);
-				}else if (type == EFlowpath.class) {
-					writeEFlowpath(collection.getValue(), response);
-				}else if (type == ECatchment.class) {
-					writeECatchment(collection.getValue(), response);
-				}else if (type == DrainageArea.class) {
-					writeDrainageArea(collection.getValue(), response);
-				}else if (type == SpatiallyIndexable.class) {
-					writeSpatialIndex(collection.getValue(), response);
-				}
-			}
+		try {
+		Object data = response.getData();
+		if (data instanceof PourpointOutput) {
+			(new PourpointGeoPackageConverter(geopkg)).convertResponse(response);
+		}else {
+			convertResponseInternal(response);
+		}
 		}finally {
 			geopkg.close();
 		}
-		
 		//write and delete temporary file
 		Files.copy(tempFile, outStream);
 		Files.delete(tempFile);
+	}
+	
+	private void convertResponseInternal(ApiResponse response) throws IOException{
+		Object data = response.getData();
+			
+		if(data == null) {
+			data = Collections.emptySet();
+		}else if (!(data instanceof Iterable<?>)) {
+			data = Collections.singleton(data);
+		}
+			
+		//features must be collected together by type 
+		//Layers include: Nexus, EFlowpath, ECatchment, DraingeArea, Other??
+		HashMap<Class<?>, List<Object>> collections = new HashMap<>();
+				
+		for (Object o : ((Iterable<?>)data)) {
+			Class<?> root = null;
+			if (o instanceof ECatchment) root = ECatchment.class;
+			else if (o instanceof Nexus) root = Nexus.class;
+			else if (o instanceof EFlowpath) root = EFlowpath.class;
+			else if (o instanceof DrainageArea)  root = DrainageArea.class;
+			else if (o instanceof SpatiallyIndexable) root = SpatiallyIndexable.class;
+			else continue;
+							
+			List<Object> objs = collections.get(root);
+			if (objs == null) {
+				objs = new ArrayList<>();
+				collections.put(root, objs);
+			}
+			objs.add(o);
+		}
+				
+		for (Entry<Class<?>, List<Object>> collection : collections.entrySet()) {
+			Class<?> type = collection.getKey();
+			if (type == Nexus.class) {
+				writeNexus(collection.getValue(), response);
+			}else if (type == EFlowpath.class) {
+				writeEFlowpath(collection.getValue(), response);
+			}else if (type == ECatchment.class) {
+				writeECatchment(collection.getValue(), response);
+			}else if (type == DrainageArea.class) {
+				writeDrainageArea(collection.getValue(), response);
+			}else if (type == SpatiallyIndexable.class) {
+				writeSpatialIndex(collection.getValue(), response);
+			}
+		}
 	}
 	
 	private void writeEFlowpath(List<Object> items, ApiResponse response) throws IOException {
