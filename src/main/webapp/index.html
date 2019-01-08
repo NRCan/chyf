@@ -2039,37 +2039,37 @@
 			var isActive = true;
 			
 			if (layers.pc != null){
-				layers.pc_tab = createTab("pc", layers.pc, $(ul), $(tabbody), isActive, catchmentPpLayer);
+				layers.pc_tab = createTab("pc", layers.pc, layers.pc.name, $(ul), $(tabbody), isActive, catchmentPpLayer);
 				isActive = false;
 			}else if (layers.pcc != null){
-				layers.pc_tab = createTab("pc", null, $(ul), $(tabbody), isActive, null);
+				layers.pc_tab = createTab("pc", null, layers.ppc.name, $(ul), $(tabbody), isActive, null);
 				isActive = false;
 			}
 			if (layers.noc != null){
-				layers.noc_tab = createTab("noc", layers.noc, $(ul), $(tabbody), isActive, uniqueCatchmentPpLayer);
+				layers.noc_tab = createTab("noc", layers.noc, layers.noc.name, $(ul), $(tabbody), isActive, uniqueCatchmentPpLayer);
 				isActive = false;
 			}else if (layers.nocr != null ){
-				layers.noc_tab = createTab("noc", null, $(ul), $(tabbody), isActive, null);
+				layers.noc_tab = createTab("noc", null, layers.nocr.name, $(ul), $(tabbody), isActive, null);
 				isActive = false;
 			}
 			if (layers.tcc != null){
-				layers.tcc_tab = createTab("tcc", layers.tcc, $(ul), $(tabbody), i == 0, uniqueSubCatchmentPpLayer);
+				layers.tcc_tab = createTab("tcc", layers.tcc, layers.tcc.name, $(ul), $(tabbody), isActive, uniqueSubCatchmentPpLayer);
 				isActive = false;
 			}else if (layers.tccr != null){
-				layers.tcc_tab = createTab("tcc", null, $(ul), $(tabbody), i == 0, null);
+				layers.tcc_tab = createTab("tcc", null, layers.tccr.name, $(ul), $(tabbody), isActive, null);
 				isActive = false;
 			}
 			
 			if (layers.ic != null){
-				layers.ic_tab = createTab("ic", layers.ic, $(ul), $(tabbody), isActive, interiorCatchmentPpLayer);
+				layers.ic_tab = createTab("ic", layers.ic, layers.ic.name, $(ul), $(tabbody), isActive, interiorCatchmentPpLayer);
 				isActive = false;
 			}
 			
 			if (layers.op != null){
-				layers.op_tab = createTab("op", layers.op, $(ul), $(tabbody), isActive, outputPpLayer);
+				layers.op_tab = createTab("op", layers.op, layers.op.name, $(ul), $(tabbody), isActive, outputPpLayer);
 				isActive = false;
-			} else if ( layers.ppdmin != null || layers.pdmax != null){
-				layers.op_tab = createTab("op", null, $(ul), $(tabbody), isActive, null);
+			} else if ( layers.opdmin != null || layers.opdmax != null){
+				layers.op_tab = createTab("op", null, "Output Pourpoints", $(ul), $(tabbody), isActive, null);
 				isActive = false;
 			}
 			
@@ -2137,12 +2137,12 @@
 			$('#dataBarWrapper').css("display", "block");
 		}
 		
-		function createTab(id, data, tabheaders, tabbody, active, maplayer){
+		function createTab(id, data, tabname, tabheaders, tabbody, active, maplayer){
 			var tab = document.createElement('li');
 			$(tab).attr("id", id + "_tab").appendTo(tabheaders);
 			if (active) $(tab).addClass("active");
 			var link = document.createElement('a');
-			$(link).attr("href", "#" + id + "_body").attr("data-toggle", "tab").html("<span style='padding-left:5px'>" + data.name + "</span>").appendTo($(tab));
+			$(link).attr("href", "#" + id + "_body").attr("data-toggle", "tab").html("<span style='padding-left:5px'>" + tabname + "</span>").appendTo($(tab));
 			
 			
 			var optabBody = document.createElement("div");

@@ -37,7 +37,7 @@ public class PourpointOutput {
 		this.tccr = engine.getTraversalCompliantCoverageRelationship();
 		this.tcc = engine.getSortedTraveralCompliantCoverages();
 		this.pcc = engine.getCatchmentContainment();
-		this.interiorCatchments = engine.getInteriodCatchments();
+		this.interiorCatchments = engine.getInteriorCatchments();
 		
 		minPpDistance = engine.getProjectedPourpointMinDistanceMatrix();
 		maxPpDistance = engine.getProjectedPourpointMaxDistanceMatrix();

@@ -105,8 +105,8 @@ public class PourpointEngine {
 	 * Interior catchments merged together 
 	 * @return
 	 */
-	public Set<DrainageArea> getInteriodCatchments(){
-		if (holes.isEmpty()) return Collections.emptySet();
+	public Set<DrainageArea> getInteriorCatchments(){
+		if (holes == null || holes.isEmpty()) return Collections.emptySet();
 		Geometry g = UnaryUnionOp.union(holes.stream().map(e->e.getPolygon()).collect(Collectors.toList()));
 		if (g instanceof MultiPolygon) {
 			Set<DrainageArea> dholes = new HashSet<>();
@@ -161,7 +161,8 @@ public class PourpointEngine {
 				OutputType.TRAVERSAL_COMPLIANT_CATCHMENTS,
 				OutputType.TRAVERSAL_COMPLIANT_CATCHMENT_RELATION,
 				OutputType.DISTANCE_MAX,
-				OutputType.DISTANCE_MIN)) {
+				OutputType.DISTANCE_MIN,
+				OutputType.INTERIOR_CATCHMENT)) {
 			computeUpstreamDownstreamPourpointRelationship();
 		}
 		
@@ -169,7 +170,8 @@ public class PourpointEngine {
 		if (containsOutput(OutputType.CATCHMENTS,
 				OutputType.NONOVERLAPPING_CATCHMENTS,
 				OutputType.TRAVERSAL_COMPLIANT_CATCHMENTS,
-				OutputType.TRAVERSAL_COMPLIANT_CATCHMENT_RELATION)) {
+				OutputType.TRAVERSAL_COMPLIANT_CATCHMENT_RELATION,
+				OutputType.INTERIOR_CATCHMENT)) {
 			computeUniqueCatchments();
 		}
 			
