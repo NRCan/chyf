@@ -29,7 +29,6 @@ public class PourpointJsonConverter extends JsonConverterHelper {
 	public void convertResponse(ApiResponse response) throws IOException {
 		result = (PourpointOutput) response.getData();
 
-		//		responseMetadata(responseMetadata);
 		jw.beginArray();
 		
 		if (result.getAvailableOutputs().contains(PourpointEngine.OutputType.OUTPUT_PP)){
@@ -42,12 +41,28 @@ public class PourpointJsonConverter extends JsonConverterHelper {
 			writeRelationship(PourpointEngine.OutputType.DISTANCE_MAX, result.getProjectedPourpointMaxDistanceMatrix());
 		}
 		
+		if (result.getAvailableOutputs().contains(PourpointEngine.OutputType.CATCHMENTS)){
+			writeCatchments(response);
+		}
+		
+		if (result.getAvailableOutputs().contains(PourpointEngine.OutputType.CATCHMENT_CONTAINMENT)) {
+			writeCatchmentContainment(response);
+		}
+		
+		if (result.getAvailableOutputs().contains(PourpointEngine.OutputType.NONOVERLAPPING_CATCHMENTS)){
+			writeNonOverlappingCatchments(response);
+		}
+		
 		if (result.getAvailableOutputs().contains(PourpointEngine.OutputType.NONOVERLAPPINGCATCHMENT_RELATIONSHIP)){
 			String[] headers =new String[result.getPoints().size()];
 			for (int i = 0; i < headers.length; i ++) {
 				headers[i] = result.getPoints().get(i).getId();
 			}
 			writeRelationship(PourpointEngine.OutputType.NONOVERLAPPINGCATCHMENT_RELATIONSHIP, headers, result.getNonOverlappingCatchmentRelationship());
+		}
+		
+		if (result.getAvailableOutputs().contains(PourpointEngine.OutputType.TRAVERSAL_COMPLIANT_CATCHMENTS)){
+			writeTraversalCompliantCatchments(response);
 		}
 		
 		if (result.getAvailableOutputs().contains(PourpointEngine.OutputType.TRAVERSAL_COMPLIANT_CATCHMENT_RELATION)){
@@ -59,20 +74,9 @@ public class PourpointJsonConverter extends JsonConverterHelper {
 			writeRelationship(PourpointEngine.OutputType.TRAVERSAL_COMPLIANT_CATCHMENT_RELATION, headers, result.getTraversalCompliantCatchmentRelationship());
 		}
 		
-		if (result.getAvailableOutputs().contains(PourpointEngine.OutputType.CATCHMENTS)){
-			writeCatchments(response);
-		}
-		if (result.getAvailableOutputs().contains(PourpointEngine.OutputType.NONOVERLAPPING_CATCHMENTS)){
-			writeNonOverlappingCatchments(response);
-		}
-		
-		if (result.getAvailableOutputs().contains(PourpointEngine.OutputType.TRAVERSAL_COMPLIANT_CATCHMENTS)){
-			writeTraversalCompliantCatchments(response);
-		}
-		if (result.getAvailableOutputs().contains(PourpointEngine.OutputType.CATCHMENT_CONTAINMENT)) {
-			writeCatchmentContainment(response);
-		}
-		
+		if (result.getAvailableOutputs().contains(PourpointEngine.OutputType.INTERIOR_CATCHMENT)) {
+			writeInteriorCatchment(response);
+		}		
 		jw.endArray();
 		jw.flush();
 	}
@@ -80,10 +84,23 @@ public class PourpointJsonConverter extends JsonConverterHelper {
 	protected void featureCollectionHeader(ApiResponse responseMetadata,  PourpointEngine.OutputType layername) throws IOException {
 		jw.beginObject();
 		jw.name("type").value("FeatureCollection");
-		jw.name("name").value(layername.key);
-
+		jw.name("key").value(layername.key);
+		jw.name("name").value(layername.layername);
 		jw.name("features");
 		jw.beginArray();
+	}
+	
+	private void writeInteriorCatchment(ApiResponse response) throws IOException {
+		this.featureCollectionHeader(response, PourpointEngine.OutputType.INTERIOR_CATCHMENT);
+		int counter = 1;
+		for (DrainageArea g : result.getInteriorCatchments()) {
+			this.featureHeader(GeotoolsGeometryReprojector.reproject(g.getGeometry(), response.getSrs()), counter, null);
+			this.field("id", counter++);
+			this.field("area", g.getArea());
+			this.featureFooter();
+		}
+		this.featureCollectionFooter();
+		
 	}
 	
 	private void writeProjectedPoutpoint(ApiResponse response) throws IOException {
@@ -160,7 +177,8 @@ public class PourpointJsonConverter extends JsonConverterHelper {
 	
 	private void writeRelationship(PourpointEngine.OutputType layer, Double[][] values) throws IOException{
 		jw.beginObject();
-		field("name", layer.key);
+		field("key", layer.key);
+		field("name", layer.layername);
 		
 		jw.name("headers");
 		this.listHeader();
@@ -185,8 +203,8 @@ public class PourpointJsonConverter extends JsonConverterHelper {
 	
 	private void writeRelationship(PourpointEngine.OutputType layer, String[] headers, Integer[][] values) throws IOException{
 		jw.beginObject();
-		field("name", layer.key);
-		
+		field("key", layer.key);
+		field("name", layer.layername);
 		jw.name("headers");
 		this.listHeader();
 		for (String h : headers) {

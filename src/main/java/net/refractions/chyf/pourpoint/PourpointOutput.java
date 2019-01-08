@@ -26,6 +26,7 @@ public class PourpointOutput {
 	private Double[][] maxPpDistance;
 	
 	private Set<PourpointEngine.OutputType> outputs;
+	private Set<DrainageArea> interiorCatchments;
 	
 	private boolean removeHoles;
 	
@@ -36,14 +37,22 @@ public class PourpointOutput {
 		this.tccr = engine.getTraversalCompliantCoverageRelationship();
 		this.tcc = engine.getSortedTraveralCompliantCoverages();
 		this.pcc = engine.getCatchmentContainment();
+		this.interiorCatchments = engine.getInteriodCatchments();
+		
 		minPpDistance = engine.getProjectedPourpointMinDistanceMatrix();
 		maxPpDistance = engine.getProjectedPourpointMaxDistanceMatrix();
 		this.outputs = engine.getAvailableOutputs();
+		
 	}
 
+	public Set<DrainageArea> getInteriorCatchments(){
+		return this.interiorCatchments;
+	}
+	
 	public Set<PourpointEngine.OutputType> getAvailableOutputs(){
 		return this.outputs;
 	}
+	
 	public List<Pourpoint> getPoints() {
 		return points;
 	}
@@ -51,6 +60,7 @@ public class PourpointOutput {
 	public Double[][] getProjectedPourpointMinDistanceMatrix(){
 		return minPpDistance;
 	}
+	
 	public Double[][] getProjectedPourpointMaxDistanceMatrix(){
 		return maxPpDistance;
 	}
@@ -73,14 +83,11 @@ public class PourpointOutput {
 	
 	public DrainageArea getCatchment(Pourpoint point) {
 		return point.getCatchmentDrainageArea(removeHoles);
-		
 	}
 	
 	public DrainageArea getNonOverlappingCatchments(Pourpoint point) {
 		return HyGraph.buildDrainageArea(point.getUniqueCatchments(), false);
 	}
-	
-	
 	
 	public Collection<UniqueSubCatchment> getTraversalCompliantCatchments(Pourpoint point){
 		return point.getTraversalCompliantCatchments();

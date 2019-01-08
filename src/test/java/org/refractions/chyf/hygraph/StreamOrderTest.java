@@ -15,9 +15,7 @@ import org.junit.rules.TestRule;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Point;
-import com.vividsolutions.jts.geom.Polygon;
 
 import net.refractions.chyf.ChyfDatastore;
 import net.refractions.chyf.enumTypes.FlowpathType;
@@ -27,7 +25,7 @@ import net.refractions.chyf.rest.GeotoolsGeometryReprojector;
 import net.refractions.chyf.rest.PredicateParameter;
 
 /**
- * Tests strahler, horton and hack order assigments
+ * Tests strahler, horton and hack order assignments
  * 
  * This test makes use of the hygraph network and the
  * order_results.json file.
@@ -182,20 +180,5 @@ public class StreamOrderTest {
 		public TestPoint() {
 		}
 	}
-	
-	public static void main(String args[]) {
-		GeometryFactory gf = new GeometryFactory();
-		Point p = gf.createPoint(new Coordinate(1, 3));
-		Polygon polygon = gf.createPolygon(new Coordinate[] {
-				new Coordinate(0,0),
-				new Coordinate(0,1),
-				new Coordinate(2,1),
-				new Coordinate(2,0),
-				new Coordinate(0,0),
-				
-		});
-		System.out.println(p.relate(polygon));
-		System.out.println(p.relate(polygon, "F0F******"));
-	}
-	
+		
 }

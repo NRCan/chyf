@@ -79,7 +79,7 @@
 			bottom: 0;
 			left: 300px;
 			height: 200px;
-			width: 800px;
+			width: 945px;
 			border: 1px solid lightSlateGrey;
 			display:none;
 		}
@@ -408,6 +408,10 @@
   				<input class="form-check-input" type="checkbox" value="" id="traversalcompliantcatchmentrelations" checked>
   				<label class="form-check-label" for="traversalcompliantcatchmentrelations">Traversal Compliant Relations</label>
 			</div>
+			<div class="form-check">
+				<input class="form-check-input" type="checkbox" value="" id="interiorcatchments" checked>
+				<label class="form-check-label" for="interiorcatchments">Interior Catchments</label>
+		</div>
 			<a id="ppall" href="">All</a>|<a id="ppnone" href="">None</a>
 			</div> <!-- pourpoint output -->
 			
@@ -421,6 +425,9 @@
 			<button id="clearPPMapLayers" class="btn btn-default btn-sm" style="margin-top:10px; width:100%" type="button" title="Clear Map" >Clear Map</button>
 			
 			<button id="ppUrlButtonJson" class="btn btn-default btn-sm" style="margin-top:10px; width:100%" type="button" title="Copy the json url to the clipboard" disabled=true>Copy URL (JSON)</button>
+			<button id="ppUrlButtonGeoPkg" class="btn btn-default btn-sm" style="margin-top:10px; width:100%" type="button" title="Copy the geopackage url to the clipboard" disabled=true>Copy URL (GeoPackage*)</button>
+
+			<div style="font-size: .8em">*GeoPackage output only includes spatial datasets, not relationship or matrix data</div>
 			</div> <!-- pourpoint tab body -->
 			</div><!-- tabContent -->
 		</div> <!-- tabs -->
@@ -724,6 +731,7 @@
 
 		
 		new Clipboard('#ppUrlButtonJson');
+		new Clipboard('#ppUrlButtonGeoPkg');
 		
 		var layerControl = L.control.layers(baseLayers, overlays).addTo(map);
 
@@ -1527,40 +1535,6 @@
 				cols: {
 					'area': 'Area (ha)'
 				}
-			},
-			
-			op:{
-				title: "Output Pourpoints",
-				titlePlural: "Output Pourpoints",
-				cols: {
-					'id': 'ID',
-					'ccode': 'C Code',
-				}
-			},
-			
-			pc:{
-				title: "Catchment",
-				titlePlural: "Catchments",
-				cols: {
-					'id': 'ID',
-					'area': 'Area',
-				}
-			},
-			noc:{
-				title: "Non Overlapping Catchment",
-				titlePlural: "Non Overlapping Catchments",
-				cols: {
-					'id': 'ID',
-					'area': 'Area',
-				}
-			},
-			tcc:{
-				title: "Traversal Compliant Catchment",
-				titlePlural: "Traversal Compliant Catchments",
-				cols: {
-					'id': 'ID',
-					'area': 'Area',
-				}
 			}
 		};
 
@@ -1900,6 +1874,7 @@
 		var catchmentPpLayer;
 		var uniqueCatchmentPpLayer;
 		var uniqueSubCatchmentPpLayer;
+		var interiorCatchmentPpLayer;
 		var pPLayer;
 		var highlightLayer;
 		var ppRequest;
@@ -1930,6 +1905,10 @@
 				map.removeLayer(uniqueSubCatchmentPpLayer);
 				uniqueSubCatchmentPpLayer = null;
 			}
+			if (interiorCatchmentPpLayer != null){
+				map.removeLayer(interiorCatchmentPpLayer);
+				interiorCatchmentPpLayer = null;
+			}
 		}
 		
 		
@@ -1948,6 +1927,7 @@
 			clearPourpointLayers();
 			$('#dataBar').empty();
 			$('#ppUrlButtonJson').prop('disabled', true);
+			$('#ppUrlButtonGeoPkg').prop('disabled', true);
 			
 			var tabs = document.createElement('div');
 			$(tabs).append($('<label style="padding:10px">Processing...</label><button id="btnCancelPp" class="btn btn-default btn-sm" type="button" title="Cancel" >Cancel</button>'));
@@ -1978,7 +1958,8 @@
 			if ($("#nonoverlappingcatchments").is(':checked')) query +="noc,";
 			if ($("#traversalcompliantcatchments").is(':checked')) query +="tcc,";
  			if ($("#traversalcompliantcatchmentrelations").is(':checked')) query +="tccr,";		
-
+ 			if ($("#interiorcatchments").is(':checked')) query +="ic,";
+ 			
  			query +="&removeHoles=";
  			if ($("#ppholes").is(':checked')){
  				query +="true";
@@ -2027,28 +2008,31 @@
 			var layers = {};
 			for (var i = 0; i < data.length; i ++){
 				var item = data[i];
-				if (item.name=="op"){
+				if (item.key=="op"){
 					addOutputPourpointLayer(item);
 					layers.op = item;
 					
-				}else if (item.name=="pc"){
+				}else if (item.key=="pc"){
 					addPourpointCatchmentLayer(item);
 					layers.pc = item;
-				}else if (item.name =="noc"){
+				}else if (item.key =="noc"){
 					addPourpointUniqueCatchmentLayer(item);
 					layers.noc = item;
-				}else if (item.name =="tcc"){
+				}else if (item.key =="tcc"){
 					addPourpointUniqueSubCatchmentLayer(item);
 					layers.tcc = item;
-				}else if (item.name == "nocr"){
+				}else if (item.key =="ic"){
+					addInteriorCatchmentLayer(item);
+					layers.ic = item;
+				}else if (item.key == "nocr"){
 					layers.nocr = item;
-				}else if (item.name == "opdmin"){
+				}else if (item.key == "opdmin"){
 					layers.opdmin = item;
-				}else if (item.name == "opdmax"){
+				}else if (item.key == "opdmax"){
 					layers.opdmax = item;
-				}else if (item.name == "tccr"){
+				}else if (item.key == "tccr"){
 					layers.tccr = item;
-				}else if (item.name == "pcc"){
+				}else if (item.key == "pcc"){
 					layers.pcc = item;
 				}
 			}
@@ -2075,6 +2059,12 @@
 				layers.tcc_tab = createTab("tcc", null, $(ul), $(tabbody), i == 0, null);
 				isActive = false;
 			}
+			
+			if (layers.ic != null){
+				layers.ic_tab = createTab("ic", layers.ic, $(ul), $(tabbody), isActive, interiorCatchmentPpLayer);
+				isActive = false;
+			}
+			
 			if (layers.op != null){
 				layers.op_tab = createTab("op", layers.op, $(ul), $(tabbody), isActive, outputPpLayer);
 				isActive = false;
@@ -2090,6 +2080,7 @@
 				$div.append( $('<div>[i,j]<br>1 = i upstream of j;<br>-1 = i downstream of j</div>' ));
 				layers.noc_tab.append($div);
 			}
+			
 			if (layers.opdmin != null || layers.opdmax != null){
 				
 				var data = [[]];
@@ -2131,9 +2122,15 @@
 				layers.pc_tab.append($div);
 			}
 			
+
+			
 			//add any matrix to existing tabs
 			$('#ppUrlButtonJson').attr("data-clipboard-text", path);
 			$('#ppUrlButtonJson').prop('disabled', false);
+			
+			var geopkgurl = path.replace(/\.json/, ".geopackage");
+			$('#ppUrlButtonGeoPkg').attr("data-clipboard-text", geopkgurl);
+			$('#ppUrlButtonGeoPkg').prop('disabled', false);
 			
 			$('#dataBar').empty();
 			$('#dataBar').append($(tabs));
@@ -2145,7 +2142,7 @@
 			$(tab).attr("id", id + "_tab").appendTo(tabheaders);
 			if (active) $(tab).addClass("active");
 			var link = document.createElement('a');
-			$(link).attr("href", "#" + id + "_body").attr("data-toggle", "tab").html("<span style='padding-left:5px'>" + dataMap[id].titlePlural + "</span>").appendTo($(tab));
+			$(link).attr("href", "#" + id + "_body").attr("data-toggle", "tab").html("<span style='padding-left:5px'>" + data.name + "</span>").appendTo($(tab));
 			
 			
 			var optabBody = document.createElement("div");
@@ -2181,7 +2178,12 @@
 			
 				var features = data.features;
 				
-				var cols = dataMap[id].cols;
+				var cols = {};
+				if (data.key == "op"){
+					cols = {'id': 'ID', 'ccode': 'C Code'};
+				}else{
+					cols = {'id': 'ID','area': 'Area (ha)'};
+				}
 
 				var $table = $('<table class="pourpointFeatureTable"/>');
 				var $thead = $('<thead/>');
@@ -2303,6 +2305,11 @@
 					  pane: 'pourpointpane'
 				}).addTo(map);
 		}
+		function addInteriorCatchmentLayer(layerdata){
+			interiorCatchmentPpLayer = L.geoJson(layerdata, {
+				  pane: 'pourpointpane'
+			}).addTo(map);
+	}
 		
 	</script>
 </body>

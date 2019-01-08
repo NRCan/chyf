@@ -145,14 +145,26 @@ public class Pourpoint {
 		return this.upstreamPoints;
 	}
 	
+	/**
+	 * The pourpoint prime position
+	 * @return
+	 */
 	public Point getProjectedPoint() {
 		return this.downstreamFlowpaths.get(0).getToNode().getPoint();
 	}
 	
+	/**
+	 * The raw pourpoint position reprojected to the hygraph projection
+	 * @return
+	 */
 	public Point getPoint() {
 		return this.location;
 	}
 	
+	/**
+	 * The raw pourpoint entered by the user in latlong
+	 * @return
+	 */
 	public Point getRawPoint() {
 		return this.raw;
 	}

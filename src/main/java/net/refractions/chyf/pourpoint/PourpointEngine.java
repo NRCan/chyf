@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 import java.util.Objects;
 import java.util.Set;
 
@@ -44,21 +45,23 @@ public class PourpointEngine {
 	static final Logger logger = LoggerFactory.getLogger(PourpointEngine.class.getCanonicalName());
 	
 	public enum OutputType{
-		OUTPUT_PP("op"),	//pp projected to hydro nexus
-		DISTANCE_MIN("opdmin"), //min distance along flowpath between projected pp
-		DISTANCE_MAX("opdmax"),  //max distance along flowpath between projected pp
-		CATCHMENTS("pc"), //upstream catchments for pp
-		CATCHMENT_CONTAINMENT("pcc"), //pourpoint catchment contains relationship
-		NONOVERLAPPING_CATCHMENTS("noc"), //unique upstream catchments for pp
-		NONOVERLAPPINGCATCHMENT_RELATIONSHIP("nocr"), //upstream/downstream relationship between nonoverlapping catchments
-		TRAVERSAL_COMPLIANT_CATCHMENTS("tcc"), //unique upstream subcatchments for pp
-		TRAVERSAL_COMPLIANT_CATCHMENT_RELATION("tccr"), //upstream/downstream relationships between upstream subcatchments
-		INTERIOR_CATCHMENT("ic"); //interior catchments aka holes
+		OUTPUT_PP("op", "Output Pourpoints"),	
+		DISTANCE_MIN("opdmin", "Pourpoint Minimum Distance Matrix"), 
+		DISTANCE_MAX("opdmax", "Pourpoint Maximum Distance Matrix"), 
+		CATCHMENTS("pc", "Catchments"), 
+		CATCHMENT_CONTAINMENT("pcc", "Catchment Containment Relationship"), 
+		NONOVERLAPPING_CATCHMENTS("noc", "Non-Overlapping Catchments"), 
+		NONOVERLAPPINGCATCHMENT_RELATIONSHIP("nocr", "Non-Overlapping Catchment Flow Relationships"), 
+		TRAVERSAL_COMPLIANT_CATCHMENTS("tcc", "Transversal Compliant Catchments"), 
+		TRAVERSAL_COMPLIANT_CATCHMENT_RELATION("tccr", "Transversal Compliant Catchment Flow Relationships"),
+		INTERIOR_CATCHMENT("ic", "Interior Catchments");
 		
 		public String key;
+		public String layername;
 		
-		OutputType(String key){
+		OutputType(String key, String layername){
 			this.key = key;
+			this.layername = layername;
 		}
 		
 		public static OutputType parse(String key) {
@@ -98,8 +101,22 @@ public class PourpointEngine {
 		return this.removeHoles;
 	}
 	
-	public Set<ECatchment> getHoles(){
-		return this.holes;
+	/**
+	 * Interior catchments merged together 
+	 * @return
+	 */
+	public Set<DrainageArea> getInteriodCatchments(){
+		if (holes.isEmpty()) return Collections.emptySet();
+		Geometry g = UnaryUnionOp.union(holes.stream().map(e->e.getPolygon()).collect(Collectors.toList()));
+		if (g instanceof MultiPolygon) {
+			Set<DrainageArea> dholes = new HashSet<>();
+			for (int i = 0; i < ((MultiPolygon)g).getNumGeometries(); i ++) {
+				dholes.add( new DrainageArea( ((MultiPolygon)g).getGeometryN(i) ));
+			}
+			return dholes;
+		}else {
+			return Collections.singleton(new DrainageArea(g));
+		}
 	}
 	
 	private boolean containsOutput(OutputType... types) {
@@ -492,7 +509,7 @@ public class PourpointEngine {
 		//tracks the secondary flow to post-process
 		List<EFlowpath> secondaryPostProcess = new ArrayList<>(); 
 		
-		HashMap<ECatchment, Set<ECatchment>> catchments = new HashMap<>();
+		HashMap<EFlowpath, Set<ECatchment>> catchments = new HashMap<>();
 		Set<Pourpoint> processed = new HashSet<>();
 		while(!toProcess.isEmpty()) {
 			Pourpoint item = toProcess.removeFirst();
@@ -508,7 +525,7 @@ public class PourpointEngine {
 				Set<ECatchment> all = new HashSet<>();
 				all.addAll(uniqueCatchments);
 				all.addAll(otherCatchments);
-				catchments.put(path.getCatchment(), all);
+				catchments.put(path, all);
 			}
 			//remove pourpoint and find the next to process
 			for (Pourpoint pp : points) {
@@ -727,7 +744,7 @@ public class PourpointEngine {
 	}
 	
 	
-	private List<ECatchment>[] findUpstreamCatchments(Pourpoint point, EFlowpath root, HashMap<ECatchment, Set<ECatchment>> catchments, List<EFlowpath> secondaryPostProcess ){
+	private List<ECatchment>[] findUpstreamCatchments(Pourpoint point, EFlowpath root, HashMap<EFlowpath, Set<ECatchment>> catchments, List<EFlowpath> secondaryPostProcess ){
 		
 		List<ECatchment> uniqueCatchments = new ArrayList<ECatchment>();
 		List<ECatchment> otherCatchments = new ArrayList<ECatchment>();
@@ -738,8 +755,8 @@ public class PourpointEngine {
 		while(!toProcess.isEmpty()) {
 			EFlowpath item = toProcess.removeFirst();
 			visited.add(item);
-			if (catchments.containsKey(item.getCatchment())) {
-				otherCatchments.addAll(catchments.get(item.getCatchment()));
+			if (catchments.containsKey(item)) {
+				otherCatchments.addAll(catchments.get(item));
 			}else {
 				ECatchment c = item.getCatchment();
 				if(item.getType() == FlowpathType.BANK) {
@@ -756,6 +773,7 @@ public class PourpointEngine {
 				
 			}	
 		}
+		uniqueCatchments.removeAll(otherCatchments);
 		return new List[] {uniqueCatchments, otherCatchments};
 	}
 
