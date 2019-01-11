@@ -1,4 +1,4 @@
-package org.refractions.chyf.hygraph;
+package net.refractions.chyf.hygraph;
 
 import java.net.URL;
 import java.nio.file.Path;

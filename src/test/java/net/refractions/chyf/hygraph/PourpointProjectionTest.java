@@ -1,4 +1,4 @@
-package org.refractions.chyf.hygraph;
+package net.refractions.chyf.hygraph;
 
 import java.util.List;
 

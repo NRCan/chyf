@@ -1,4 +1,4 @@
-package org.refractions.chyf.hygraph;
+package net.refractions.chyf.hygraph;
 
 import java.io.InputStreamReader;
 import java.util.HashMap;
