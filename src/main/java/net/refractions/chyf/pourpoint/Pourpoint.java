@@ -69,10 +69,7 @@ public class Pourpoint {
 	private Set<ECatchment> secondaryCatchments;
 	//all other catchments
 	private Set<ECatchment> sharedCatchments;
-	
-	
-//	private DrainageArea cachedDrainageArea;
-	
+		
 	/**
 	 * 
 	 * @param location the point is assumed to be in the hygraph working projection
@@ -88,13 +85,14 @@ public class Pourpoint {
 		if (ccode == -2) {
 			type = CType.NEAREST_INCATCHMENT;
 		}else if (ccode == -1) {
-			type = CType.NEAREST_FLOWPATH;
+			throw new PourpointException("C-Code of " + CType.NEAREST_FLOWPATH.ccode  + " not supported in this version.");
+//			type = CType.NEAREST_FLOWPATH;
 		}else if (ccode == 0) {
 			type = CType.NEAREST_NEXUS_ALL;
-		}else if (ccode > 0) {
+		}else if (ccode > 0 && ccode < 10) {	//10 is an arbitrary value
 			type = CType.NEAREST_NEXUS_SINGLE;
 		}else {
-			throw new IllegalStateException("Invalid ccode value");
+			throw new PourpointException("Invalid C-Code value: " + ccode);
 		}
 		
 		uniqueCatchments = new HashSet<>();
@@ -173,36 +171,14 @@ public class Pourpoint {
 		return this.downstreamFlowpaths;
 	}
 	
-	
-	public DrainageArea getCatchmentDrainageAreaWithoutHoles() {
-//		if (this.cachedDrainageArea == null) {
-			Set<ECatchment> items = new HashSet<>();
-			items.addAll(getSharedCatchments());
-			items.addAll(getUniqueCatchments());
-			items.addAll(secondaryCatchments);
-//			cachedDrainageArea = HyGraph.buildDrainageArea(items, false);
-			return HyGraph.buildDrainageArea(items, false);
-//		}
-//		return cachedDrainageArea;
-	}
-	
 	public DrainageArea getCatchmentDrainageArea(boolean removeHoles) {
 		Set<ECatchment> items = new HashSet<>();
 		items.addAll(getSharedCatchments());
 		items.addAll(getUniqueCatchments());
 		items.addAll(secondaryCatchments);
-//		cachedDrainageArea = HyGraph.buildDrainageArea(items, false);
-		return HyGraph.buildDrainageArea(items, false);
-//		if (this.cachedDrainageArea == null) {
-//			getCatchmentDrainageAreaWithoutHoles();
-//		}
-//		if (removeHoles) {
-//			DrainageArea da = new DrainageArea(HyGraph.removeHoles(this.cachedDrainageArea.getGeometry()));
-//			return da;
-//		}else {
-//			return this.cachedDrainageArea;
-//		}
+		return HyGraph.buildDrainageArea(items, removeHoles);
 	}
+	
 	/**
 	 * Finds the most downstream flowpath edges
 	 * based code on of the point
@@ -218,8 +194,9 @@ public class Pourpoint {
 			
 			List<ECatchment> catchments = graph.findECatchments(location, 1, 0, null);
 			if (catchments.isEmpty() || catchments.size() > 1) {
-				logger.error("Pourpoint not located in any catchment (" + raw.getX() + ", " + raw.getY()+ ")");
-				return;
+				String msg = "Pourpoint not located in any catchment (" + raw.getX() + ", " + raw.getY()+ ")";
+				logger.error(msg);
+				throw new PourpointException(msg);
 			}
 			ECatchment c = catchments.get(0);
 			
@@ -253,7 +230,9 @@ public class Pourpoint {
 			List<EFlowpath> nearestPaths = graph.findEFlowpaths(location, 4, null, e->e.getType() != FlowpathType.BANK);
 			
 			if (nearestPaths.isEmpty()) {
-				logger.error("Pourpoint not located near any flowpaths(" + raw.getX() + ", " + raw.getY()+ ")");
+				String msg = "Pourpoint not located near any flowpaths(" + raw.getX() + ", " + raw.getY()+ ")";
+				logger.error(msg);
+				throw new PourpointException(msg);
 			}else {
 				double d0 = nearestPaths.get(0).distance(location);
 				double d1 = nearestPaths.get(1).distance(location);
@@ -285,12 +264,20 @@ public class Pourpoint {
 			
 			List<Nexus> nearestNexus = graph.findNexuses(location, 1, null, e->e.getType() != NexusType.BANK);
 			if (nearestNexus.isEmpty()) {
-				logger.error("Pourpoint not located near any nexuses (" + raw.getX() + ", " + raw.getY()+ ")");
+				String msg = "Pourpoint not located near any nexuses (" + raw.getX() + ", " + raw.getY()+ ")";
+				logger.error(msg);
+				throw new PourpointException(msg);
 			}else {
 				nearestNexus.get(0).getUpFlows()
 					.stream()
 					.filter(f->f.getType() != FlowpathType.BANK)
-					.forEach(f->downstreamFlowpaths.add(f));				
+					.forEach(f->downstreamFlowpaths.add(f));
+				
+				if (downstreamFlowpaths.isEmpty()) {
+					String msg = "Pourpoint projection - no non-bank flowpaths found (" + raw.getX() + ", " + raw.getY()+ ")";
+					logger.error(msg);
+					throw new PourpointException(msg);
+				}
 			}
 		}else if (this.type == CType.NEAREST_NEXUS_SINGLE) {
 			//The closest hydro nexus is the intended pourpoint, and 
@@ -303,7 +290,10 @@ public class Pourpoint {
 			//clockwise direction from the outflowing flowpath.
 			List<Nexus> nearestNexus = graph.findNexuses(location, 1, null, e->e.getType() != NexusType.BANK);
 			if (nearestNexus.isEmpty()) {
-				logger.error("Pourpoint near any nexuses (" + raw.getX() + ", " + raw.getY()+ ")");
+				String msg = "Pourpoint not near any nexuses (" + raw.getX() + ", " + raw.getY()+ ")";
+				logger.error(msg);
+				throw new PourpointException(msg);
+				
 			}else {
 				//first filter out bank flows
 				List<EFlowpath> temp = new ArrayList<>();
@@ -313,14 +303,18 @@ public class Pourpoint {
 					.forEach(f->temp.add(f));
 				
 				if (this.ccode > temp.size()) {
-					logger.error("Pourpoint projection - no non-back flowpaths found (" + raw.getX() + ", " + raw.getY()+ ")");
+					String msg = "Pourpoint projection - no non-bank flowpaths found (" + raw.getX() + ", " + raw.getY()+ ")";
+					logger.error(msg);
+					throw new PourpointException(msg);
 				}
 				if (temp.size() == 1 && this.ccode == 1) {
 					//only one to return so we are 
 					downstreamFlowpaths.add(temp.get(0));
 				}else {
 					if (nearestNexus.get(0).getDownFlows().isEmpty()) {
-						logger.error("Pourpoint projection - no down flows from nexus (" + raw.getX() + ", " + raw.getY()+ ")");
+						String msg = "Pourpoint projection - no down flows from nexus (" + raw.getX() + ", " + raw.getY()+ ")";
+						logger.error(msg);
+						throw new PourpointException(msg);
 					}
 					
 					//sort outputs by type

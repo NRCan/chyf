@@ -49,7 +49,7 @@ public class SimpleDataPourpointTest {
 	@Test
 	public void test_pourpointProjection() throws URISyntaxException {
 		List<Pourpoint> points = new ArrayList<>();
-		points.add(new Pourpoint(GeotoolsGeometryReprojector.reproject(BasicTestSuite.GF.createPoint(new Coordinate(-73.47460180813951, 45.111997089079395)), ChyfDatastore.BASE_SRS), -1, "P4"));
+		points.add(new Pourpoint(GeotoolsGeometryReprojector.reproject(BasicTestSuite.GF.createPoint(new Coordinate(-73.47460180813951, 45.111997089079395)), ChyfDatastore.BASE_SRS), -2, "P4"));
 		
 		HashMap<String, Coordinate> projectedPoints = new HashMap<>();
 		projectedPoints.put("P4", new Coordinate(-73.47452470185075, 45.112175703542384));
@@ -71,7 +71,7 @@ public class SimpleDataPourpointTest {
 		points.add(new Pourpoint(GeotoolsGeometryReprojector.reproject(BasicTestSuite.GF.createPoint(new Coordinate(-73.4622349011061, 45.101463647914315)), ChyfDatastore.BASE_SRS), 0, "P1"));
 		points.add(new Pourpoint(GeotoolsGeometryReprojector.reproject(BasicTestSuite.GF.createPoint(new Coordinate(-73.46392456572985, 45.10495082809525)), ChyfDatastore.BASE_SRS), 2, "P2"));
 		points.add(new Pourpoint(GeotoolsGeometryReprojector.reproject(BasicTestSuite.GF.createPoint(new Coordinate(-73.46755554715536, 45.106892144897)), ChyfDatastore.BASE_SRS), 1, "P3"));
-		points.add(new Pourpoint(GeotoolsGeometryReprojector.reproject(BasicTestSuite.GF.createPoint(new Coordinate(-73.474930904963, 45.1122588226033)), ChyfDatastore.BASE_SRS), -1, "P4"));
+		points.add(new Pourpoint(GeotoolsGeometryReprojector.reproject(BasicTestSuite.GF.createPoint(new Coordinate(-73.474930904963, 45.1122588226033)), ChyfDatastore.BASE_SRS), -2, "P4"));
 		points.add(new Pourpoint(GeotoolsGeometryReprojector.reproject(BasicTestSuite.GF.createPoint(new Coordinate(-73.46838240431167, 45.11530451770461)), ChyfDatastore.BASE_SRS), 0, "P5"));
 		
 		HashMap<String, Coordinate> projectedPoints = new HashMap<>();

@@ -363,8 +363,9 @@
 						<input type="text" id="add_pourpointId" class="form-control input-sm" value="P1" style="width: 120px" />
 						<span class="ppinputlbl" style="margin-left: 5px">C-Code:</span>
 						<select id="add_pourpointCode" class="form-control input-sm" style="width: 55px">
-						<option value="-2">-2</option>
-						<option value="-1" selected>-1</option>
+						<option value="-2" selected>-2</option>
+						<!-- ccode of -1 not supported at this time -->
+						<!--<option value="-1">-1</option>-->
 						<option value="0">0</option>
 						<option value="1">1</option>
 						<option value="2">2</option>
@@ -437,7 +438,7 @@
 
 	<!-- dialog -->
 	<div id="pp_import_dialog" title="Import Pourpoints" style="display:none">
-		<p>The import file must be a comma seperated file, with a header line continaing the fields, 'ID', 'CCode', 'X','Y'.  There must also be no commas inside quoted strings.</p>
+		<p>The import file must be a comma seperated file, with a header line continaing the fields, 'ID', 'C-Code', 'X','Y'.  There must also be no commas inside quoted strings.</p>
 	</div>
 
 	<script src="https://unpkg.com/clipboard@1.7.1/dist/clipboard.min.js"></script>
@@ -1749,7 +1750,7 @@
 			var nextId = "P" + ($('#pourpointList').children().length + 1);
 			$('#add_pourpointId').val(nextId);
 			$('#add_pourpointLocation').val('');
-			$('#add_pourpointCode').val('-1');
+			$('#add_pourpointCode').val('-2');
 			if (currentPourpointMarker != null){
 				map.removeLayer(currentPourpointMarker);
 				currentPourpointMarker = null;
@@ -2180,7 +2181,7 @@
 				
 				var cols = {};
 				if (data.key == "op"){
-					cols = {'id': 'ID', 'ccode': 'C Code'};
+					cols = {'id': 'ID', 'ccode': 'C-Code', 'raw_x': 'Raw X', 'raw_y': 'Raw Y', 'projected_x': 'Projected X', 'projected_y': 'Projected Y'};
 				}else{
 					cols = {'id': 'ID','area': 'Area (ha)'};
 				}
@@ -2196,7 +2197,20 @@
 					var $row = $('<tr/>');
 					$row.data("geometry", features[f].geometry);
 					for(var c in cols) {
-						$row.append('<td>' + (features[f].properties[c] == null ? "" : features[f].properties[c]) + '</td>');
+						var value = features[f].properties[c];
+						
+						if (data.key == "op"){
+							if (c == 'projected_y'){
+							value = features[f].geometry.coordinates[1];
+							}else if (c == 'projected_x'){
+								value = features[f].geometry.coordinates[0];
+							}else if (c == 'raw_x' || c =='raw_y'){
+								value = value.toFixed(5);
+							}
+						} 
+							
+						$row.append('<td>' + (value == null ? "" : value) + '</td>');
+						
 					}
 					$tbody.append($row);
 					$row.hover(

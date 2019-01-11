@@ -13,6 +13,7 @@ import com.vividsolutions.jts.geom.PrecisionModel;
 import net.refractions.chyf.ChyfDatastore;
 import net.refractions.chyf.pourpoint.Pourpoint;
 import net.refractions.chyf.pourpoint.PourpointEngine;
+import net.refractions.chyf.pourpoint.PourpointException;
 
 public class PourpointParameters extends SharedParameters {
 
@@ -58,6 +59,8 @@ public class PourpointParameters extends SharedParameters {
 				
 				inputPoints.add(new Pourpoint(GeotoolsGeometryReprojector.reproject(pnt, ChyfDatastore.BASE_SRS),code,id));
 			}
+		}catch (PourpointException pe) {
+			throw pe;
 		}catch (Throwable t) {
 			throw new IllegalArgumentException(
 					"Parameter \"points\" must be in the format \"id,x,y,c,id,x,y,c...\". " + t.getMessage());

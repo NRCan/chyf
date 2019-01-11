@@ -40,11 +40,11 @@ public class PourpointTest {
 
 	
 	@Test
-	public void test_PourpointService1() throws ParseException, IOException {
-		Pourpoint p1 = new Pourpoint(GeotoolsGeometryReprojector.reproject(BasicTestSuite.GF.createPoint(new Coordinate(-73.32492, 45.43535)), ChyfDatastore.BASE_SRS), -1, "P1");
-		Pourpoint p2 = new Pourpoint(GeotoolsGeometryReprojector.reproject(BasicTestSuite.GF.createPoint(new Coordinate(-73.32653, 45.43866)), ChyfDatastore.BASE_SRS), -1, "P2");
-		Pourpoint p3 = new Pourpoint(GeotoolsGeometryReprojector.reproject(BasicTestSuite.GF.createPoint(new Coordinate(-73.33106, 45.43065)), ChyfDatastore.BASE_SRS), -1, "P3");
-		Pourpoint p4 = new Pourpoint(GeotoolsGeometryReprojector.reproject(BasicTestSuite.GF.createPoint(new Coordinate(-73.32812, 45.41484)), ChyfDatastore.BASE_SRS), -1, "P4");
+	public void test_PourpointService() throws ParseException, IOException {
+		Pourpoint p1 = new Pourpoint(GeotoolsGeometryReprojector.reproject(BasicTestSuite.GF.createPoint(new Coordinate(-73.32492, 45.43535)), ChyfDatastore.BASE_SRS), -2, "P1");
+		Pourpoint p2 = new Pourpoint(GeotoolsGeometryReprojector.reproject(BasicTestSuite.GF.createPoint(new Coordinate(-73.32653, 45.43866)), ChyfDatastore.BASE_SRS), -2, "P2");
+		Pourpoint p3 = new Pourpoint(GeotoolsGeometryReprojector.reproject(BasicTestSuite.GF.createPoint(new Coordinate(-73.33106, 45.43065)), ChyfDatastore.BASE_SRS), -2, "P3");
+		Pourpoint p4 = new Pourpoint(GeotoolsGeometryReprojector.reproject(BasicTestSuite.GF.createPoint(new Coordinate(-73.32812, 45.41484)), ChyfDatastore.BASE_SRS), -2, "P4");
 		
 		ArrayList<Pourpoint> points = new ArrayList<>();
 		points.add(p1);

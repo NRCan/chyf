@@ -96,7 +96,7 @@ public class PourpointJsonConverter extends JsonConverterHelper {
 		for (DrainageArea g : result.getInteriorCatchments()) {
 			this.featureHeader(GeotoolsGeometryReprojector.reproject(g.getGeometry(), response.getSrs()), counter, null);
 			this.field("id", counter++);
-			this.field("area", g.getArea());
+			this.field("area", g.getArea() / 10_000);
 			this.featureFooter();
 		}
 		this.featureCollectionFooter();
@@ -136,7 +136,7 @@ public class PourpointJsonConverter extends JsonConverterHelper {
 			DrainageArea g = result.getCatchment(p);
 			this.featureHeader(GeotoolsGeometryReprojector.reproject(g.getGeometry(), response.getSrs()), counter++, null);
 			this.field("id", p.getId());
-			this.field("area", g.getArea());
+			this.field("area", g.getArea() / 10_000);
 			this.featureFooter();
 		}
 		this.featureCollectionFooter();
@@ -152,7 +152,7 @@ public class PourpointJsonConverter extends JsonConverterHelper {
 				DrainageArea g = i.getDrainageArea();
 				this.featureHeader(GeotoolsGeometryReprojector.reproject(g.getGeometry(), response.getSrs()), counter++, null);
 				this.field("id", i.getId());
-				this.field("area", g.getArea());
+				this.field("area", g.getArea() / 10_000);
 				this.featureFooter();
 			}
 		}
@@ -168,7 +168,7 @@ public class PourpointJsonConverter extends JsonConverterHelper {
 			DrainageArea g = result.getNonOverlappingCatchments(p);
 			this.featureHeader(GeotoolsGeometryReprojector.reproject(g.getGeometry(), response.getSrs()), counter++, null);
 			this.field("id", p.getId());
-			this.field("area", g.getArea());
+			this.field("area", g.getArea() / 10_000);
 			this.featureFooter();
 		}
 		this.featureCollectionFooter();

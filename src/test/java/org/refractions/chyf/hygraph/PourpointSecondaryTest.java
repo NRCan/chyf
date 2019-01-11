@@ -54,7 +54,7 @@ public class PourpointSecondaryTest {
 		for (Coordinate[] test : testPourpoints) {
 			List<Pourpoint> points = new ArrayList<>();
 			for (int i = 0; i < test.length; i ++) {
-				points.add(new Pourpoint(GeotoolsGeometryReprojector.reproject(BasicTestSuite.GF.createPoint(test[i]), ChyfDatastore.BASE_SRS), -1, "P" + (i+1)));
+				points.add(new Pourpoint(GeotoolsGeometryReprojector.reproject(BasicTestSuite.GF.createPoint(test[i]), ChyfDatastore.BASE_SRS), -2, "P" + (i+1)));
 			}
 			PourpointEngine engine = new PourpointEngine(points, BasicTestSuite.DATASTORE.getHyGraph(), true);
 			PourpointOutput out = engine.compute(null);

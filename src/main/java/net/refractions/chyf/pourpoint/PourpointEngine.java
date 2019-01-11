@@ -500,6 +500,7 @@ public class PourpointEngine {
 	
 	/**
 	 * Computes the unique catchments and unique subcatchments for each pourpoint
+	 * @throws Exception 
 	 */
 	private void computeUniqueCatchments() {
 		ArrayDeque<Pourpoint> toProcess = new ArrayDeque<>();
@@ -605,10 +606,7 @@ public class PourpointEngine {
 				}
 			}
 		}
-		
-		
 		points.forEach(p->createUniqueSubCatchments(p));
-		
 	}
 	
 	/*
@@ -734,6 +732,9 @@ public class PourpointEngine {
 			}
 		}
 		UniqueSubCatchment root = catchmentMapping.get(tomerge.get(0));
+		if (root == null) {
+			throw new PourpointException("Could not compute Traversal Compliant Catchments.  Ensure pourpoints are not projected to same catchment.");
+		}
 		for (int i = 1; i < tomerge.size(); i ++) {
 			root.mergeCatchment(catchmentMapping.get(tomerge.get(i)));
 		}
@@ -789,7 +790,7 @@ public class PourpointEngine {
 		Set<Geometry> geometries = new HashSet<>();
 		
 		for (Pourpoint point : points) {
-			DrainageArea area = point.getCatchmentDrainageAreaWithoutHoles();
+			DrainageArea area = point.getCatchmentDrainageArea(false);
 			Polygon p = ((Polygon)area.getGeometry());
 			geometries.add(p);
 		}
