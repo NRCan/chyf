@@ -2074,6 +2074,13 @@
 				isActive = false;
 			}
 			
+			if (layers.op_tab != null){
+				var $div = $('<div/>');
+				$div.html("Raw x/y is the input data and Projected x/y is the output data.");
+				layers.op_tab.append($div);
+			}
+			
+			
 			if (layers.nocr != null){
 				var $table = createMatrixTable(layers.nocr.headers, layers.nocr.values, 0);
 				var $div = $('<div/>').append($('<div class="toolCat">Catchment Flow Relationship</div>'));
@@ -2181,7 +2188,7 @@
 				
 				var cols = {};
 				if (data.key == "op"){
-					cols = {'id': 'ID', 'ccode': 'C-Code', 'raw_x': 'Raw X', 'raw_y': 'Raw Y', 'projected_x': 'Projected X', 'projected_y': 'Projected Y'};
+					cols = {'id': 'ID', 'ccode': 'C-Code', 'raw_x': 'Raw-X', 'raw_y': 'Raw-Y', 'projected_x': 'Projected-X', 'projected_y': 'Projected-Y'};
 				}else{
 					cols = {'id': 'ID','area': 'Area (ha)'};
 				}
