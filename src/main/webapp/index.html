@@ -2104,7 +2104,7 @@
 				var $table = createMatrixTable(layers.opdmin.headers, data, -1);
 				var $div = $('<div/>').append($('<div class="toolCat">Outpout Pourpoint Distances</div>'));
 				$div.append($table);
-				$div.append( $('<div>[i,j]<br>distance from i to j<br>> 0 i is upstream of j<br>< 0 i is downstream of j</div>' ));
+				$div.append( $('<div>[i,j]<br>distance from i to j<br>> 0 if i is upstream of j<br>< 0 if i is downstream of j<br>Distances are single valued if only one path between i and j exists.<br>Distances are of the form (min, max) if more than one such path exists.</div>' ));
 				layers.op_tab.append($div);
 			}
 
