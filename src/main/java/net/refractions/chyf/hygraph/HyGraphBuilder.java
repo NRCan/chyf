@@ -69,16 +69,16 @@ public class HyGraphBuilder {
 				eCatchments.toArray(new ECatchment[eCatchments.size()]));
 	}
 	
-	public EFlowpath addEFlowpath(FlowpathType type, Rank rank, String name, UUID nameId, int certainty, LineString lineString) {
+	public EFlowpath addEFlowpath(FlowpathType type, Rank rank, String name, UUID nameId, LineString lineString) {
 		return addEFlowpath(getNexus(lineString.getStartPoint()), getNexus(lineString.getEndPoint()), 
-				lineString.getLength(), type, rank, name, nameId, certainty, getECatchment(lineString, type), lineString);
+				lineString.getLength(), type, rank, name, nameId, getECatchment(lineString, type), lineString);
 	}
 
 	private EFlowpath addEFlowpath(Nexus fromNexus, Nexus toNexus, double length, FlowpathType type, Rank rank, String name,
-			UUID nameId, int certainty, ECatchment catchment, LineString lineString) {
+			UUID nameId, ECatchment catchment, LineString lineString) {
 		
 		EFlowpath eFlowpath = new EFlowpath(nextEdgeId++, fromNexus, toNexus, length, type, rank, name, nameId,
-			certainty, catchment, lineString);
+			catchment, lineString);
 
 		if(catchment != null) {
 			
@@ -271,13 +271,6 @@ public class HyGraphBuilder {
 				if(c.getType() == null || c.getType() == CatchmentType.UNKNOWN) {
 					// Water types will have already been assigned
 					c.setType(CatchmentType.REACH);
-				}
-			}
-			
-			// set Terminal based on downstream nexus types
-			for(Nexus n : c.getDownNexuses()) {
-				if (n.getType().isTerminal()){
-					c.setTerminal(true);
 				}
 			}
 			

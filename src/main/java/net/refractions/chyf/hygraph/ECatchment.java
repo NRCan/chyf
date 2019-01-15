@@ -17,7 +17,6 @@ public class ECatchment implements SpatiallyIndexable {
 	private final double area;
 	private final Polygon polygon;
 	private CatchmentType type;
-	private boolean terminal;
 	private Rank rank = Rank.UNKNOWN;
 	private String name = null;
 	private Integer strahlerOrder = null;
@@ -51,14 +50,6 @@ public class ECatchment implements SpatiallyIndexable {
 
 	public void setType(CatchmentType type) {
 		this.type = type;
-	}
-
-	public boolean isTerminal() {
-		return terminal;
-	}
-
-	public void setTerminal(boolean terminal) {
-		this.terminal = terminal;
 	}
 
 	public Rank getRank() {

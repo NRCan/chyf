@@ -14,7 +14,6 @@ public class FlowpathMapper implements RowMapper<Flowpath> {
 		flowpath.setNameId(resultSet.getString("nameId"));
 		flowpath.setType(resultSet.getString("type"));
 		flowpath.setRank(resultSet.getString("rank"));
-		flowpath.setCertainty(resultSet.getInt("direction"));
 		flowpath.setLinestring(resultSet.getString("Linestring"));
 		return flowpath;
 	}

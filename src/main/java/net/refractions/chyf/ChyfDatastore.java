@@ -136,8 +136,7 @@ public class ChyfDatastore {
 			    } catch(IllegalArgumentException iae) {
 			    	logger.warn("Exception reading UUID: " + iae.getMessage());
 			    }
-			    Integer certainty = fp.getCertainty();
-			    gb.addEFlowpath(type, rank, name, nameId, certainty, (LineString)flowPath);
+			    gb.addEFlowpath(type, rank, name, nameId, (LineString)flowPath);
 				
 			}
 			
@@ -241,10 +240,7 @@ public class ChyfDatastore {
 		            } catch(IllegalArgumentException iae) {
 		            	logger.warn("Exception reading UUID: " + iae.getMessage());
 		            }
-		            Number n = (Number) feature.getAttribute("DIRECTION");
-		            Integer certainty = n.intValue();
-//		            Integer certainty = (Integer)feature.getAttribute("DIRECTION");
-		            gb.addEFlowpath(type, rank, name, nameId, certainty, flowPath);
+		            gb.addEFlowpath(type, rank, name, nameId, flowPath);
 		        }
 		    }
 		    flowPathDataStore.dispose();

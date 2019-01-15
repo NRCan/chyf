@@ -19,7 +19,6 @@ public class EFlowpath implements SpatiallyIndexable {
 	private final Rank rank;
 	private final UUID nameId;
 	private final String name;
-	private final int certainty;
 	private Integer strahlerOrder;
 	private Integer hortonOrder;
 	private Integer hackOrder;
@@ -27,7 +26,7 @@ public class EFlowpath implements SpatiallyIndexable {
 	private final LineString lineString;
 	
 	public EFlowpath(int id, Nexus fromNode, Nexus toNode, double length, FlowpathType type, Rank rank, String name, UUID nameId,
-			int certainty, ECatchment catchment, LineString lineString) {
+			ECatchment catchment, LineString lineString) {
 		this.id = id;
 		this.fromNode = fromNode;
 		this.toNode = toNode;
@@ -36,7 +35,6 @@ public class EFlowpath implements SpatiallyIndexable {
 		this.rank = rank;
 		this.name = name;
 		this.nameId = nameId;
-		this.certainty = certainty;
 		this.catchment = catchment;
 		this.lineString = lineString;
 	}
@@ -75,10 +73,6 @@ public class EFlowpath implements SpatiallyIndexable {
 
 	public UUID getNameId() {
 		return nameId;
-	}
-
-	public int getCertainty() {
-		return certainty;
 	}
 
 	public Integer getStrahlerOrder() {

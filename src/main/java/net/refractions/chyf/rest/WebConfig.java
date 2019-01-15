@@ -84,7 +84,7 @@ public class WebConfig extends WebMvcConfigurerAdapter {
 						new MediaType("application", "javascript", Charset.forName("UTF-8")))
 				.mediaType("geopackage", 
 						new MediaType("application", "geopackage+sqlite3", Charset.forName("UTF-8")))
-				.mediaType("geopkg", 
+				.mediaType("gpkg", 
 						new MediaType("application", "geopackage+sqlite3", Charset.forName("UTF-8")))
 				;
 	}

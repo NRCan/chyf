@@ -204,7 +204,6 @@ public class EFlowpathController {
 			case "nameid": filter = new PredicateFilter<EFlowpath>(EFlowpath::getNameId, PredicateParameter.convert(params.getPredicate()).get(), UuidUtil.UuidFromString(params.getValue())); break;
 			case "type": filter = new PredicateFilter<EFlowpath>(EFlowpath::getType, PredicateParameter.convert(params.getPredicate()).get(), FlowpathType.convert(params.getValue())); break;
 			case "rank": filter = new PredicateFilter<EFlowpath>(EFlowpath::getRank, PredicateParameter.convert(params.getPredicate()).get(), Rank.convert(params.getValue())); break;
-			case "certainty": filter = new PredicateFilter<EFlowpath>(EFlowpath::getCertainty, PredicateParameter.convert(params.getPredicate()).get(), Integer.parseInt(params.getValue())); break;
 			case "strahleror": filter = new PredicateFilter<EFlowpath>(EFlowpath::getStrahlerOrder, PredicateParameter.convert(params.getPredicate()).get(), Integer.parseInt(params.getValue())); break;
 			case "hortonor": filter = new PredicateFilter<EFlowpath>(EFlowpath::getHortonOrder, PredicateParameter.convert(params.getPredicate()).get(), Integer.parseInt(params.getValue())); break;
 			case "hackor": filter = new PredicateFilter<EFlowpath>(EFlowpath::getHackOrder, PredicateParameter.convert(params.getPredicate()).get(), Integer.parseInt(params.getValue())); break;

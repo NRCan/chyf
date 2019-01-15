@@ -53,7 +53,7 @@ public class GeoPackageHelper {
 
 	
 	public void convertResponse(ApiResponse response)  throws IOException {
-		Path tempFile = Files.createTempFile("geopackage", ".gpk");
+		Path tempFile = Files.createTempFile("geopackage", ".gpkg");
 		geopkg = new GeoPackage(tempFile.toFile());
 		
 		try {

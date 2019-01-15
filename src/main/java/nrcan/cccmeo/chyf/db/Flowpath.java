@@ -6,19 +6,17 @@ public class Flowpath {
 	private String rank;
 	private String nameId;
 	private String name;
-	private int certainty;
 	private String linestring;
 	
 	public Flowpath() {
 		
 	}
 	
-	public Flowpath(String type, String rank, String name, String nameId, int certainty, String Linestring) {
+	public Flowpath(String type, String rank, String name, String nameId,  String Linestring) {
 		this.type = type;
 		this.rank = rank;
 		this.name = name;
 		this.nameId = nameId;
-		this.certainty = certainty;
 		this.linestring = Linestring;
 	}
 
@@ -52,14 +50,6 @@ public class Flowpath {
 
 	public void setName(String name) {
 		this.name = name;
-	}
-
-	public int getCertainty() {
-		return certainty;
-	}
-
-	public void setCertainty(int certainty) {
-		this.certainty = certainty;
 	}
 
 	public String getLinestring() {

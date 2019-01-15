@@ -52,8 +52,8 @@ public class PourpointEngine {
 		CATCHMENT_CONTAINMENT("pcc", "Catchment Containment Relationship"), 
 		NONOVERLAPPING_CATCHMENTS("noc", "Non-Overlapping Catchments"), 
 		NONOVERLAPPINGCATCHMENT_RELATIONSHIP("nocr", "Non-Overlapping Catchment Flow Relationships"), 
-		TRAVERSAL_COMPLIANT_CATCHMENTS("tcc", "Transversal Compliant Catchments"), 
-		TRAVERSAL_COMPLIANT_CATCHMENT_RELATION("tccr", "Transversal Compliant Catchment Flow Relationships"),
+		TRAVERSAL_COMPLIANT_CATCHMENTS("tcc", "Traversal Compliant Catchments"), 
+		TRAVERSAL_COMPLIANT_CATCHMENT_RELATION("tccr", "Traversal Compliant Catchment Flow Relationships"),
 		INTERIOR_CATCHMENT("ic", "Interior Catchments");
 		
 		public String key;

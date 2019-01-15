@@ -318,7 +318,6 @@
 						<option value="name">Name</option>
 						<option value="type">Type</option>
 						<option value="rank">Rank</option>
-						<option value="certainty">FD Certainty</option>
 						<option value="strahleror">Strahler Order</option>
 						<option value="hortonor">Horton Order</option>
 						<option value="hackor">Hack Order</option>
@@ -1447,7 +1446,6 @@
 				"Second Ruisseau",
 				"Troisième Ruisseau"
 			],
-			'certainty': [-1, 1],
 			'type': ['Observed','Constructed','Inferred','Bank','Unknown'],
 			'rank': [1,2],
 			'strahleror': [1,2,3,4,5,6,7],
@@ -1489,7 +1487,6 @@
 					'name': 'Primary Name',
 					'type': 'Type',
 					'rank': 'Rank',
-					'certainty': 'FD Certainty',
 					'strahleror': 'Strahler Order',
 					'hortonor': 'Horton Order',
 					'hackor': 'Hack Order',
@@ -1504,7 +1501,6 @@
 					'name': 'Primary Name',
 					'type': 'Type',
 					'subtype': 'SubType',
-					'isTerminal': 'Is Terminal',
 					'rank': 'Rank',
 					'strahleror': 'Strahler Order',
 					'hortonor': 'Horton Order',
@@ -1520,8 +1516,6 @@
 					'name': 'Primary Name',
 					'type': 'Type',
 					'subtype': 'SubType',
-					'isTerminal': 'Is Terminal',
-					'certainty': 'FD Certainty',
 					'rank': 'Rank',
 					'strahleror': 'Strahler Order',
 					'hortonor': 'Horton Order',
@@ -1576,7 +1570,7 @@
 				$tbody.append($row);
 			}
 			$table.append($tbody);
-			var geopkgurl = url.replace(/\.json/, ".geopackage");
+			var geopkgurl = url.replace(/\.json/, ".gpkg");
 			$('#dataBar').empty();
 			$('#dataBar').append('<div id="dataTitle" title="' + url + '">' + dataMap[type].titlePlural + ' (' + features.length + ')'
 					+ ' <button id="urlButtonJson" type="button" data-clipboard-text="' + url + '">Copy Url (JSON)</button>'
@@ -2136,7 +2130,7 @@
 			$('#ppUrlButtonJson').attr("data-clipboard-text", path);
 			$('#ppUrlButtonJson').prop('disabled', false);
 			
-			var geopkgurl = path.replace(/\.json/, ".geopackage");
+			var geopkgurl = path.replace(/\.json/, ".gpkg");
 			$('#ppUrlButtonGeoPkg').attr("data-clipboard-text", geopkgurl);
 			$('#ppUrlButtonGeoPkg').prop('disabled', false);
 			
@@ -2208,7 +2202,7 @@
 						
 						if (data.key == "op"){
 							if (c == 'projected_y'){
-							value = features[f].geometry.coordinates[1];
+								value = features[f].geometry.coordinates[1];
 							}else if (c == 'projected_x'){
 								value = features[f].geometry.coordinates[0];
 							}else if (c == 'raw_x' || c =='raw_y'){
@@ -2220,20 +2214,36 @@
 						
 					}
 					$tbody.append($row);
-					$row.hover(
-						function(){
-							
-							highlightLayer = L.geoJSON($(this).data("geometry"),{
-								style: function(feature){
-									return {color: "#FFFF00"};
-								},
-								pane: 'highlightpane'
-							}).addTo(map);
-						}, function(){
-							map.removeLayer(highlightLayer);
-						}	
 					
-					);
+					if (data.key = "op"){
+						$row.hover(
+								function(){
+									
+									highlightLayer = L.geoJSON($(this).data("geometry"),{
+										pointToLayer: function(feature, latlng){
+											return L.circleMarker(latlng, {color: "#FFFF00", fillColor: "#FFFF00", radius: 15, fillOpacity: .9, weight:1, opactiy:1  });
+										},
+										pane: 'highlightpane'
+									}).addTo(map);
+								}, function(){
+									map.removeLayer(highlightLayer);
+								}
+							);
+					}else{
+						$row.hover(
+								function(){
+									
+									highlightLayer = L.geoJSON($(this).data("geometry"),{
+										style: function(feature){
+											return {color: "#FFFF00"};
+										},
+										pane: 'highlightpane'
+									}).addTo(map);
+								}, function(){
+									map.removeLayer(highlightLayer);
+								}
+						);
+					}
 				}
 				$table.append($tbody);
 				$table.appendTo($(optabBody));
