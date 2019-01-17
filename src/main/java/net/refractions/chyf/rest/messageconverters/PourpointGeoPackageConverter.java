@@ -39,7 +39,7 @@ public class PourpointGeoPackageConverter {
 				PourpointEngine.OutputType.OUTPUT_PP,
 				PourpointEngine.OutputType.INTERIOR_CATCHMENT,
 				PourpointEngine.OutputType.CATCHMENTS,
-				PourpointEngine.OutputType.NONOVERLAPPING_CATCHMENTS,
+				PourpointEngine.OutputType.PARTITIONED_CATCHMENTS,
 				PourpointEngine.OutputType.TRAVERSAL_COMPLIANT_CATCHMENTS,
 		};
 		
@@ -66,6 +66,13 @@ public class PourpointGeoPackageConverter {
 				featureBuilder.set("geometry", GeotoolsGeometryReprojector.reproject(area.getGeometry(), response.getSrs()));
 				features.add(featureBuilder.buildFeature(String.valueOf(id++)));
 			}
+		}else if (type == PourpointEngine.OutputType.TRAVERSAL_COMPLIANT_CATCHMENTS) {
+			for (UniqueSubCatchment c : result.getTraversalCompliantCatchments()) {
+				featureBuilder.set("id", c.getId());
+				featureBuilder.set("area", c.getDrainageArea().getArea() / 10_000);
+				featureBuilder.set("geometry", GeotoolsGeometryReprojector.reproject(c.getDrainageArea().getGeometry(), response.getSrs()));
+				features.add(featureBuilder.buildFeature(c.getId()));
+			}
 		}else {
 			for (Pourpoint p : result.getPoints()) {
 				if (type == PourpointEngine.OutputType.CATCHMENTS) {
@@ -74,20 +81,14 @@ public class PourpointGeoPackageConverter {
 					featureBuilder.set("area", area.getArea() / 10_000);
 					featureBuilder.set("geometry", GeotoolsGeometryReprojector.reproject(area.getGeometry(), response.getSrs()));
 					features.add(featureBuilder.buildFeature(p.getId()));
-				}else if (type == PourpointEngine.OutputType.NONOVERLAPPING_CATCHMENTS) {
-					DrainageArea area = result.getNonOverlappingCatchments(p);
+				}else if (type == PourpointEngine.OutputType.PARTITIONED_CATCHMENTS) {
+					DrainageArea area = result.getPartitionedCatchments(p);
 					
 					featureBuilder.set("id", p.getId());
 					featureBuilder.set("area", area.getArea() / 10_000);
 					featureBuilder.set("geometry", GeotoolsGeometryReprojector.reproject(area.getGeometry(), response.getSrs()));
 					features.add(featureBuilder.buildFeature(p.getId()));
-				}else if (type == PourpointEngine.OutputType.TRAVERSAL_COMPLIANT_CATCHMENTS) {
-					for (UniqueSubCatchment c : result.getTraversalCompliantCatchments(p)) {
-						featureBuilder.set("id", c.getId());
-						featureBuilder.set("area", c.getDrainageArea().getArea() / 10_000);
-						featureBuilder.set("geometry", GeotoolsGeometryReprojector.reproject(c.getDrainageArea().getGeometry(), response.getSrs()));
-						features.add(featureBuilder.buildFeature(c.getId()));
-					}
+				
 				}else if (type == PourpointEngine.OutputType.OUTPUT_PP) {
 					Point raw =  GeotoolsGeometryReprojector.reproject(p.getRawPoint(), response.getSrs());
 					featureBuilder.set("id", p.getId());
@@ -118,7 +119,7 @@ public class PourpointGeoPackageConverter {
 		switch(type) {
 			case CATCHMENTS:
 			case INTERIOR_CATCHMENT:
-			case NONOVERLAPPING_CATCHMENTS:		
+			case PARTITIONED_CATCHMENTS:		
 			case TRAVERSAL_COMPLIANT_CATCHMENTS:
 				builder.add("id", String.class);
 				builder.add("area", Double.class);
@@ -136,7 +137,7 @@ public class PourpointGeoPackageConverter {
 			case CATCHMENT_CONTAINMENT:
 			case DISTANCE_MAX:
 			case DISTANCE_MIN:
-			case NONOVERLAPPINGCATCHMENT_RELATIONSHIP:
+			case PARTITIONEDCATCHMENT_RELATIONSHIP:
 			case TRAVERSAL_COMPLIANT_CATCHMENT_RELATION:
 			default:
 				return null;

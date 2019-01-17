@@ -30,6 +30,12 @@ public enum Rank {
 				return rank;
 			}
 		}
+		try {
+			int index = Integer.parseInt(rankType);
+			if (index < Rank.values().length) {
+				return Rank.values()[index];
+			}
+		}catch (Exception ex) {}
 		logger.warn("Invalid Rank value: '" + rankType + "' defaulting to 'Unknown'.");
 		return UNKNOWN;
 	}

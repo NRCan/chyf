@@ -5,6 +5,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map.Entry;
 
 import org.junit.Assert;
 import org.junit.Rule;
@@ -70,7 +71,7 @@ public class PourpointSecondaryTest {
 					String key = reader.nextName();
 					if (key.equals(PourpointEngine.OutputType.CATCHMENTS.key) ||
 						key.equals(PourpointEngine.OutputType.OUTPUT_PP.key) || 
-						key.equals(PourpointEngine.OutputType.NONOVERLAPPING_CATCHMENTS.key) || 
+						key.equals(PourpointEngine.OutputType.PARTITIONED_CATCHMENTS.key) || 
 						key.equals(PourpointEngine.OutputType.TRAVERSAL_COMPLIANT_CATCHMENTS.key)) {
 											
 						HashMap<String, String> idgeom = new HashMap<>();
@@ -84,7 +85,7 @@ public class PourpointSecondaryTest {
 						}
 						reader.endObject();
 					}else if (key.equals(PourpointEngine.OutputType.CATCHMENT_CONTAINMENT.key) ||
-							key.equals( PourpointEngine.OutputType.NONOVERLAPPINGCATCHMENT_RELATIONSHIP.key) || 
+							key.equals( PourpointEngine.OutputType.PARTITIONEDCATCHMENT_RELATIONSHIP.key) || 
 							key.equals( PourpointEngine.OutputType.TRAVERSAL_COMPLIANT_CATCHMENT_RELATION.key)) {
 						//int array
 						List<List<Integer>> items = new ArrayList<>();
@@ -165,30 +166,43 @@ public class PourpointSecondaryTest {
 				if (!g.equalsExact(a, 0.00001)) {
 					System.out.println(a.toText());
 					System.out.println(g.toText());
-					Assert.fail("file: " + file + " - catchment incorrect for pp: " + p.getId());
+					Assert.fail("file: " + file + " - " + PourpointEngine.OutputType.CATCHMENTS.layername + " incorrect for pp: " + p.getId());
+
 				}
 			}
 			
 			//non overlapping catchments
 			for (Pourpoint p : out.getPoints()) {
-				String wkt = typeidgeom.get(PourpointEngine.OutputType.NONOVERLAPPING_CATCHMENTS.key).get(p.getId());
+				String wkt = typeidgeom.get(PourpointEngine.OutputType.PARTITIONED_CATCHMENTS.key).get(p.getId());
 				Geometry g = reader.read(wkt);
-				Geometry a = GeotoolsGeometryReprojector.reproject(out.getNonOverlappingCatchments(p).getGeometry(), BasicTestSuite.TEST_DATA_SRID);
+				Geometry a = GeotoolsGeometryReprojector.reproject(out.getPartitionedCatchments(p).getGeometry(), BasicTestSuite.TEST_DATA_SRID);
 				if (!g.equalsExact(a, 0.00001)) {
-					Assert.fail("file: " + file + " - non overlapping catchment incorrect for pp: " + p.getId());
+					Assert.fail("file: " + file + " - " + PourpointEngine.OutputType.PARTITIONED_CATCHMENTS.layername + " incorrect : " + p.getId());
 				}
 			}
 			
 			//upstream unique sub catchments
+			HashMap<String,String> exptcc = typeidgeom.get(PourpointEngine.OutputType.TRAVERSAL_COMPLIANT_CATCHMENTS.key);
+			HashMap<String,String> systemToExp = new HashMap<>();
 			for (Pourpoint p : out.getPoints()) {
 				for (UniqueSubCatchment s : out.getTraversalCompliantCatchments(p)) {
-					String wkt = typeidgeom.get(PourpointEngine.OutputType.TRAVERSAL_COMPLIANT_CATCHMENTS.key).get(s.getId());
-					Geometry g = reader.read(wkt);
-					Geometry a = GeotoolsGeometryReprojector.reproject(s.getDrainageArea().getGeometry(), BasicTestSuite.TEST_DATA_SRID);
-					if (!g.equalsExact(a, 0.00001)) {
-						Assert.fail("file: " + file + " - traversal compliant catchments incorrect for pp: " + p.getId());
-
+					String systemId = s.getId();
+					
+					Entry<String,String> matched = null;
+					
+					for (Entry<String,String> expected : exptcc.entrySet()) {
+						String wkt = expected.getValue();
+						Geometry g = reader.read(wkt);
+						Geometry a = GeotoolsGeometryReprojector.reproject(s.getDrainageArea().getGeometry(), BasicTestSuite.TEST_DATA_SRID);
+						if (g.equalsExact(a, 0.00001)) {
+							matched = expected;
+							break;
+						}
 					}
+					if (matched == null) {
+						Assert.fail("file: " + file + " - " + PourpointEngine.OutputType.TRAVERSAL_COMPLIANT_CATCHMENTS.layername + " incorrect for pp: " + p.getId());
+					}
+					systemToExp.put(systemId, matched.getKey());
 				}
 			}
 			
@@ -209,8 +223,8 @@ public class PourpointSecondaryTest {
 				}
 			}
 			
-			actual = out.getNonOverlappingCatchmentRelationship();
-			expected = (Integer[][]) relationships.get(PourpointEngine.OutputType.NONOVERLAPPINGCATCHMENT_RELATIONSHIP.key);
+			actual = out.getPartitionedCatchmentRelationship();
+			expected = (Integer[][]) relationships.get(PourpointEngine.OutputType.PARTITIONEDCATCHMENT_RELATIONSHIP.key);
 			for (int i = 0; i < expected.length; i ++) {
 				for (int j = 0; j < expected.length; j ++) {
 					Assert.assertEquals("file: " + file + " - non overlapping catchment relationship incorrect", expected[i][j], actual[i][j]);

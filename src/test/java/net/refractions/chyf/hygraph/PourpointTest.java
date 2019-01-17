@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Rule;
@@ -55,6 +56,7 @@ public class PourpointTest {
 		PourpointEngine engine = new PourpointEngine(points, BasicTestSuite.DATASTORE.getHyGraph());
 		PourpointOutput out = engine.compute(null);
 		
+
 		Coordinate pp1 = new Coordinate(-73.3252036,45.435359200000015);
 		Coordinate pp2 = new Coordinate(-73.326548,45.438767199999965);
 		Coordinate pp3 = new Coordinate(-73.3311985,45.4309229);
@@ -82,7 +84,7 @@ public class PourpointTest {
 				{null, 1, null, -1},
 				{null, 1, 1, null},
 		};
-		Integer[][] actual = out.getNonOverlappingCatchmentRelationship();
+		Integer[][] actual = out.getPartitionedCatchmentRelationship();
 		for (int i = 0; i < expected.length; i ++) {
 			for (int j = 0; j < expected.length; j ++) {
 				Assert.assertEquals("Invalid PP Relationships", expected[i][j], actual[i][j]);
@@ -107,21 +109,31 @@ public class PourpointTest {
 		}
 		
 		
-		HashMap<String, HashMap<String,String>> typeidgeom = new HashMap<>();
+		HashMap<String, Object> typeidgeom = new HashMap<>();
 		try(JsonReader reader = new JsonReader(new InputStreamReader(ClassLoader.getSystemResourceAsStream(TEST1_RESULTS)))){
 			reader.beginObject();
 			while(reader.hasNext()) {
 				String key = reader.nextName();
-				HashMap<String, String> idgeom = new HashMap<>();
-				typeidgeom.put(key,  idgeom);
-				
-				reader.beginObject();
-				while(reader.hasNext()) {
-					String id = reader.nextName();
-					String wkt = reader.nextString();
-					idgeom.put(id, wkt);
+				if (key.equals( "tcc")) {
+					ArrayList<String> tccs = new ArrayList<>();
+					typeidgeom.put(key,  tccs);
+					reader.beginArray();
+					while(reader.hasNext()) {
+						String wkt = reader.nextString();
+						tccs.add(wkt);
+					}
+					reader.endArray();
+				}else {
+					HashMap<String, String> idgeom = new HashMap<>();
+					typeidgeom.put(key,  idgeom);
+					reader.beginObject();
+					while(reader.hasNext()) {
+						String id = reader.nextName();
+						String wkt = reader.nextString();
+						idgeom.put(id, wkt);
+					}
+					reader.endObject();
 				}
-				reader.endObject();
 			}
 			reader.endObject();
 		}
@@ -129,7 +141,7 @@ public class PourpointTest {
 
 		//upstream catchments
 		for (Pourpoint p : out.getPoints()) {
-			String wkt = typeidgeom.get(PourpointEngine.OutputType.CATCHMENTS.key).get(p.getId());
+			String wkt = ((HashMap<String,String>)typeidgeom.get(PourpointEngine.OutputType.CATCHMENTS.key)).get(p.getId());
 			Geometry g = reader.read(wkt);
 			Geometry a = GeotoolsGeometryReprojector.reproject(out.getCatchment(p).getGeometry(), BasicTestSuite.TEST_DATA_SRID);
 			if (!g.equalsExact(a, 0.00001)) {
@@ -139,9 +151,9 @@ public class PourpointTest {
 		
 		//upstream unique catchments
 		for (Pourpoint p : out.getPoints()) {
-			String wkt = typeidgeom.get(PourpointEngine.OutputType.NONOVERLAPPING_CATCHMENTS.key).get(p.getId());
+			String wkt = ((HashMap<String,String>)typeidgeom.get(PourpointEngine.OutputType.PARTITIONED_CATCHMENTS.key)).get(p.getId());
 			Geometry g = reader.read(wkt);
-			Geometry a = GeotoolsGeometryReprojector.reproject(out.getNonOverlappingCatchments(p).getGeometry(), BasicTestSuite.TEST_DATA_SRID);
+			Geometry a = GeotoolsGeometryReprojector.reproject(out.getPartitionedCatchments(p).getGeometry(), BasicTestSuite.TEST_DATA_SRID);
 			if (!g.equalsExact(a, 0.00001)) {
 				System.out.println(g.toText());
 				System.out.println(a.toText());
@@ -150,60 +162,43 @@ public class PourpointTest {
 		}
 		
 		//upstream unique sub catchments
-		for (Pourpoint p : out.getPoints()) {
-			for (UniqueSubCatchment s : out.getTraversalCompliantCatchments(p)) {
-				String wkt = typeidgeom.get(PourpointEngine.OutputType.TRAVERSAL_COMPLIANT_CATCHMENTS.key).get(s.getId());
-				Geometry g = reader.read(wkt);
-				Geometry a = GeotoolsGeometryReprojector.reproject(s.getDrainageArea().getGeometry(), BasicTestSuite.TEST_DATA_SRID);
-				if (!g.equalsExact(a, 0.00001)) {
-					Assert.fail("traversal compliant catchments incorrect for pp: " + p.getId());
+		HashMap<String, Integer> indexToId = new HashMap<>();
+		ArrayList<String> expectedMergedCoverages = (ArrayList<String>) typeidgeom.get(PourpointEngine.OutputType.TRAVERSAL_COMPLIANT_CATCHMENTS.key);
+		
+		for (Pourpoint point : out.getPoints()) {
+			for (UniqueSubCatchment pcat : point.getTraversalCompliantCatchments()) {
+				for (int i = 0; i < expectedMergedCoverages.size();i ++) {
+					Geometry expectedp = GeotoolsGeometryReprojector.reproject(reader.read(expectedMergedCoverages.get(i)), ChyfDatastore.BASE_SRS);
+					if (pcat.getDrainageArea().getGeometry().equalsExact(expectedp, 0.0001)) {
+						indexToId.put(pcat.getId(), i);
+					}
 				}
 			}
 		}
-		
-		// test PP Relationships
-		
-		
-		HashMap<String, HashMap<String, Integer>> cexpected = new HashMap<>();
-		
-		HashMap<String, Integer> row = new HashMap<>();
-		cexpected.put("P1||", row);
-		row.put("P2|P1_P3|", 1);
-		
-		row = new HashMap<>();
-		cexpected.put("P2||P3", row);
-		row.put("P2|P1_P3|", 1);
-		
-		row = new HashMap<>();
-		cexpected.put("P3||P4", row);
-		row.put("P3|P4|", 1);
-		row.put("P2|P1_P3|", 1);
-		
-		row = new HashMap<>();
-		cexpected.put("P3|P4|", row);
-		row.put("P3||P4", -1);
-		row.put("P4||", -1);
-		row.put("P2|P1_P3|", 1);
-		
-		row = new HashMap<>();
-		cexpected.put("P4||", row);
-		row.put("P3|P4|", 1);
-		row.put("P2|P1_P3|", 1);
-		
-		row = new HashMap<>();
-		cexpected.put("P2|P1_P3|", row);
-		row.put("P2||P3", -1);
-		row.put("P3|P4|", -1);
-		row.put("P4||", -1);
-		row.put("P1||", -1);
-		row.put("P3||P4", -1);
-		
-		for (int i = 0; i < out.getTraversalCompliantCatchments().size(); i ++) {
-			for (int j = 0; j < out.getTraversalCompliantCatchments().size(); j ++) {
-				Assert.assertEquals("Invalid Unique SubCatchments Relationships", cexpected.get(out.getTraversalCompliantCatchments().get(i).getId()).get(out.getTraversalCompliantCatchments().get(j).getId()), out.getTraversalCompliantCatchmentRelationship()[i][j]);
+		for (int i = 0; i < expectedMergedCoverages.size(); i++) {
+			if (!indexToId.containsValue(i)) {
+				Assert.fail("Traversal compliant coverages do not match");
 			}
 		}
-				
+
+		Integer[][] expectedCatRel = new Integer[][] {
+			{null, null,    1, null, null, null},
+			{null, null,    1, null, null, null},
+			{  -1,   -1, null,   -1,   -1,   -1},
+			{null, null,    1, null,   -1,   -1},
+			{null, null,    1,    1, null, null},
+			{null, null,    1,    1, null, null},
+		};
+		Integer[][] catRel = out.getTraversalCompliantCatchmentRelationship();
+		for (int i = 0; i < expectedCatRel.length; i ++) {
+			for (int j = 0; j < expectedCatRel.length; j ++) {
+				String id1 = out.getTraversalCompliantCatchments().get(i).getId();
+				String id2 = out.getTraversalCompliantCatchments().get(j).getId();
+				Integer val = expectedCatRel[indexToId.get(id1)][indexToId.get(id2)];
+				Assert.assertEquals("Catchment relationship matrix incorrect (" + out.getTraversalCompliantCatchments().get(i).getId() + " to " + out.getTraversalCompliantCatchments().get(j).getId() + ")", val,catRel[i][j]);
+			}
+		}
+			
 	}
 	
 	
@@ -215,7 +210,7 @@ public class PourpointTest {
 		points.add(p1);
 		
 			
-		PourpointEngine engine = new PourpointEngine(points, BasicTestSuite.DATASTORE.getHyGraph());
+		PourpointEngine engine = new PourpointEngine(points, BasicTestSuite.DATASTORE.getHyGraph(), true);
 		PourpointOutput out = engine.compute(null);
 		
 		Coordinate pp1 = new Coordinate(-73.37019030000002, 45.3757165);
@@ -244,7 +239,7 @@ public class PourpointTest {
 		
 		//upstream unique catchments
 		for (Pourpoint p : out.getPoints()) {
-			Geometry a = GeotoolsGeometryReprojector.reproject(out.getNonOverlappingCatchments(p).getGeometry(), BasicTestSuite.TEST_DATA_SRID);
+			Geometry a = GeotoolsGeometryReprojector.reproject(out.getPartitionedCatchments(p).getGeometry(), BasicTestSuite.TEST_DATA_SRID);
 			if (!g.equalsExact(a, 0.00001)) {
 				Assert.fail("unique catchment incorrect for pp: " + p.getId());
 			}

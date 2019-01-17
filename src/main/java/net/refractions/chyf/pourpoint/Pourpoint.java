@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import com.vividsolutions.jts.algorithm.Angle;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Point;
+import com.vividsolutions.jts.operation.distance.DistanceOp;
 
 import net.refractions.chyf.ChyfDatastore;
 import net.refractions.chyf.enumTypes.CatchmentType;
@@ -44,15 +45,20 @@ public class Pourpoint {
 			this.ccode = ccode;
 		}
 	}
-	
+	public enum Type{
+		USER,
+		SYSTEM
+	}
 	private String id;
 	private Point location;
 	private Point raw;
 	private int ccode;
 	private CType type;
+	private Type internalType;
 	
 	//start edges for the pourpoint
 	private List<EFlowpath> downstreamFlowpaths = null;
+	private List<EFlowpath> neighbourDownstreamFlowpaths = null;
 	
 	//pouroint relationship
 	private Set<Pourpoint> downstreamPoints = null;
@@ -64,24 +70,33 @@ public class Pourpoint {
 
 	//catchments only used by this pourpoint
 	private Set<ECatchment> uniqueCatchments;
-	//catchments upstream of a secondary flow that are also contained
-	//by another poutpoint
-	private Set<ECatchment> secondaryCatchments;
+
 	//all other catchments
 	private Set<ECatchment> sharedCatchments;
 		
+	//upstream catchments of neighbour flowpaths
+	private Set<ECatchment> neighbors;
+	
+	public Pourpoint(Point location, int ccode, String id) {
+		this(location, ccode, id, Type.USER);
+	}
+	
 	/**
 	 * 
 	 * @param location the point is assumed to be in the hygraph working projection
 	 * @param ccode
 	 */
-	public Pourpoint(Point location, int ccode, String id) {
+	public Pourpoint(Point location, int ccode, String id, Type internalType) {
+		this.internalType = internalType;
 		this.id = id;
 		this.raw = location;
 		this.location = GeotoolsGeometryReprojector.reproject(location, ChyfDatastore.BASE_SRS);
 		this.ccode = ccode;
 		this.downstreamPoints = new HashSet<>();
 		this.upstreamPoints = new HashSet<>();
+		
+		this.neighbors = new HashSet<>();
+		
 		if (ccode == -2) {
 			type = CType.NEAREST_INCATCHMENT;
 		}else if (ccode == -1) {
@@ -97,7 +112,10 @@ public class Pourpoint {
 		
 		uniqueCatchments = new HashSet<>();
 		sharedCatchments = new HashSet<>();
-		secondaryCatchments = new HashSet<>();
+	}
+	
+	public Pourpoint.Type getInernalType(){
+		return this.internalType;
 	}
 	
 	public int getCcode() {
@@ -111,11 +129,16 @@ public class Pourpoint {
 		return this.uniqueMergedSubCatchments;
 	}
 	
-	public void moveToSecondaryCatchment(ECatchment catchment) {
-		secondaryCatchments.add(catchment);
-		this.uniqueCatchments.remove(catchment);
-		this.sharedCatchments.remove(catchment);
+	
+	public void addNeighbourCatchments(Collection<ECatchment> uniqueCatchments, Collection<ECatchment> sharedCatchments) {
+		this.neighbors.addAll(uniqueCatchments);
+		this.neighbors.addAll(sharedCatchments);
 	}
+	
+	public Set<ECatchment> getNeighbourUpstreamCatchments(){
+		return this.neighbors;
+	}
+	
 	public void addUpstreamCatchments(Collection<ECatchment> uniqueCatchments, Collection<ECatchment> sharedCatchments) {
 		this.uniqueCatchments.addAll(uniqueCatchments);
 		this.sharedCatchments.addAll(sharedCatchments);
@@ -129,16 +152,14 @@ public class Pourpoint {
 		return this.sharedCatchments;
 	}
 	
-	public Set<ECatchment> getSecondaryCatchments(){
-		return this.secondaryCatchments;
-	}
-	
 	public String getId() {
 		return id;
 	}
 	public Set<Pourpoint> getDownstreamPourpoints(){
 		return this.downstreamPoints;
 	}
+	
+	
 	public Set<Pourpoint> getUpstreamPourpoints(){
 		return this.upstreamPoints;
 	}
@@ -170,12 +191,19 @@ public class Pourpoint {
 	public List<EFlowpath> getDownstreamFlowpaths(){
 		return this.downstreamFlowpaths;
 	}
+
+	public List<EFlowpath> getOtherDownstreamFlowpaths(){
+		return this.neighbourDownstreamFlowpaths;
+	}
+	
+	public void setDownstreamFlowpaths(List<EFlowpath> path) {
+		this.downstreamFlowpaths = path;
+	}
 	
 	public DrainageArea getCatchmentDrainageArea(boolean removeHoles) {
 		Set<ECatchment> items = new HashSet<>();
 		items.addAll(getSharedCatchments());
 		items.addAll(getUniqueCatchments());
-		items.addAll(secondaryCatchments);
 		return HyGraph.buildDrainageArea(items, removeHoles);
 	}
 	
@@ -187,6 +215,8 @@ public class Pourpoint {
 	 */
 	public void findDownstreamFlowpaths(HyGraph graph) {
 		downstreamFlowpaths = new ArrayList<>();
+		neighbourDownstreamFlowpaths = new ArrayList<>();
+		
 		if (this.type == CType.NEAREST_INCATCHMENT) {
 			//find the elementary catchment and 
 			//then find the most downstream
@@ -209,17 +239,19 @@ public class Pourpoint {
 				double distance = Double.MAX_VALUE;
 				EFlowpath closest = null;
 				for (EFlowpath p : c.getFlowpaths()) {
-					double tdistance = p.getToNode().getPoint().getCoordinate().distance(location.getCoordinate());
+					//shorest distance between line and location
+					double tdistance = DistanceOp.distance(location, p.getLineString());
 					if (tdistance < distance) {
 						closest = p;
 						distance = tdistance;
 					}
 				}
 				if (closest != null) {
-					for (EFlowpath p : closest.getToNode().getUpFlows()) {
-						if (p.getCatchment() == c) {
-							downstreamFlowpaths.add(p);
-						}
+					downstreamFlowpaths.add(closest);
+					for (EFlowpath other : closest.getToNode().getUpFlows()) {
+						if (other == closest) continue;
+						if (other.getType() == FlowpathType.BANK) continue;
+						neighbourDownstreamFlowpaths.add(other);
 					}
 				}
 			}
@@ -341,7 +373,13 @@ public class Pourpoint {
 					EFlowpath item = it.next();
 					int i = 1;
 					while(i < ccode) { i++; item = it.next(); }
+					
 					downstreamFlowpaths.add(item);
+					for (EFlowpath other : item.getToNode().getUpFlows()) {
+						if (other == item) continue;
+						if (other.getType() == FlowpathType.BANK) continue;
+						neighbourDownstreamFlowpaths.add(other);
+					}
 					
 				}
 			}

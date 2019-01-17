@@ -393,12 +393,12 @@
   				<label class="form-check-label" for="upstreamcatchments">Upstream Catchments</label>
 			</div>
 			<div class="form-check">
-  				<input class="form-check-input" type="checkbox" value="" id="nonoverlappingcatchments" checked>
-  				<label class="form-check-label" for="nonoverlappingcatchments">NonOverlapping Catchments</label>
+  				<input class="form-check-input" type="checkbox" value="" id="partitionedcatchments" checked>
+  				<label class="form-check-label" for="partitionedcatchments">Partitioned Catchments</label>
 			</div>
 			<div class="form-check">
-				<input class="form-check-input" type="checkbox" value="" id="nonoverlappingcoveragerelations" checked>
-				<label class="form-check-label" for="nonoverlappingcoveragerelations">NonOverlapping Catchment Relations</label>
+				<input class="form-check-input" type="checkbox" value="" id="partitionedcatchmentrelations" checked>
+				<label class="form-check-label" for="partitionedcatchmentrelations">Partitioned Catchment Relations</label>
 				</div>
 			<div class="form-check">
   				<input class="form-check-input" type="checkbox" value="" id="traversalcompliantcatchments" checked>
@@ -1447,7 +1447,7 @@
 				"Troisième Ruisseau"
 			],
 			'type': ['Observed','Constructed','Inferred','Bank','Unknown'],
-			'rank': [1,2],
+			'rank': ['Primary','Secondary', 'Unknown'],
 			'strahleror': [1,2,3,4,5,6,7],
 			'hortonor': [1,2,3,4,5,6,7],
 			'hackor': [1,2,3,4,5,6,7,8,9,10,1001,1002,1003],
@@ -1947,10 +1947,10 @@
 			}
 			query +="&output=";
 			if ($("#outputpourpoints").is(':checked')) query +="op,";
-			if ($("#nonoverlappingcoveragerelations").is(':checked')) query +="nocr,";
+			if ($("#partitionedcatchmentrelations").is(':checked')) query +="pcr,";
  			if ($("#pourpointdistance").is(':checked')) query +="opdmin,opdmax,";
-			if ($("#upstreamcatchments").is(':checked')) query +="pc,pcc,";
-			if ($("#nonoverlappingcatchments").is(':checked')) query +="noc,";
+			if ($("#upstreamcatchments").is(':checked')) query +="c,ccr,";
+			if ($("#partitionedcatchments").is(':checked')) query +="pc,";
 			if ($("#traversalcompliantcatchments").is(':checked')) query +="tcc,";
  			if ($("#traversalcompliantcatchmentrelations").is(':checked')) query +="tccr,";		
  			if ($("#interiorcatchments").is(':checked')) query +="ic,";
@@ -2007,10 +2007,10 @@
 					addOutputPourpointLayer(item);
 					layers.op = item;
 					
-				}else if (item.key=="pc"){
+				}else if (item.key=="c"){
 					addPourpointCatchmentLayer(item);
 					layers.pc = item;
-				}else if (item.key =="noc"){
+				}else if (item.key =="pc"){
 					addPourpointUniqueCatchmentLayer(item);
 					layers.noc = item;
 				}else if (item.key =="tcc"){
@@ -2019,7 +2019,7 @@
 				}else if (item.key =="ic"){
 					addInteriorCatchmentLayer(item);
 					layers.ic = item;
-				}else if (item.key == "nocr"){
+				}else if (item.key == "pcr"){
 					layers.nocr = item;
 				}else if (item.key == "opdmin"){
 					layers.opdmin = item;
@@ -2027,7 +2027,7 @@
 					layers.opdmax = item;
 				}else if (item.key == "tccr"){
 					layers.tccr = item;
-				}else if (item.key == "pcc"){
+				}else if (item.key == "ccr"){
 					layers.pcc = item;
 				}
 			}
@@ -2323,22 +2323,34 @@
 		
 		function addPourpointCatchmentLayer(layerdata){
 			catchmentPpLayer = L.geoJson(layerdata, {
-				  pane: 'pourpointpane'
+				  pane: 'pourpointpane',
+				  style: function(feature){
+						return {color: "#82461C"};
+					},
 			}).addTo(map);
 		}
 		function addPourpointUniqueCatchmentLayer(layerdata){
 			uniqueCatchmentPpLayer = L.geoJson(layerdata, {
-				  pane: 'pourpointpane'
+				  pane: 'pourpointpane',
+				  style: function(feature){
+						return {color: "#82461C"};
+					},
 			}).addTo(map);
 		}
 		function addPourpointUniqueSubCatchmentLayer(layerdata){
 				uniqueSubCatchmentPpLayer = L.geoJson(layerdata, {
-					  pane: 'pourpointpane'
+					  pane: 'pourpointpane',
+					  style: function(feature){
+							return {color: "#82461C"};
+						},
 				}).addTo(map);
 		}
 		function addInteriorCatchmentLayer(layerdata){
 			interiorCatchmentPpLayer = L.geoJson(layerdata, {
-				  pane: 'pourpointpane'
+				  pane: 'pourpointpane',
+				  style: function(feature){
+						return {color: "#82461C"};
+					},
 			}).addTo(map);
 	}
 		

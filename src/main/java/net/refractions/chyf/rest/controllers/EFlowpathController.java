@@ -209,7 +209,7 @@ public class EFlowpathController {
 			case "hackor": filter = new PredicateFilter<EFlowpath>(EFlowpath::getHackOrder, PredicateParameter.convert(params.getPredicate()).get(), Integer.parseInt(params.getValue())); break;
 			case "length": filter = new PredicateFilter<EFlowpath>(EFlowpath::getLength, PredicateParameter.convert(params.getPredicate()).get(), Double.parseDouble(params.getValue())); break;
 			default:
-				String errMsg = "The property parameter must be one of (name, nameId, type, rank, certainty, strahleror, hortonor, hackor, length).";
+				String errMsg = "The property parameter must be one of (name, nameId, type, rank, strahleror, hortonor, hackor, length).";
 				throw new IllegalArgumentException(errMsg);
 		}
 		

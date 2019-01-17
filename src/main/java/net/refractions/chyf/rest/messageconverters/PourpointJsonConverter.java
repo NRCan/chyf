@@ -49,16 +49,16 @@ public class PourpointJsonConverter extends JsonConverterHelper {
 			writeCatchmentContainment(response);
 		}
 		
-		if (result.getAvailableOutputs().contains(PourpointEngine.OutputType.NONOVERLAPPING_CATCHMENTS)){
-			writeNonOverlappingCatchments(response);
+		if (result.getAvailableOutputs().contains(PourpointEngine.OutputType.PARTITIONED_CATCHMENTS)){
+			writePartitionedCatchments(response);
 		}
 		
-		if (result.getAvailableOutputs().contains(PourpointEngine.OutputType.NONOVERLAPPINGCATCHMENT_RELATIONSHIP)){
+		if (result.getAvailableOutputs().contains(PourpointEngine.OutputType.PARTITIONEDCATCHMENT_RELATIONSHIP)){
 			String[] headers =new String[result.getPoints().size()];
 			for (int i = 0; i < headers.length; i ++) {
 				headers[i] = result.getPoints().get(i).getId();
 			}
-			writeRelationship(PourpointEngine.OutputType.NONOVERLAPPINGCATCHMENT_RELATIONSHIP, headers, result.getNonOverlappingCatchmentRelationship());
+			writeRelationship(PourpointEngine.OutputType.PARTITIONEDCATCHMENT_RELATIONSHIP, headers, result.getPartitionedCatchmentRelationship());
 		}
 		
 		if (result.getAvailableOutputs().contains(PourpointEngine.OutputType.TRAVERSAL_COMPLIANT_CATCHMENTS)){
@@ -146,26 +146,23 @@ public class PourpointJsonConverter extends JsonConverterHelper {
 	private void writeTraversalCompliantCatchments(ApiResponse response) throws IOException {
 		this.featureCollectionHeader(response, PourpointEngine.OutputType.TRAVERSAL_COMPLIANT_CATCHMENTS);
 		int counter = 1;
-		for (Pourpoint p : result.getPoints()) {
-			Collection<UniqueSubCatchment> items =  result.getTraversalCompliantCatchments(p);
-			for (UniqueSubCatchment i : items) {
-				DrainageArea g = i.getDrainageArea();
-				this.featureHeader(GeotoolsGeometryReprojector.reproject(g.getGeometry(), response.getSrs()), counter++, null);
-				this.field("id", i.getId());
-				this.field("area", g.getArea() / 10_000);
-				this.featureFooter();
-			}
+		Collection<UniqueSubCatchment> items =  result.getTraversalCompliantCatchments();
+		for (UniqueSubCatchment i : items) {
+			DrainageArea g = i.getDrainageArea();
+			this.featureHeader(GeotoolsGeometryReprojector.reproject(g.getGeometry(), response.getSrs()), counter++, null);
+			this.field("id", i.getId());
+			this.field("area", g.getArea() / 10_000);
+			this.featureFooter();
 		}
 		this.featureCollectionFooter();
-		
 	}
 	
 	
-	private void writeNonOverlappingCatchments(ApiResponse response) throws IOException {
-		this.featureCollectionHeader(response, PourpointEngine.OutputType.NONOVERLAPPING_CATCHMENTS);
+	private void writePartitionedCatchments(ApiResponse response) throws IOException {
+		this.featureCollectionHeader(response, PourpointEngine.OutputType.PARTITIONED_CATCHMENTS);
 		int counter = 1;
 		for (Pourpoint p : result.getPoints()) {
-			DrainageArea g = result.getNonOverlappingCatchments(p);
+			DrainageArea g = result.getPartitionedCatchments(p);
 			this.featureHeader(GeotoolsGeometryReprojector.reproject(g.getGeometry(), response.getSrs()), counter++, null);
 			this.field("id", p.getId());
 			this.field("area", g.getArea() / 10_000);

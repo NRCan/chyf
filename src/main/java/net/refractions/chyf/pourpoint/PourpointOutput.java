@@ -1,5 +1,6 @@
 package net.refractions.chyf.pourpoint;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -17,9 +18,9 @@ import net.refractions.chyf.hygraph.HyGraph;
 public class PourpointOutput {
 
 	private List<Pourpoint> points;
-	private Integer[][] nocr;
+	private Integer[][] pcr;
 	private Integer[][] tccr;
-	private Integer[][] pcc;
+	private Integer[][] ccr;
 	private List<UniqueSubCatchment> tcc;
 	
 	private Double[][] minPpDistance;
@@ -33,10 +34,10 @@ public class PourpointOutput {
 	public PourpointOutput(PourpointEngine engine) {
 		this.points = engine.getPoints();
 		this.removeHoles = engine.getRemoveHoles();
-		this.nocr = engine.getNonOverlappingCoverageRelationship();
+		this.pcr = engine.getPartitionedCatchmentRelationship();
 		this.tccr = engine.getTraversalCompliantCoverageRelationship();
 		this.tcc = engine.getSortedTraveralCompliantCoverages();
-		this.pcc = engine.getCatchmentContainment();
+		this.ccr = engine.getCatchmentContainment();
 		this.interiorCatchments = engine.getInteriorCatchments();
 		
 		minPpDistance = engine.getProjectedPourpointMinDistanceMatrix();
@@ -66,11 +67,11 @@ public class PourpointOutput {
 	}
 	
 	public Integer[][] getCatchmentContainment(){
-		return this.pcc;
+		return this.ccr;
 	}
 	
-	public Integer[][] getNonOverlappingCatchmentRelationship() {
-		return nocr;
+	public Integer[][] getPartitionedCatchmentRelationship() {
+		return pcr;
 	}
 
 	public Integer[][] getTraversalCompliantCatchmentRelationship() {
@@ -85,7 +86,7 @@ public class PourpointOutput {
 		return point.getCatchmentDrainageArea(removeHoles);
 	}
 	
-	public DrainageArea getNonOverlappingCatchments(Pourpoint point) {
+	public DrainageArea getPartitionedCatchments(Pourpoint point) {
 		return HyGraph.buildDrainageArea(point.getUniqueCatchments(), false);
 	}
 	

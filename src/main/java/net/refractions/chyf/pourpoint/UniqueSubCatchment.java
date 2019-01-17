@@ -1,11 +1,8 @@
 package net.refractions.chyf.pourpoint;
 
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
-import java.util.StringJoiner;
 
 import net.refractions.chyf.hygraph.DrainageArea;
 import net.refractions.chyf.hygraph.ECatchment;
@@ -13,13 +10,14 @@ import net.refractions.chyf.hygraph.HyGraph;
 
 public class UniqueSubCatchment {
 
-	//immediate upstream poutpoint
-	private Set<Pourpoint> upPoints = new HashSet<>();
-	private Set<Pourpoint> downPoints = new HashSet<>();
+	//these are the most upstream pourpoints that 
+	//this are flows into (may be multiple in the case)
+	//of secondary flows that flow into different pourpoints
+	private Set<Pourpoint> points;
+	
 	//elementary catchments
 	private Set<ECatchment> catchments = new HashSet<>();
-	//main pouroint
-	private Pourpoint point;
+
 	//downstream subcatchments
 	private Set<UniqueSubCatchment> immediateDownstream = new HashSet<>();
 	private Set<UniqueSubCatchment> upstream = new HashSet<>();
@@ -27,39 +25,28 @@ public class UniqueSubCatchment {
 	private String id = null;
 	
 	public UniqueSubCatchment(Pourpoint point) {
-		this.point = point;
+		this.points = new HashSet<>();
+		points.add(point);
+	}
+	
+	public void addPoint(Pourpoint point) {
+		this.points.add(point);
+	}
+	
+	/**
+	 * Sets the subcatchment id; should be unique
+	 * @param id
+	 */
+	public void setId(String id) {
+		this.id = id;
 	}
 	
 	/**
 	 * 
-	 * @return the subcatchment id which is generated for the pourpoint id and the upstream pourpoint ids
+	 * @return the subcatchment id 
 	 */
 	public String getId() {
-		if (id == null) updateId();
 		return id;
-	}
-	
-	private void updateId() {
-		StringBuilder sb = new StringBuilder();
-		sb.append(point.getId());
-		sb.append("|");
-		if (!upPoints.isEmpty()) {
-			List<Pourpoint> sortedPoints = new ArrayList<>(upPoints);
-			sortedPoints.sort((a,b)->(a.getId().compareTo(b.getId())));
-			StringJoiner joiner = new StringJoiner("_");
-			sortedPoints.forEach(p->joiner.add(p.getId()));
-			sb.append(joiner.toString());
-		}
-		sb.append("|");
-		if (!downPoints.isEmpty()) {
-			List<Pourpoint> sortedPoints = new ArrayList<>(downPoints);
-			sortedPoints.sort((a,b)->(a.getId().compareTo(b.getId())));
-			StringJoiner joiner = new StringJoiner("_");
-			sortedPoints.forEach(p->joiner.add(p.getId()));
-			sb.append(joiner.toString());
-		}
-		
-		id = sb.toString();
 	}
 	
 	/**
@@ -107,20 +94,8 @@ public class UniqueSubCatchment {
 	 */
 	public void mergeCatchment(UniqueSubCatchment pc){
 		catchments.addAll(pc.getCatchments());
-		upPoints.addAll(pc.upPoints);
-		downPoints.addAll(pc.downPoints);
 	}
-	
-	public void addUpstreamPourpoint(Pourpoint up) {
-		upPoints.add(up);
-		id = null;
-	}
-	
-	public void addDownstreamPourpoint(Pourpoint up) {
-		downPoints.add(up);
-		id = null;
-	}
-	
+
 	public DrainageArea getDrainageArea() {
 		return HyGraph.buildDrainageArea(catchments, false);
 	}
