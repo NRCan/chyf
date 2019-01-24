@@ -29,7 +29,7 @@ import net.refractions.chyf.rest.GeotoolsGeometryReprojector;
 /**
  * This is a test that runs on quickly on a very simple dataset
  * stored in the data_small test folder.  This test case mimics
- * the exmple provided in the contract for the initial pourpoint
+ * the example provided in the contract for the initial pourpoint
  * work.
  * 
  * @author Emily
@@ -63,6 +63,8 @@ public class SimpleDataPourpointTest {
 			Point actual = point.getProjectedPoint();
 			Assert.assertTrue("Pourpoint not projected to expected location ( " + c.x + " " + c.y +")", expected.equalsExact(actual, 0.00001));
 		}
+		//validate prt
+		Assert.assertEquals("Point Relationship Tree Incorrect", "P4", results.getPointRelationshipTree());
 	}
 	
 	@Test
@@ -209,5 +211,16 @@ public class SimpleDataPourpointTest {
 				Assert.assertEquals("Maximum pourpoint distance matrix incorrect", expectedDistances[i][j],actualDistances[i][j]);
 			}
 		}
+		
+		//primary distance matrix should be the same as the min distance matrix
+		actualDistances = results.getProjectedPourpointPrimaryDistanceMatrix();
+		for (int i = 0; i < actualDistances.length; i ++) {
+			for (int j = 0; j < actualDistances.length; j ++) {
+				Assert.assertEquals("Primary pourpoint distance matrix incorrect", expectedDistances[i][j],actualDistances[i][j]);
+			}
+		}
+		
+		//validate prt
+		Assert.assertEquals("Point Relationship Tree Incorrect", "P1(x1(P2,x2(P3,x3(P5,P4))))", results.getPointRelationshipTree());
 	}
 }

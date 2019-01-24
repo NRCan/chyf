@@ -613,6 +613,14 @@
 			dataToMarker: function(data) {
 				var path = L.GeoJSON.geometryToLayer(data.geometry, {pane: 'flowpath'});
 				var color = "#ff0000";
+				var dasharray = "";
+				var weight = 3;
+				
+				if (data.properties.rank == 'Secondary'){
+					weight = 2;
+					dasharray = "20 3";
+				}
+				
 				switch(data.properties.type) {
 					case "Observed":
 						color = "#2536ed";
@@ -621,18 +629,14 @@
 						color = "#b9e85b";
 						break;
 					case "Inferred":
-						color = "#ffffff";
+						color = "#000000";
+						weight = 2;
 						break;
 					case "Bank":
 						color = "#faf020";
 						break;
 				}
-				var dasharray = "";
-				var weight = 3;
-				if (data.properties.rank == 'Secondary'){
-					weight = 2;
-					dasharray = "20 3";
-				}
+				
 				path.setStyle({
         			color: color,
         			weight: weight,
@@ -1946,9 +1950,9 @@
 				query += ",";
 			}
 			query +="&output=";
-			if ($("#outputpourpoints").is(':checked')) query +="op,";
+			if ($("#outputpourpoints").is(':checked')) query +="op,prt,";
 			if ($("#partitionedcatchmentrelations").is(':checked')) query +="pcr,";
- 			if ($("#pourpointdistance").is(':checked')) query +="opdmin,opdmax,";
+ 			if ($("#pourpointdistance").is(':checked')) query +="opdmin,opdmax,opdprimary,";
 			if ($("#upstreamcatchments").is(':checked')) query +="c,ccr,";
 			if ($("#partitionedcatchments").is(':checked')) query +="pc,";
 			if ($("#traversalcompliantcatchments").is(':checked')) query +="tcc,";
@@ -2025,10 +2029,14 @@
 					layers.opdmin = item;
 				}else if (item.key == "opdmax"){
 					layers.opdmax = item;
+				}else if (item.key == "opdprimary"){
+					layers.opdprimary = item;
 				}else if (item.key == "tccr"){
 					layers.tccr = item;
 				}else if (item.key == "ccr"){
 					layers.pcc = item;
+				}else if (item.key = "prt"){
+					layers.prt = item;
 				}
 			}
 			var isActive = true;
@@ -2063,7 +2071,7 @@
 			if (layers.op != null){
 				layers.op_tab = createTab("op", layers.op, layers.op.name, $(ul), $(tabbody), isActive, outputPpLayer);
 				isActive = false;
-			} else if ( layers.opdmin != null || layers.opdmax != null){
+			} else if ( layers.opdmin != null || layers.opdmax != null || layers.opdprimary != null || layer.prt != null){
 				layers.op_tab = createTab("op", null, "Output Pourpoints", $(ul), $(tabbody), isActive, null);
 				isActive = false;
 			}
@@ -2081,6 +2089,19 @@
 				$div.append($table);
 				$div.append( $('<div>[i,j]<br>1 = i upstream of j;<br>-1 = i downstream of j</div>' ));
 				layers.noc_tab.append($div);
+			}
+			if (layers.prt != null){
+				var $div = $('<div/>').append($('<div class="toolCat">Pourpoint (Primary) Relationship Tree</div>'));
+				$div.append(layers.prt.tree);				
+				layers.op_tab.append($div);
+			}
+			
+			if (layers.opdprimary != null){
+				var $table = createMatrixTable(layers.opdprimary.headers, layers.opdprimary.values, 2);
+				var $div = $('<div/>').append($('<div class="toolCat">Outpout Pourpoint Primary Distances</div>'));
+				$div.append($table);
+				$div.append( $('<div>[i,j]<br>distance from i to j<br>> 0 if i is upstream of j<br>< 0 if i is downstream of j<br>Distances are single valued if only one path between i and j exists.<br>Distances are of the form (min, max) if more than one such path exists.</div>' ));
+				layers.op_tab.append($div);
 			}
 			
 			if (layers.opdmin != null || layers.opdmax != null){
@@ -2107,7 +2128,7 @@
 				$div.append( $('<div>[i,j]<br>distance from i to j<br>> 0 if i is upstream of j<br>< 0 if i is downstream of j<br>Distances are single valued if only one path between i and j exists.<br>Distances are of the form (min, max) if more than one such path exists.</div>' ));
 				layers.op_tab.append($div);
 			}
-
+			
 			if (layers.tccr != null){
 				var $table = createMatrixTable(layers.tccr.headers, layers.tccr.values, 0);
 				var $div = $('<div/>').append($('<div class="toolCat">Catchment Flow Relationships</div>'));

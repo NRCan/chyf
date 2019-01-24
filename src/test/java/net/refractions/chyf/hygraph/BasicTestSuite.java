@@ -35,6 +35,7 @@ import net.refractions.chyf.ChyfDatastore;
 	PourpointProjectionTest.class,
 	PourpointTest.class,
 	SimpleDataPourpointTest.class,
+	PointRelationshipTreeTest.class,
 	PourpointSecondaryTest.class})
 
 public class BasicTestSuite extends Suite {

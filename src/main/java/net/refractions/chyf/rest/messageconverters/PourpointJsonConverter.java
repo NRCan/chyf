@@ -40,7 +40,9 @@ public class PourpointJsonConverter extends JsonConverterHelper {
 		if (result.getAvailableOutputs().contains(PourpointEngine.OutputType.DISTANCE_MAX)){
 			writeRelationship(PourpointEngine.OutputType.DISTANCE_MAX, result.getProjectedPourpointMaxDistanceMatrix());
 		}
-		
+		if (result.getAvailableOutputs().contains(PourpointEngine.OutputType.DISTANCE_PRIMARY)){
+			writeRelationship(PourpointEngine.OutputType.DISTANCE_PRIMARY, result.getProjectedPourpointPrimaryDistanceMatrix());
+		}
 		if (result.getAvailableOutputs().contains(PourpointEngine.OutputType.CATCHMENTS)){
 			writeCatchments(response);
 		}
@@ -77,6 +79,11 @@ public class PourpointJsonConverter extends JsonConverterHelper {
 		if (result.getAvailableOutputs().contains(PourpointEngine.OutputType.INTERIOR_CATCHMENT)) {
 			writeInteriorCatchment(response);
 		}		
+		
+		if (result.getAvailableOutputs().contains(PourpointEngine.OutputType.PRT)) {
+			writePrt();
+		}
+		
 		jw.endArray();
 		jw.flush();
 	}
@@ -170,6 +177,16 @@ public class PourpointJsonConverter extends JsonConverterHelper {
 		}
 		this.featureCollectionFooter();
 		
+	}
+	
+	private void writePrt() throws IOException{
+		PourpointEngine.OutputType layer = PourpointEngine.OutputType.PRT;
+		
+		jw.beginObject();
+		field("key", layer.key);
+		field("name", layer.layername);
+		field("tree", result.getPointRelationshipTree());
+		jw.endObject();
 	}
 	
 	private void writeRelationship(PourpointEngine.OutputType layer, Double[][] values) throws IOException{

@@ -27,13 +27,12 @@ import net.refractions.chyf.ChyfDatastore;
 import net.refractions.chyf.enumTypes.CatchmentType;
 import net.refractions.chyf.enumTypes.FlowpathType;
 import net.refractions.chyf.enumTypes.NexusType;
-import net.refractions.chyf.hygraph.BasicTestSuite;
+import net.refractions.chyf.enumTypes.Rank;
 import net.refractions.chyf.hygraph.DrainageArea;
 import net.refractions.chyf.hygraph.ECatchment;
 import net.refractions.chyf.hygraph.EFlowpath;
 import net.refractions.chyf.hygraph.HyGraph;
 import net.refractions.chyf.hygraph.Nexus;
-import net.refractions.chyf.rest.GeotoolsGeometryReprojector;
 
 /**
  * Computes the various pourpoint features.  See OutputType enum for
@@ -49,7 +48,9 @@ public class PourpointEngine {
 	public enum OutputType{
 		OUTPUT_PP("op", "Output Pourpoints"),	
 		DISTANCE_MIN("opdmin", "Pourpoint Minimum Distance Matrix"), 
-		DISTANCE_MAX("opdmax", "Pourpoint Maximum Distance Matrix"), 
+		DISTANCE_MAX("opdmax", "Pourpoint Maximum Distance Matrix"),
+		DISTANCE_PRIMARY("opdprimary", "Pourpoint Primary Distance Matrix"),
+		PRT("prt", "Point Relationship Tree"),
 		CATCHMENTS("c", "Catchments"), 
 		CATCHMENT_CONTAINMENT("ccr", "Catchment Containment Relationship"), 
 		PARTITIONED_CATCHMENTS("pc", "Partitioned Catchments"), 
@@ -84,6 +85,10 @@ public class PourpointEngine {
 	private Set<PourpointKey> catchmentContainment;
 	private Set<ECatchment> holes;
 	
+	private String pointRelationshipTree;
+	
+	private int prtNodeCounter = 1;
+	
 	public PourpointEngine(List<Pourpoint> points, HyGraph hygraph) {
 		this(points, hygraph, false);
 	}
@@ -100,6 +105,10 @@ public class PourpointEngine {
 	
 	public boolean getRemoveHoles() {
 		return this.removeHoles;
+	}
+	
+	public String getPointRelationshipTree() {
+		return this.pointRelationshipTree;
 	}
 	
 	/**
@@ -162,8 +171,10 @@ public class PourpointEngine {
 				OutputType.TRAVERSAL_COMPLIANT_CATCHMENTS,
 				OutputType.TRAVERSAL_COMPLIANT_CATCHMENT_RELATION,
 				OutputType.DISTANCE_MAX,
+				OutputType.DISTANCE_PRIMARY,
 				OutputType.DISTANCE_MIN,
-				OutputType.INTERIOR_CATCHMENT)) {
+				OutputType.INTERIOR_CATCHMENT,
+				OutputType.PRT)) {
 			computeUpstreamDownstreamPourpointRelationship();
 		}
 		
@@ -261,6 +272,33 @@ public class PourpointEngine {
 					}else {
 						values[i][j] = range.maxDistance *offset;
 					}
+				}
+			}
+		}
+		return values;
+	}
+	
+	public Double[][] getProjectedPourpointPrimaryDistanceMatrix(){
+		if (!availableOutputs.contains(OutputType.DISTANCE_PRIMARY) ) return null;
+		Double[][] values = new Double[points.size()][points.size()];
+		
+		for (int i = 0 ; i < points.size(); i ++) {
+			for (int j = 0 ; j < points.size(); j ++) {
+				if (i == j) { values[i][j] = null; continue; }
+				
+				Pourpoint pi = points.get(i);
+				Pourpoint pj = points.get(j);
+				
+				Range range = distanceValues.get(new PourpointKey(pi, pj));
+				int offset = -1;
+				if (range == null) {
+					range = distanceValues.get(new PourpointKey(pj, pi));
+					offset = 1;
+				}
+				if (range == null || range.primaryDistance < 0) {
+					values[i][j] = null;	
+				}else {
+					values[i][j] = range.primaryDistance * offset;
 				}
 			}
 		}
@@ -397,12 +435,18 @@ public class PourpointEngine {
 	
 	private void computeUpstreamDownstreamPourpointRelationship() {
 		HashMap<Nexus, HashMap<Pourpoint, Range>> nodedistances = new HashMap<>();
+		
+		//in the double array the first value is the
+		//primary distance to the node and the second
+		//value the horton order of the input edge
+		HashMap<EFlowpath, HashMap<Pourpoint, Object[]>> primarydistances = new HashMap<>();
+
 		distanceValues = new HashMap<>();
 		
 		for (Pourpoint pp : points) {
 			//walk downstream until we reach the network terminus
 			for (EFlowpath edge : pp.getDownstreamFlowpaths()) {
-				processPourpointRel(pp, edge, nodedistances);
+				processPourpointRel(pp, edge, nodedistances, primarydistances);
 			}
 		}	
 		
@@ -425,6 +469,7 @@ public class PourpointEngine {
 		
 		//the distances between the pourpoints is computed based on the flow
 		//network and is not associated in any way with the catchment relationship
+		
 		for (HashMap<Pourpoint, Range> nodeRel : nodedistances.values()) {
 			for (Pourpoint p : nodeRel.keySet()) {
 				Range d = nodeRel.get(p);
@@ -442,18 +487,274 @@ public class PourpointEngine {
 						}
 						r.updateDistance( nodeRel.get(p2).getMinDistance(), nodeRel.get(p2).getMaxDistance());
 						
+						
 					}
 				}
 			}
 		}
+		
+		HashMap<Nexus, HashMap<Pourpoint, Object[]>> prjprimarydistances = new HashMap<>();
+		for (Entry<EFlowpath, HashMap<Pourpoint, Object[]>> e : primarydistances.entrySet()) {
+			Nexus n = e.getKey().getToNode();
+			HashMap<Pourpoint, Object[]> items = prjprimarydistances.get(n);
+			if (items == null) {
+				items = new HashMap<>();
+				prjprimarydistances.put(n,  items);
+			}
+			items.putAll(e.getValue());
+		}
+
+		for (HashMap<Pourpoint, Object[]> nodeRel : prjprimarydistances.values()) {
+			for (Pourpoint p : nodeRel.keySet()) {
+				Object[] d = nodeRel.get(p);
+				if (((double)d[0]) == 0) {
+					//for all other pourpoints at this node
+					for (Pourpoint p2 : nodeRel.keySet()) {	
+						PourpointKey key = new PourpointKey(p, p2);
+						Object[] primarydistance = nodeRel.get(p2);
+						Range r = distanceValues.get(key);
+						if (r == null) {
+							r = new Range();
+							distanceValues.put(key, r);
+						}
+						r.primaryDistance = (double) primarydistance[0];
+					}
+				}
+			}
+		}
+		
+		if (availableOutputs.contains(OutputType.PRT)) {
+			computePointRelationshipTree(primarydistances);
+		}
 	}
 	
-	private void processPourpointRel(Pourpoint point, EFlowpath path, HashMap<Nexus, HashMap<Pourpoint, Range>> nodedistances) {
+	private void computePointRelationshipTree(HashMap<EFlowpath, HashMap<Pourpoint, Object[]>> primarydistances) {
+
+		//determine the key nodes; these are the nodes where the 
+		//upstream pourpoints are different or the
+		//nodes that start pourpoints
+		Set<Nexus> keyNodes = new HashSet<>();
+		//split nodes are nodes where two upstream areas come together 
+		//(generally don't contain the root nodes)
+		Set<Nexus> splitNodes = new HashSet<>();
+
+		Set<Nexus> toVisit = new HashSet<>();
+		for (EFlowpath n : primarydistances.keySet()) {
+			toVisit.add(n.getToNode());
+			toVisit.add(n.getFromNode());
+		}
+		for (Nexus n : toVisit) {
+			if (n.getUpFlows().size() == 0 || n.getUpFlows().size() == 1) continue;
+//			HashMap<Pourpoint, Double[]> pps = primarydistances.get(n);
+//			// look at upstream nexus if any one has a different set of pourpoints then
+//			// this one is also important
+			List<Set<Pourpoint>> toCompare = new ArrayList<>();
+			
+			for (EFlowpath in : n.getUpFlows()) {
+				HashMap<Pourpoint, Object[]> pps2 = primarydistances.get(in);
+				if (pps2 != null) toCompare.add(pps2.keySet());
+			}
+			if (toCompare.size() < 2) continue;
+			
+			boolean diff = false;
+			for (int i = 0; i < toCompare.size(); i ++) {
+				for (int j = 0; j < toCompare.size(); j ++) {
+					if (!setEqual(toCompare.get(i), toCompare.get(j))) {
+						diff = true;
+						break;
+					}
+				}
+				if (diff) break;
+			}
+			if (diff) {
+				keyNodes.add(n);
+				splitNodes.add(n);
+			}
+		}
+		
+		//add root nodes
+		for (Nexus n : toVisit) {
+			if (keyNodes.contains(n)) continue;
+			for (EFlowpath up : n.getUpFlows()){
+				if (!primarydistances.containsKey(up)) continue;
+				for (Object[] i : primarydistances.get(up).values()) {
+					if (((double)i[0]) == 0) {
+						//root node
+						keyNodes.add(n);
+						break;
+					}
+				}
+			}
+		}
+
+		//map from nexus to tree node
+		HashMap<Nexus, PrtTreeNode> treeMap = new HashMap<>();
+		
+		//create a tree structure from the important nodes
+		for (Pourpoint point: points) {
+			List<NexusItem> nodes = new ArrayList<>();
+			for (Nexus n : keyNodes) {
+				for (EFlowpath up : n.getUpFlows()) {
+					HashMap<Pourpoint, Object[]> pps = primarydistances.get(up);
+					if (pps != null && pps.containsKey(point)) {
+						NexusItem item = new NexusItem();
+						item.distance = (double)pps.get(point)[0];
+						item.hortonorder = pps.get(point)[1] == null ? -1 : (int)pps.get(point)[1];
+						item.nexus = n;
+						nodes.add(item);
+					}
+				}
+			}
+			
+//			if (nodes.isEmpty()) {
+//				//on a secondary flow
+//				continue;
+//			}
+			//sort nodes based on distance
+			nodes.sort((a,b)->Double.compare(a.distance, b.distance));
+			
+			//make a tree from the nodes using the primary distances
+			NexusItem item = nodes.get(0);
+			PrtTreeNode root = treeMap.get(item.nexus);
+			if (root == null) {
+				root = new PrtTreeNode(item.nexus);
+				treeMap.put(item.nexus, root);
+			}
+			root.updateOrder(item.hortonorder);
+			root.addPourpoint(point,true);
+			for (int i = 1; i < nodes.size(); i ++) {
+				item = nodes.get(i);
+				
+				PrtTreeNode child = treeMap.get(item.nexus);
+				if (child == null) {
+					child = new PrtTreeNode(item.nexus);
+					treeMap.put(item.nexus, child);
+				}
+				child.updateOrder(item.hortonorder);
+				if (!child.containsPourpoint(point, false)) {
+					child.addPourpoint(point,false);
+					child.addInNode(root);
+					root.setOutNode(child, false);
+					root = child;
+				}
+				
+				
+			}
+		}
+			
+		
+		//post processes cases where two pourpoints
+		//adding new nodes as required
+		List<PrtTreeNode> allNodes = new ArrayList<PrtTreeNode>();
+		for (PrtTreeNode treeNode : treeMap.values()) {
+			allNodes.add(treeNode);
+			if (treeNode.getPourpoints(true).isEmpty()) continue;
+			if (treeNode.getPourpoints(true).size() == 1 && !splitNodes.contains(treeNode.getNexus())) {
+				treeNode.setId(treeNode.getPourpoints(true).iterator().next().getId());
+				continue;
+			}
+			
+			//we have multiple root pourpoints converging at this node
+			//we need to break each one into its kid nodes
+			List<PrtTreeNode> newNodes = new ArrayList<>();
+			List<PrtTreeNode> inNodes = new ArrayList<>();
+			
+			for (Pourpoint p : treeNode.getPourpoints(true)) {
+				PrtTreeNode pnode = new PrtTreeNode(null);
+				pnode.setId(p.getId());
+				newNodes.add(pnode);
+				
+				Integer maxorder = p.getDownstreamFlowpaths().get(0).getHortonOrder();
+				for (EFlowpath f : p.getDownstreamFlowpaths()) {
+					maxorder = Math.max(f.getHortonOrder(), maxorder);
+				}
+				pnode.updateOrder(maxorder);
+				
+				allNodes.add(pnode);
+				pnode.addPourpoint(p, true);
+				pnode.setOutNode(treeNode, false);
+				
+				
+				//of all the innodes we need to figure out which one flows into this pourpoint
+				for (PrtTreeNode inNode : treeNode.getInNodes()) {
+					boolean link = false;
+					for (Pourpoint up  : p.getUpstreamPourpoints() ) {
+						if (inNode.getPourpoints(false).contains(up)) {
+							link = true;
+						}
+					}
+					if (link) {
+						pnode.addInNode(inNode);
+						inNodes.add(inNode);
+						inNode.setOutNode(pnode, true);
+					}
+				}
+			}
+			
+			inNodes.forEach(d->treeNode.removeInNode(d));
+			for (PrtTreeNode i : newNodes) {
+				treeNode.addInNode(i);
+			}
+		}
+		
+		
+		//create string
+		StringBuilder sb = new StringBuilder();
+		for (PrtTreeNode n : treeMap.values()) {
+			if (n.getOutNode() == null) {
+				//process upstream
+				processNode(n, sb);
+				sb.append(":");
+			}
+		}
+		sb.deleteCharAt(sb.length() - 1);
+		this.pointRelationshipTree = sb.toString();
+//		System.out.println(this.pointRelationshipTree);
+	}
+	
+	
+	private void processNode(PrtTreeNode n, StringBuilder sb) {
+		if (n.getId() == null) {
+			n.setId("x" + prtNodeCounter);
+			prtNodeCounter++;
+		}
+		sb.append(n.getId());
+		if (!n.getInNodes().isEmpty()) {
+			sb.append("(");
+			List<PrtTreeNode> sortedKids = new ArrayList<>(n.getInNodes());
+			sortedKids.sort((a,b)->{
+				if (a.getOrder() == b.getOrder()) {
+					//TODO: ids might not be set
+					return a.getId().compareTo(b.getId());
+				}
+				return Integer.compare(a.getOrder(), b.getOrder());
+			});
+			for(PrtTreeNode kid : sortedKids) {
+				processNode(kid, sb);
+				sb.append(",");
+			}
+			sb.deleteCharAt(sb.length() - 1);
+			sb.append(")");
+		}
+	}
+	
+	private void processPourpointRel(Pourpoint point, EFlowpath path, HashMap<Nexus, HashMap<Pourpoint, Range>> nodedistances, HashMap<EFlowpath, HashMap<Pourpoint, Object[]>> primaryDistances) {
 		//TODO: stop once we've visited all pourpoints as there won't be any more relationships downstream
 		//this stop would only be useful if all the pourpoints are on the same network, if they are on
 		//different trees it might not be useful
 		ArrayDeque<EFlowpath> toProcess = new ArrayDeque<>();
 		toProcess.add(path);
+		
+		
+		//this is the first edges; we don't care if its primary or not
+		HashMap<Pourpoint, Object[]> primaryOutValue = primaryDistances.get(path);
+		if (primaryOutValue == null) {
+			primaryOutValue = new HashMap<>();
+			primaryDistances.put(path,  primaryOutValue);
+		}
+		primaryOutValue.put(point, new Object[] {0.0, path.getHortonOrder()});
+		
+		
 		while(!toProcess.isEmpty()) {
 			EFlowpath item = toProcess.removeFirst();
 		
@@ -472,6 +773,31 @@ public class PourpointEngine {
 			}
 			
 			double distance = item.getLength();
+			//update primary distance
+			if (item.getRank() == Rank.PRIMARY && item != path) {
+				//find the upstream edge
+				EFlowpath up = null;
+				for (EFlowpath upedges : item.getFromNode().getUpFlows()) {
+					if (primaryDistances.containsKey(upedges) && primaryDistances.get(upedges).containsKey(point)) {
+						up = upedges;
+						break;
+					}
+				}
+				
+				if (up != null) {
+					double pdistance = (double) primaryDistances.get(up).get(point)[0];
+					pdistance += distance;
+				
+					primaryOutValue = primaryDistances.get(item);
+					if (primaryOutValue == null) {
+						primaryOutValue = new HashMap<>();
+						primaryDistances.put(item,  primaryOutValue);
+					}
+					primaryOutValue.put(point, new Object[] {pdistance, path.getHortonOrder()});
+				}
+			}
+			
+			
 			boolean continueDownstream = true;
 			//compute distances for downstream node		
 			if (!inValue.containsKey(point)) {
@@ -487,11 +813,12 @@ public class PourpointEngine {
 					boolean isChanged = outRange.updateDistance(v.minDistance + distance, v.maxDistance+distance);
 					continueDownstream = isChanged;
 					//if this doesn't make a change to the distances we don't need to continue down this path
+					//but we always continue down the primary path
 				}
 				outValue.put(point, outRange);
 			}
 			
-			if (continueDownstream) {
+			if (item.getRank() == Rank.PRIMARY || continueDownstream) {
 				for (EFlowpath downstream: outNode.getDownFlows()) {
 					toProcess.addLast(downstream);
 				}
@@ -955,10 +1282,10 @@ public class PourpointEngine {
 		}
 	}
 
-	
 	class Range{
 		double minDistance;
 		double maxDistance;
+		double primaryDistance = -1;
 		
 		public Range(double min, double max) {
 			this.minDistance = min;
@@ -984,6 +1311,7 @@ public class PourpointEngine {
 		
 		public double getMinDistance() { return this.minDistance; }
 		public double getMaxDistance() { return this.maxDistance; }
+		public double getPrimaryDistance() { return this.primaryDistance; }
 	}
 	
 	class PourpointKey{
@@ -1004,5 +1332,12 @@ public class PourpointEngine {
 			if (other.getClass() != getClass()) return false;
 			return Objects.equals(from, ((PourpointKey)other).from) && Objects.equals(to, ((PourpointKey)other).to);
 		}
+	}
+	
+	
+	class NexusItem{
+		Nexus nexus;
+		double distance;
+		int hortonorder;
 	}
 }

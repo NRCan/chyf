@@ -1,6 +1,5 @@
 package net.refractions.chyf.pourpoint;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -25,9 +24,11 @@ public class PourpointOutput {
 	
 	private Double[][] minPpDistance;
 	private Double[][] maxPpDistance;
+	private Double[][] primaryPpDistance;
 	
 	private Set<PourpointEngine.OutputType> outputs;
 	private Set<DrainageArea> interiorCatchments;
+	private String prt = "";
 	
 	private boolean removeHoles;
 	
@@ -42,10 +43,16 @@ public class PourpointOutput {
 		
 		minPpDistance = engine.getProjectedPourpointMinDistanceMatrix();
 		maxPpDistance = engine.getProjectedPourpointMaxDistanceMatrix();
+		this.primaryPpDistance = engine.getProjectedPourpointPrimaryDistanceMatrix();
 		this.outputs = engine.getAvailableOutputs();
+		this.prt = engine.getPointRelationshipTree();
 		
 	}
 
+	public String getPointRelationshipTree() {
+		return this.prt;
+	}
+	
 	public Set<DrainageArea> getInteriorCatchments(){
 		return this.interiorCatchments;
 	}
@@ -64,6 +71,10 @@ public class PourpointOutput {
 	
 	public Double[][] getProjectedPourpointMaxDistanceMatrix(){
 		return maxPpDistance;
+	}
+	
+	public Double[][] getProjectedPourpointPrimaryDistanceMatrix(){
+		return primaryPpDistance;
 	}
 	
 	public Integer[][] getCatchmentContainment(){
