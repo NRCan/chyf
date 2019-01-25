@@ -76,6 +76,10 @@ public class SimpleDataPourpointTest {
 		points.add(new Pourpoint(GeotoolsGeometryReprojector.reproject(BasicTestSuite.GF.createPoint(new Coordinate(-73.474930904963, 45.1122588226033)), ChyfDatastore.BASE_SRS), -2, "P4"));
 		points.add(new Pourpoint(GeotoolsGeometryReprojector.reproject(BasicTestSuite.GF.createPoint(new Coordinate(-73.46838240431167, 45.11530451770461)), ChyfDatastore.BASE_SRS), 0, "P5"));
 		
+//		points.add(new Pourpoint(GeotoolsGeometryReprojector.reproject(BasicTestSuite.GF.createPoint(new Coordinate(-73.46277664320625, 45.12028525724857)), ChyfDatastore.BASE_SRS), -2, "P6"));
+//		points.add(new Pourpoint(GeotoolsGeometryReprojector.reproject(BasicTestSuite.GF.createPoint(new Coordinate(-73.46574430224715, 45.119594158567814)), ChyfDatastore.BASE_SRS), -2, "P7"));
+//		
+		
 		HashMap<String, Coordinate> projectedPoints = new HashMap<>();
 		projectedPoints.put("P1", new Coordinate(-73.46238158151098, 45.101257516041564));
 		projectedPoints.put("P2", new Coordinate(-73.46455294608097, 45.104443757530134));
@@ -84,7 +88,7 @@ public class SimpleDataPourpointTest {
 		projectedPoints.put("P5", new Coordinate(-73.4685416483889, 45.11506456249201));
 		
 		PourpointOutput results = ( new PourpointEngine(points, datastore.getHyGraph()) ).compute(null);
-		
+//		System.out.println(results.getPointRelationshipTree());
 		//test point projection
 		for(Pourpoint point : results.getPoints()) {
 			Coordinate c = projectedPoints.get(point.getId());
@@ -221,6 +225,7 @@ public class SimpleDataPourpointTest {
 		}
 		
 		//validate prt
+		System.out.println(results.getPointRelationshipTree());
 		Assert.assertEquals("Point Relationship Tree Incorrect", "P1(x1(P2,x2(P3,x3(P5,P4))))", results.getPointRelationshipTree());
 	}
 }

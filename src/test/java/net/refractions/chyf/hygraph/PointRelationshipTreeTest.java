@@ -70,86 +70,81 @@ public class PointRelationshipTreeTest {
 		List<TestData> tests = new ArrayList<>();
 		
 		TestData tdata = new TestData();
-
+		
 		tdata = new TestData();
-		tdata.index = new int[]{4};
-		tdata.results = "P4";
+		tdata.index = new int[]{1,2,3,4,5,7};
+		tdata.results = "P1(x1(P5,x2(x3(P3,P2),P4(P7))))";
 		tests.add(tdata);
 		
-//		tdata = new TestData();
-//		tdata.index = new int[]{1,2,3,4,5,7};
-//		tdata.results = "P1(x1(P5,x2(x3(P3,P2),P4(P7))))";
-//		tests.add(tdata);
-//		
-//		tdata = new TestData();
-//		tdata.index = new int[]{1,2,3};
-//		tdata.results = "P1(x1(P3,P2))";
-//		tests.add(tdata);
-//
-//		tdata = new TestData();
-//		tdata.index = new int[]{1};
-//		tdata.results = "P1";
-//		tests.add(tdata);
-//		
-//		tdata = new TestData();
-//		tdata.index = new int[]{7,4,6,1};
-//		tdata.results = "P1(P6(P4(P7)))";
-//		tests.add(tdata);
-//		
-//		tdata = new TestData();
-//		tdata.index = new int[]{6,1,5, 7};
-//		tdata.results = "P1(x1(P5,P6(P7)))";
-//		tests.add(tdata);
-//		
-//		tdata = new TestData();
-//		tdata.index = new int[]{7,4,6,1,5};
-//		tdata.results = "P1(x1(P5,P6(P4(P7))))";
-//		tests.add(tdata);
-//		
-//		tdata = new TestData();
-//		tdata.index = new int[]{7,4,6,1,5};
-//		tdata.results = "P1(x1(P5,P6(P4(P7))))";
-//		tests.add(tdata);
-//		
-//		tdata = new TestData();
-//		tdata.index = new int[]{1,5,6,7};
-//		tdata.results = "P1(x1(P5,P6(P7)))";
-//		tests.add(tdata);
-//		
-//		tdata = new TestData();
-//		tdata.index = new int[]{1,5,8,7};
-//		tdata.results = "P1(x1(P5,P8(P7)))";
-//		tests.add(tdata);
-//		
-//		tdata = new TestData();
-//		tdata.index = new int[]{1,2,3};
-//		tdata.results = "P1(x1(P3,P2))";
-//		tests.add(tdata);
-//		
-//		tdata = new TestData();
-//		tdata.index = new int[]{1,2,3,4};
-//		tdata.results = "P1(x1(x2(P3,P2),P4))";
-//		tests.add(tdata);
-//		
-//		tdata = new TestData();
-//		tdata.index = new int[]{1,2,3,4,5,6,7};
-//		tdata.results = "P1(x1(P5,P6(x2(x3(P3,P2),P4(P7)))))";
-//		tests.add(tdata);
-//		
-//		tdata = new TestData();
-//		tdata.index = new int[]{1,2,3,4,5,7};
-//		tdata.results = "P1(x1(P5,x2(x3(P3,P2),P4(P7))))";
-//		tests.add(tdata);
-//		
-//		tdata = new TestData();
-//		tdata.index = new int[]{2,3,4,7};
-//		tdata.results = "x1(x2(P3,P2),P4(P7))";
-//		tests.add(tdata);
-//		
-//		tdata = new TestData();
-//		tdata.index = new int[]{4,7,3,2};
-//		tdata.results = "x1(x2(P3,P2),P4(P7))";
-//		tests.add(tdata);
+		tdata = new TestData();
+		tdata.index = new int[]{1,2,3};
+		tdata.results = "P1(x1(P3,P2))";
+		tests.add(tdata);
+
+		tdata = new TestData();
+		tdata.index = new int[]{1};
+		tdata.results = "P1";
+		tests.add(tdata);
+		
+		tdata = new TestData();
+		tdata.index = new int[]{7,4,6,1};
+		tdata.results = "P1(P6(P4(P7)))";
+		tests.add(tdata);
+		
+		tdata = new TestData();
+		tdata.index = new int[]{6,1,5, 7};
+		tdata.results = "P1(x1(P5,P6(P7)))";
+		tests.add(tdata);
+		
+		tdata = new TestData();
+		tdata.index = new int[]{7,4,6,1,5};
+		tdata.results = "P1(x1(P5,P6(P4(P7))))";
+		tests.add(tdata);
+		
+		tdata = new TestData();
+		tdata.index = new int[]{7,4,6,1,5};
+		tdata.results = "P1(x1(P5,P6(P4(P7))))";
+		tests.add(tdata);
+		
+		tdata = new TestData();
+		tdata.index = new int[]{1,5,6,7};
+		tdata.results = "P1(x1(P5,P6(P7)))";
+		tests.add(tdata);
+		
+		tdata = new TestData();
+		tdata.index = new int[]{1,5,8,7};
+		tdata.results = "P1(x1(P5,P8(P7)))";
+		tests.add(tdata);
+		
+		tdata = new TestData();
+		tdata.index = new int[]{1,2,3};
+		tdata.results = "P1(x1(P3,P2))";
+		tests.add(tdata);
+		
+		tdata = new TestData();
+		tdata.index = new int[]{1,2,3,4};
+		tdata.results = "P1(x1(x2(P3,P2),P4))";
+		tests.add(tdata);
+		
+		tdata = new TestData();
+		tdata.index = new int[]{1,2,3,4,5,6,7};
+		tdata.results = "P1(x1(P5,P6(x2(x3(P3,P2),P4(P7)))))";
+		tests.add(tdata);
+		
+		tdata = new TestData();
+		tdata.index = new int[]{1,2,3,4,5,7};
+		tdata.results = "P1(x1(P5,x2(x3(P3,P2),P4(P7))))";
+		tests.add(tdata);
+		
+		tdata = new TestData();
+		tdata.index = new int[]{2,3,4,7};
+		tdata.results = "x1(x2(P3,P2),P4(P7))";
+		tests.add(tdata);
+		
+		tdata = new TestData();
+		tdata.index = new int[]{4,7,3,2};
+		tdata.results = "x1(x2(P3,P2),P4(P7))";
+		tests.add(tdata);
 		
 		for (TestData t : tests) {
 			List<Pourpoint> points = new ArrayList<>();
