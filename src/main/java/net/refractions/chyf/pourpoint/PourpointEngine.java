@@ -46,7 +46,7 @@ public class PourpointEngine {
 	static final Logger logger = LoggerFactory.getLogger(PourpointEngine.class.getCanonicalName());
 	
 	public enum OutputType{
-		OUTPUT_PP("op", "Output Pourpoints"),	
+		OUTPUT_PP("op", "Pourpoints"),	
 		DISTANCE_MIN("opdmin", "Pourpoint Minimum Distance Matrix"), 
 		DISTANCE_MAX("opdmax", "Pourpoint Maximum Distance Matrix"),
 		DISTANCE_PRIMARY("opdprimary", "Pourpoint Primary Distance Matrix"),
@@ -665,8 +665,9 @@ public class PourpointEngine {
 				newNodes.add(pnode);
 				
 				Integer maxorder = p.getDownstreamFlowpaths().get(0).getHortonOrder();
+				if (maxorder == null) maxorder = -1;
 				for (EFlowpath f : p.getDownstreamFlowpaths()) {
-					maxorder = Math.max(f.getHortonOrder(), maxorder);
+					maxorder = Math.max(f.getHortonOrder() == null ? -1 : f.getHortonOrder(), maxorder);
 				}
 				pnode.updateOrder(maxorder);
 				

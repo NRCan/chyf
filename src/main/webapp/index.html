@@ -382,7 +382,7 @@
 			<div id="pourpointOut">
 			<div class="form-check">
   				<input class="form-check-input" type="checkbox" value="" id="outputpourpoints" checked>
-  				<label class="form-check-label" for="outputpourpoints">Output Pourpoints</label>
+  				<label class="form-check-label" for="outputpourpoints">Pourpoints</label>
 			</div>
 			<div class="form-check">
   				<input class="form-check-input" type="checkbox" value="" id="pourpointdistance" checked>
@@ -2072,7 +2072,7 @@
 				layers.op_tab = createTab("op", layers.op, layers.op.name, $(ul), $(tabbody), isActive, outputPpLayer);
 				isActive = false;
 			} else if ( layers.opdmin != null || layers.opdmax != null || layers.opdprimary != null || layer.prt != null){
-				layers.op_tab = createTab("op", null, "Output Pourpoints", $(ul), $(tabbody), isActive, null);
+				layers.op_tab = createTab("op", null, "Pourpoints", $(ul), $(tabbody), isActive, null);
 				isActive = false;
 			}
 			
@@ -2091,16 +2091,16 @@
 				layers.noc_tab.append($div);
 			}
 			if (layers.prt != null){
-				var $div = $('<div/>').append($('<div class="toolCat">Pourpoint (Primary) Relationship Tree</div>'));
+				var $div = $('<div/>').append($('<div class="toolCat">Pourpoint Relationship Tree (through Primary Flowpaths)</div>'));
 				$div.append(layers.prt.tree);				
 				layers.op_tab.append($div);
 			}
 			
 			if (layers.opdprimary != null){
 				var $table = createMatrixTable(layers.opdprimary.headers, layers.opdprimary.values, 2);
-				var $div = $('<div/>').append($('<div class="toolCat">Outpout Pourpoint Primary Distances</div>'));
+				var $div = $('<div/>').append($('<div class="toolCat">Output Pourpoint Primary Flowpath Distances</div>'));
 				$div.append($table);
-				$div.append( $('<div>[i,j]<br>distance from i to j<br>> 0 if i is upstream of j<br>< 0 if i is downstream of j<br>Distances are single valued if only one path between i and j exists.<br>Distances are of the form (min, max) if more than one such path exists.</div>' ));
+				$div.append( $('<div>[i,j]<br>distance from i to j<br>> 0 if i is upstream of j<br>< 0 if i is downstream of j<br></div>' ));
 				layers.op_tab.append($div);
 			}
 			
@@ -2123,7 +2123,7 @@
 					}
 				}
 				var $table = createMatrixTable(layers.opdmin.headers, data, -1);
-				var $div = $('<div/>').append($('<div class="toolCat">Outpout Pourpoint Distances</div>'));
+				var $div = $('<div/>').append($('<div class="toolCat">Output Pourpoint Distances</div>'));
 				$div.append($table);
 				$div.append( $('<div>[i,j]<br>distance from i to j<br>> 0 if i is upstream of j<br>< 0 if i is downstream of j<br>Distances are single valued if only one path between i and j exists.<br>Distances are of the form (min, max) if more than one such path exists.</div>' ));
 				layers.op_tab.append($div);
