@@ -79,7 +79,7 @@
 			bottom: 0;
 			left: 300px;
 			height: 200px;
-			width: 945px;
+			width: 840px;
 			border: 1px solid lightSlateGrey;
 			display:none;
 		}
@@ -2071,7 +2071,7 @@
 			if (layers.op != null){
 				layers.op_tab = createTab("op", layers.op, layers.op.name, $(ul), $(tabbody), isActive, outputPpLayer);
 				isActive = false;
-			} else if ( layers.opdmin != null || layers.opdmax != null || layers.opdprimary != null || layer.prt != null){
+			} else if ( layers.opdmin != null || layers.opdmax != null || layers.opdprimary != null || layers.prt != null){
 				layers.op_tab = createTab("op", null, "Pourpoints", $(ul), $(tabbody), isActive, null);
 				isActive = false;
 			}

@@ -1,24 +1,24 @@
 package net.refractions.chyf.rest;
 
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Envelope;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.geom.Polygon;
+import org.locationtech.jts.geom.PrecisionModel;
+import org.locationtech.jts.precision.GeometryPrecisionReducer;
+
 import net.refractions.chyf.ChyfDatastore;
 import net.refractions.util.GeomUtil;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Envelope;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.Point;
-import com.vividsolutions.jts.geom.Polygon;
-import com.vividsolutions.jts.geom.PrecisionModel;
-import com.vividsolutions.jts.precision.GeometryPrecisionReducer;
-
-public class ReverseGeocodeParameters extends SharedParameters {
+public class HygraphParameters extends SharedParameters {
 	
 	private double[] point;
 	private Point pointPoint;
 	private double[] bbox;
 	private Envelope bboxEnvelope;
-	private Integer maxDistance;
+	private Double maxDistance;
 	
 	public Point getPoint() {
 		return pointPoint;
@@ -40,11 +40,11 @@ public class ReverseGeocodeParameters extends SharedParameters {
 		this.bbox = bbox;
 	}
 	
-	public Integer getMaxDistance() {
+	public Double getMaxDistance() {
 		return maxDistance;
 	}
 	
-	public void setMaxDistance(Integer maxDistance) {
+	public void setMaxDistance(Double maxDistance) {
 		this.maxDistance = maxDistance;
 	}
 	
@@ -70,7 +70,7 @@ public class ReverseGeocodeParameters extends SharedParameters {
 			}
 		}
 		if(pointPoint != null) {
-			pointPoint = (Point) precisionReducer(GeotoolsGeometryReprojector.reproject(pointPoint, ChyfDatastore.BASE_SRS));
+			pointPoint = (Point) precisionReducer(GeotoolsGeometryReprojector.reproject(pointPoint, GeotoolsGeometryReprojector.srsCodeToCRS(getSrs()), ChyfDatastore.BASE_CRS));
 		}
 		Polygon bboxPolygon = null;
 		if(bbox != null && bbox.length != 0) {
@@ -82,10 +82,10 @@ public class ReverseGeocodeParameters extends SharedParameters {
 			}
 		}
 		if(bboxPolygon != null) {
-			bboxPolygon = (Polygon) precisionReducer(GeotoolsGeometryReprojector.reproject(bboxPolygon, ChyfDatastore.BASE_SRS));
+			bboxPolygon = (Polygon) precisionReducer(GeotoolsGeometryReprojector.reproject(bboxPolygon, GeotoolsGeometryReprojector.srsCodeToCRS(getSrs()), ChyfDatastore.BASE_CRS));
 			bboxEnvelope = bboxPolygon.getEnvelopeInternal();
 			// if their is a bbox, override the maxdistance with the radius of the bbox
-			maxDistance = (int)Math.round(GeomUtil.getRadius(bboxEnvelope));
+			maxDistance = GeomUtil.getRadius(bboxEnvelope);
 		}		
 	}
 

@@ -28,7 +28,7 @@
     </servlet-mapping>
     <context-param>
     	<param-name>chyfDataDir</param-name>
-    	<param-value>C:\data\CHyF\github\chyf-pilot\data\</param-value>
+    	<param-value>C:\data\CHyF\github\chyf-pilot\data\quebec\</param-value>
     </context-param>
     <context-param>
     	<param-name>chyfDataStore</param-name>

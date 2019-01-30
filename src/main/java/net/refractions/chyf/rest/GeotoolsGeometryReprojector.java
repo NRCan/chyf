@@ -9,19 +9,20 @@ import org.opengis.referencing.cs.AxisDirection;
 import org.opengis.referencing.operation.MathTransform;
 import org.opengis.referencing.operation.TransformException;
 
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.util.AffineTransformation;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.util.AffineTransformation;
 
 public class GeotoolsGeometryReprojector {
 	
-	public static <T extends Geometry> T reproject(T geom, int toSRSCode) {
+	public static <T extends Geometry> T reproject(T geom, CoordinateReferenceSystem fromCRS, CoordinateReferenceSystem toCRS) {
 		if(geom == null) {
 			return null;
 		}
-		CoordinateReferenceSystem fromCRS = srsCodeToCRS(geom.getSRID());
-		CoordinateReferenceSystem toCRS = srsCodeToCRS(toSRSCode);
+//		CoordinateReferenceSystem fromCRS = srsCodeToCRS(geom.getSRID());
+//		CoordinateReferenceSystem toCRS = srsCodeToCRS(toSRSCode);
 		try {
-			MathTransform transform = CRS.findMathTransform(fromCRS, toCRS);
+			//TODO: fix this
+			MathTransform transform = CRS.findMathTransform(fromCRS, toCRS, true);
 			if(fromCRS.getCoordinateSystem().getAxis(0).getDirection().absolute()
 					.equals(AxisDirection.NORTH)) {
 				geom = flipAxes(geom);
@@ -32,7 +33,7 @@ public class GeotoolsGeometryReprojector {
 					.equals(AxisDirection.NORTH)) {
 				newGeom = flipAxes(newGeom);
 			}
-			newGeom.setSRID(toSRSCode);
+//			newGeom.setSRID(toSRSCode);
 			return newGeom;
 		} catch(FactoryException fe) {
 			throw new RuntimeException("Unexpected error in coordinate reprojection.", fe);
@@ -41,7 +42,15 @@ public class GeotoolsGeometryReprojector {
 		}
 	}
 	
-	private static CoordinateReferenceSystem srsCodeToCRS(int srsCode) {
+//	public static <T extends Geometry> T reproject(T geom, CoordinateReferenceSystem toCRS) {
+//		if(geom == null) {
+//			return null;
+//		}
+//		return reproject(geom, srsCodeToCRS(geom.getSRID()), toCRS);
+//	}
+//	
+	
+	public static CoordinateReferenceSystem srsCodeToCRS(int srsCode) {
 		try {
 			return CRS.decode("EPSG:" + srsCode);
 		} catch(NoSuchAuthorityCodeException e) {

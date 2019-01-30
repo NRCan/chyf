@@ -10,7 +10,7 @@ import net.refractions.chyf.indexing.Filter;
 import net.refractions.chyf.indexing.PredicateFilter;
 import net.refractions.chyf.rest.FilterParameters;
 import net.refractions.chyf.rest.PredicateParameter;
-import net.refractions.chyf.rest.ReverseGeocodeParameters;
+import net.refractions.chyf.rest.HygraphParameters;
 import net.refractions.chyf.rest.SharedParameters;
 import net.refractions.chyf.rest.exceptions.InvalidParameterException;
 import net.refractions.chyf.rest.messageconverters.ApiResponse;
@@ -50,7 +50,7 @@ public class EFlowpathController {
 	}
 
 	@RequestMapping(value = "/near", method = {RequestMethod.GET,RequestMethod.POST})
-	public ApiResponse getEFlowpathsNear(ReverseGeocodeParameters params, BindingResult bindingResult) {
+	public ApiResponse getEFlowpathsNear(HygraphParameters params, BindingResult bindingResult) {
 		if(bindingResult.hasErrors()) {
 			throw new InvalidParameterException(bindingResult);
 		}
@@ -71,7 +71,7 @@ public class EFlowpathController {
 	}
 
 	@RequestMapping(value = "/within", method = {RequestMethod.GET,RequestMethod.POST})
-	public ApiResponse getEFlowpathsWithin(ReverseGeocodeParameters params, BindingResult bindingResult) {
+	public ApiResponse getEFlowpathsWithin(HygraphParameters params, BindingResult bindingResult) {
 		if(bindingResult.hasErrors()) {
 			throw new InvalidParameterException(bindingResult);
 		}
@@ -95,7 +95,7 @@ public class EFlowpathController {
 	}
 
 	@RequestMapping(value = "/flowsFrom", method = {RequestMethod.GET,RequestMethod.POST})
-	public ApiResponse getEFlowpathFlowsFrom(ReverseGeocodeParameters params, BindingResult bindingResult) {
+	public ApiResponse getEFlowpathFlowsFrom(HygraphParameters params, BindingResult bindingResult) {
 		if(bindingResult.hasErrors()) {
 			throw new InvalidParameterException(bindingResult);
 		}
@@ -116,7 +116,7 @@ public class EFlowpathController {
 
 	@RequestMapping(value = "/{id}/upstream", method = {RequestMethod.GET,RequestMethod.POST})
 	public ApiResponse getEFlowpathsUpstream(@PathVariable("id") int id,
-			ReverseGeocodeParameters params, BindingResult bindingResult) {
+			HygraphParameters params, BindingResult bindingResult) {
 		if(bindingResult.hasErrors()) {
 			throw new InvalidParameterException(bindingResult);
 		}
@@ -133,7 +133,7 @@ public class EFlowpathController {
 
 	@RequestMapping(value = "/{id}/downstream", method = {RequestMethod.GET,RequestMethod.POST})
 	public ApiResponse getEFlowpathsDownstream(@PathVariable("id") int id,
-			ReverseGeocodeParameters params, BindingResult bindingResult) {
+			HygraphParameters params, BindingResult bindingResult) {
 		if(bindingResult.hasErrors()) {
 			throw new InvalidParameterException(bindingResult);
 		}
@@ -149,7 +149,7 @@ public class EFlowpathController {
 	}
 
 	@RequestMapping(value = "/upstreamOf", method = {RequestMethod.GET,RequestMethod.POST})
-	public ApiResponse getEFlowpathsUpstreamOf(ReverseGeocodeParameters params, BindingResult bindingResult) {
+	public ApiResponse getEFlowpathsUpstreamOf(HygraphParameters params, BindingResult bindingResult) {
 		if(bindingResult.hasErrors()) {
 			throw new InvalidParameterException(bindingResult);
 		}
@@ -170,7 +170,7 @@ public class EFlowpathController {
 	}
 
 	@RequestMapping(value = "/downstreamOf", method = {RequestMethod.GET,RequestMethod.POST})
-	public ApiResponse getEFlowpathsDownstreamOf(ReverseGeocodeParameters params, BindingResult bindingResult) {
+	public ApiResponse getEFlowpathsDownstreamOf(HygraphParameters params, BindingResult bindingResult) {
 		if(bindingResult.hasErrors()) {
 			throw new InvalidParameterException(bindingResult);
 		}

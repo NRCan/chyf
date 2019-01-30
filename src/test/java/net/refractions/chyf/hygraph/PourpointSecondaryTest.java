@@ -11,19 +11,18 @@ import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestRule;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.io.ParseException;
+import org.locationtech.jts.io.WKTReader;
 
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.io.ParseException;
-import com.vividsolutions.jts.io.WKTReader;
 
 import net.refractions.chyf.ChyfDatastore;
 import net.refractions.chyf.pourpoint.Pourpoint;
 import net.refractions.chyf.pourpoint.PourpointEngine;
 import net.refractions.chyf.pourpoint.PourpointOutput;
-import net.refractions.chyf.pourpoint.UniqueSubCatchment;
 import net.refractions.chyf.rest.GeotoolsGeometryReprojector;
 
 
@@ -55,7 +54,7 @@ public class PourpointSecondaryTest {
 		for (Coordinate[] test : testPourpoints) {
 			List<Pourpoint> points = new ArrayList<>();
 			for (int i = 0; i < test.length; i ++) {
-				points.add(new Pourpoint(GeotoolsGeometryReprojector.reproject(BasicTestSuite.GF.createPoint(test[i]), ChyfDatastore.BASE_SRS), -2, "P" + (i+1)));
+				points.add(new Pourpoint(GeotoolsGeometryReprojector.reproject(BasicTestSuite.GF.createPoint(test[i]), BasicTestSuite.TEST_CRS, ChyfDatastore.BASE_CRS), -2, "P" + (i+1)));
 			}
 			PourpointEngine engine = new PourpointEngine(points, BasicTestSuite.DATASTORE.getHyGraph(), true);
 			PourpointOutput out = engine.compute(null);
@@ -152,7 +151,7 @@ public class PourpointSecondaryTest {
 			for (Pourpoint p : out.getPoints()) {
 				String wkt = typeidgeom.get(PourpointEngine.OutputType.OUTPUT_PP.key).get(p.getId());
 				Geometry g = reader.read(wkt);
-				Geometry a = GeotoolsGeometryReprojector.reproject(p.getProjectedPoint(), BasicTestSuite.TEST_DATA_SRID);
+				Geometry a = GeotoolsGeometryReprojector.reproject(p.getProjectedPoint(),  ChyfDatastore.BASE_CRS, BasicTestSuite.TEST_CRS);
 				if (!g.equalsExact(a, 0.00001)) {
 					Assert.fail("file: " + file + " - catchment incorrect for pp: " + p.getId());
 				}
@@ -162,7 +161,7 @@ public class PourpointSecondaryTest {
 			for (Pourpoint p : out.getPoints()) {
 				String wkt = typeidgeom.get(PourpointEngine.OutputType.CATCHMENTS.key).get(p.getId());
 				Geometry g = reader.read(wkt);
-				Geometry a = GeotoolsGeometryReprojector.reproject(out.getCatchment(p).getGeometry(), BasicTestSuite.TEST_DATA_SRID);
+				Geometry a = GeotoolsGeometryReprojector.reproject(out.getCatchment(p).getGeometry(),  ChyfDatastore.BASE_CRS, BasicTestSuite.TEST_CRS);
 				if (!g.equalsExact(a, 0.00001)) {
 					System.out.println(a.toText());
 					System.out.println(g.toText());
@@ -175,7 +174,7 @@ public class PourpointSecondaryTest {
 			for (Pourpoint p : out.getPoints()) {
 				String wkt = typeidgeom.get(PourpointEngine.OutputType.PARTITIONED_CATCHMENTS.key).get(p.getId());
 				Geometry g = reader.read(wkt);
-				Geometry a = GeotoolsGeometryReprojector.reproject(out.getPartitionedCatchments(p).getGeometry(), BasicTestSuite.TEST_DATA_SRID);
+				Geometry a = GeotoolsGeometryReprojector.reproject(out.getPartitionedCatchment(p).getGeometry(), ChyfDatastore.BASE_CRS, BasicTestSuite.TEST_CRS);
 				if (!g.equalsExact(a, 0.00001)) {
 					Assert.fail("file: " + file + " - " + PourpointEngine.OutputType.PARTITIONED_CATCHMENTS.layername + " incorrect : " + p.getId());
 				}
@@ -184,27 +183,27 @@ public class PourpointSecondaryTest {
 			//upstream unique sub catchments
 			HashMap<String,String> exptcc = typeidgeom.get(PourpointEngine.OutputType.TRAVERSAL_COMPLIANT_CATCHMENTS.key);
 			HashMap<String,String> systemToExp = new HashMap<>();
-			for (Pourpoint p : out.getPoints()) {
-				for (UniqueSubCatchment s : out.getTraversalCompliantCatchments(p)) {
-					String systemId = s.getId();
+			
+			for (DrainageArea s : out.getTraversalCompliantCatchments()) {
+				String systemId = s.getId();
 					
-					Entry<String,String> matched = null;
+				Entry<String,String> matched = null;
 					
-					for (Entry<String,String> expected : exptcc.entrySet()) {
-						String wkt = expected.getValue();
-						Geometry g = reader.read(wkt);
-						Geometry a = GeotoolsGeometryReprojector.reproject(s.getDrainageArea().getGeometry(), BasicTestSuite.TEST_DATA_SRID);
-						if (g.equalsExact(a, 0.00001)) {
-							matched = expected;
-							break;
+				for (Entry<String,String> expected : exptcc.entrySet()) {
+					String wkt = expected.getValue();
+					Geometry g = reader.read(wkt);
+					Geometry a = GeotoolsGeometryReprojector.reproject(s.getGeometry(), ChyfDatastore.BASE_CRS, BasicTestSuite.TEST_CRS);
+					if (g.equalsExact(a, 0.00001)) {
+						matched = expected;
+						break;
 						}
-					}
-					if (matched == null) {
-						Assert.fail("file: " + file + " - " + PourpointEngine.OutputType.TRAVERSAL_COMPLIANT_CATCHMENTS.layername + " incorrect for pp: " + p.getId());
-					}
-					systemToExp.put(systemId, matched.getKey());
 				}
+				if (matched == null) {
+					Assert.fail("file: " + file + " - " + PourpointEngine.OutputType.TRAVERSAL_COMPLIANT_CATCHMENTS.layername );
+				}
+				systemToExp.put(systemId, matched.getKey());
 			}
+			
 			
 			//relationships
 			Integer[][] actual = out.getCatchmentContainment();

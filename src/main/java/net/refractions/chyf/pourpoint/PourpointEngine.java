@@ -12,16 +12,15 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections.iterators.IteratorChain;
+import org.locationtech.jts.geom.Envelope;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.LineString;
+import org.locationtech.jts.geom.MultiPolygon;
+import org.locationtech.jts.geom.Polygon;
+import org.locationtech.jts.operation.distance.DistanceOp;
+import org.locationtech.jts.operation.union.UnaryUnionOp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.vividsolutions.jts.geom.Envelope;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.LineString;
-import com.vividsolutions.jts.geom.MultiPolygon;
-import com.vividsolutions.jts.geom.Polygon;
-import com.vividsolutions.jts.operation.distance.DistanceOp;
-import com.vividsolutions.jts.operation.union.UnaryUnionOp;
 
 import net.refractions.chyf.ChyfDatastore;
 import net.refractions.chyf.enumTypes.CatchmentType;
@@ -99,6 +98,10 @@ public class PourpointEngine {
 		this.removeHoles = removeHoles;
 	}
 	
+	public HyGraph getGraph() {
+		return this.hygraph;
+	}
+	
 	public Set<OutputType> getAvailableOutputs(){
 		return this.availableOutputs;
 	}
@@ -117,15 +120,27 @@ public class PourpointEngine {
 	 */
 	public Set<DrainageArea> getInteriorCatchments(){
 		if (holes == null || holes.isEmpty()) return Collections.emptySet();
+		
 		Geometry g = UnaryUnionOp.union(holes.stream().map(e->e.getPolygon()).collect(Collectors.toList()));
 		if (g instanceof MultiPolygon) {
 			Set<DrainageArea> dholes = new HashSet<>();
 			for (int i = 0; i < ((MultiPolygon)g).getNumGeometries(); i ++) {
-				dholes.add( new DrainageArea( ((MultiPolygon)g).getGeometryN(i) ));
+				Double area = 0.0;
+			
+				Polygon p = (Polygon) ((MultiPolygon)g).getGeometryN(i);
+				for (ECatchment c : holes) {
+					if (p.contains( c.getPolygon().getInteriorPoint() )) area += c.getArea();
+				}
+				dholes.add( new DrainageArea( p, area) );
 			}
+			
 			return dholes;
 		}else {
-			return Collections.singleton(new DrainageArea(g));
+			double area = 0;
+			for (ECatchment c : holes) {
+				area += c.getArea();
+			}
+			return Collections.singleton(new DrainageArea(g, area));
 		}
 	}
 	
@@ -337,7 +352,7 @@ public class PourpointEngine {
 	}
 	
 	public List<UniqueSubCatchment> getSortedTraveralCompliantCoverages(){
-		if (!availableOutputs.contains(OutputType.TRAVERSAL_COMPLIANT_CATCHMENTS) && !availableOutputs.contains(OutputType.TRAVERSAL_COMPLIANT_CATCHMENT_RELATION)) return null;
+		if (!availableOutputs.contains(OutputType.TRAVERSAL_COMPLIANT_CATCHMENTS) && !availableOutputs.contains(OutputType.TRAVERSAL_COMPLIANT_CATCHMENT_RELATION) ) return null;
 		Set<UniqueSubCatchment> allCatchments = new HashSet<>();
 		for (Pourpoint p : points) {
 			allCatchments.addAll(p.getTraversalCompliantCatchments());
@@ -1123,7 +1138,7 @@ public class PourpointEngine {
 		Set<Geometry> geometries = new HashSet<>();
 		
 		for (Pourpoint point : points) {
-			DrainageArea area = point.getCatchmentDrainageArea(false);
+			DrainageArea area = point.getCatchmentDrainageArea(hygraph, false);
 			Polygon p = ((Polygon)area.getGeometry());
 			geometries.add(p);
 		}

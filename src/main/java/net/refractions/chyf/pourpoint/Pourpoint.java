@@ -12,10 +12,10 @@ import java.util.TreeMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.vividsolutions.jts.algorithm.Angle;
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Point;
-import com.vividsolutions.jts.operation.distance.DistanceOp;
+import org.locationtech.jts.algorithm.Angle;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.operation.distance.DistanceOp;
 
 import net.refractions.chyf.ChyfDatastore;
 import net.refractions.chyf.enumTypes.CatchmentType;
@@ -26,6 +26,7 @@ import net.refractions.chyf.hygraph.ECatchment;
 import net.refractions.chyf.hygraph.EFlowpath;
 import net.refractions.chyf.hygraph.HyGraph;
 import net.refractions.chyf.hygraph.Nexus;
+import net.refractions.chyf.pourpoint.PourpointEngine.OutputType;
 import net.refractions.chyf.rest.GeotoolsGeometryReprojector;
 
 public class Pourpoint {
@@ -90,7 +91,7 @@ public class Pourpoint {
 		this.internalType = internalType;
 		this.id = id;
 		this.raw = location;
-		this.location = GeotoolsGeometryReprojector.reproject(location, ChyfDatastore.BASE_SRS);
+		this.location = location;
 		this.ccode = ccode;
 		this.downstreamPoints = new HashSet<>();
 		this.upstreamPoints = new HashSet<>();
@@ -200,11 +201,11 @@ public class Pourpoint {
 		this.downstreamFlowpaths = path;
 	}
 	
-	public DrainageArea getCatchmentDrainageArea(boolean removeHoles) {
+	public DrainageArea getCatchmentDrainageArea(HyGraph graph, boolean removeHoles) {
 		Set<ECatchment> items = new HashSet<>();
 		items.addAll(getSharedCatchments());
 		items.addAll(getUniqueCatchments());
-		return HyGraph.buildDrainageArea(items, removeHoles);
+		return graph.buildDrainageArea(items, removeHoles);
 	}
 	
 	/**
@@ -222,7 +223,7 @@ public class Pourpoint {
 			//then find the most downstream
 			//edge in that catchment
 			
-			List<ECatchment> catchments = graph.findECatchments(location, 1, 0, null);
+			List<ECatchment> catchments = graph.findECatchments(location, 1, 0.0, null);
 			if (catchments.isEmpty() || catchments.size() > 1) {
 				String msg = "Pourpoint not located in any catchment (" + raw.getX() + ", " + raw.getY()+ ")";
 				logger.error(msg);

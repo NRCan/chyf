@@ -11,12 +11,13 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.vividsolutions.jts.geom.Envelope;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.MultiPolygon;
-import com.vividsolutions.jts.geom.Point;
-import com.vividsolutions.jts.geom.Polygon;
-import com.vividsolutions.jts.operation.union.UnaryUnionOp;
+import org.locationtech.jts.geom.Envelope;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.MultiPolygon;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.geom.Polygon;
+import org.locationtech.jts.operation.union.UnaryUnionOp;
+import org.locationtech.jts.precision.GeometryPrecisionReducer;
 
 import net.refractions.chyf.ChyfDatastore;
 import net.refractions.chyf.enumTypes.CatchmentType;
@@ -127,7 +128,7 @@ public class HyGraph {
 		return results;
 	}
 
-	public List<EFlowpath> findEFlowpaths(Point p, int maxResults, Integer maxDistance, Filter<EFlowpath> f) {
+	public List<EFlowpath> findEFlowpaths(Point p, int maxResults, Double maxDistance, Filter<EFlowpath> f) {
 		return eFlowpathIndex.search(p, maxResults, maxDistance, f);
 	}
 
@@ -139,8 +140,7 @@ public class HyGraph {
 	}
 
 	public ECatchment getECatchment(Point point) {
-		List<ECatchment> eCatchments = findECatchments(point, 1, 0, 
-				new ECatchmentContainsPointFilter(point));
+		List<ECatchment> eCatchments = findECatchments(point, 1, 0.0, new ECatchmentContainsPointFilter(point));
 		if(eCatchments.size() > 0) {
 			return eCatchments.get(0);
 		}
@@ -156,7 +156,7 @@ public class HyGraph {
 	 */
 	public List<ECatchment> findECatchments(Polygon p) {
 		Envelope e = p.getEnvelopeInternal();
-		int distance = (int) Math.ceil( Math.sqrt( (e.getWidth() * e.getWidth()) + (e.getHeight() * e.getHeight())) / 2);
+		double distance = Math.sqrt( (e.getWidth() * e.getWidth()) + (e.getHeight() * e.getHeight())) / 2;
 		BboxIntersectsFilter<ECatchment> filter = new BboxIntersectsFilter<>(e);
 		Point center = p.getFactory().createPoint(e.centre());
 		
@@ -175,7 +175,7 @@ public class HyGraph {
 	 * @return
 	 */
 	public List<EFlowpath> findEFlowpaths(Envelope e, Filter<EFlowpath> filter) {
-		int distance = (int) Math.ceil( Math.sqrt( (e.getWidth() * e.getWidth()) + (e.getHeight() * e.getHeight())) / 2);
+		double distance = Math.sqrt( (e.getWidth() * e.getWidth()) + (e.getHeight() * e.getHeight())) / 2;
 		BboxIntersectsFilter<EFlowpath> bboxfilter = new BboxIntersectsFilter<>(e);
 		Point center = eFlowpaths[0].getLineString().getFactory().createPoint(e.centre());
 		Filter<EFlowpath> combined = item->filter.pass(item) && bboxfilter.pass(item);
@@ -186,11 +186,11 @@ public class HyGraph {
 		return items;
 	}
 	
-	public List<ECatchment> findECatchments(Point p, int maxResults, Integer maxDistance, Filter<ECatchment> f) {
+	public List<ECatchment> findECatchments(Point p, int maxResults, Double maxDistance, Filter<ECatchment> f) {
 		return eCatchmentIndex.search(p, maxResults, maxDistance, f);
 	}
 
-	public List<Nexus> findNexuses(Point p, int maxResults, Integer maxDistance, Filter<Nexus> f) {
+	public List<Nexus> findNexuses(Point p, int maxResults, Double maxDistance, Filter<Nexus> f) {
 		return nexusIndex.search(p, maxResults, maxDistance, f);
 	}
 
@@ -371,30 +371,56 @@ public class HyGraph {
 		return buildDrainageArea(getDownstreamECatchments(eCatchment, Integer.MAX_VALUE), removeHoles);
 	}
 
-	public static DrainageArea buildDrainageArea(Collection<ECatchment> catchments, boolean removeHoles) {
+	
+	public DrainageArea buildDrainageArea(Collection<ECatchment> catchments, boolean removeHoles) {
 		List<Geometry> geoms = new ArrayList<Geometry>(catchments.size());
-		for(ECatchment c : catchments) {
+		double area = 0;
+		for(ECatchment c : catchments) {			
 			geoms.add(c.getPolygon());
+			area += c.getArea();
 		}
-		Geometry g = UnaryUnionOp.union(geoms);
+
+		Geometry g = GeometryPrecisionReducer.reduce(UnaryUnionOp.union(geoms), ChyfDatastore.PRECISION_MODEL);
+		DrainageArea da = new DrainageArea(g, area);
 		if(removeHoles) {
-			g = removeHoles(g);
+			da = removeHoles(da);		
 		}
-		return new DrainageArea(g);
+		return da;
 	}
 
-	public static Geometry removeHoles(Geometry g) {
-		if(g instanceof Polygon) {
-			return g.getFactory().createPolygon(((Polygon)g).getExteriorRing().getCoordinateSequence());
-		}
-		if(g instanceof MultiPolygon) {
-			Polygon[] polygons = new Polygon[g.getNumGeometries()];
-			for(int i = 0; i < g.getNumGeometries(); i++) {
-				polygons[i] = (Polygon)removeHoles(g.getGeometryN(i));
+	public DrainageArea removeHoles(DrainageArea current) {
+		if(current.getGeometry() instanceof Polygon) {
+			//for each interior area we need to find all catchments that overlap it and add that area to the total area
+			Polygon p = (Polygon)current.getGeometry();
+			
+			Double addArea = 0.0;
+			for (int i = 0; i < p.getNumInteriorRing(); i ++) {
+				Polygon interior = current.getGeometry().getFactory().createPolygon(p.getInteriorRingN(i).getCoordinateSequence());
+				List<ECatchment> items = findECatchments(interior);
+				for (ECatchment item : items){addArea += item.getArea();}
 			}
-			return g.getFactory().createMultiPolygon(polygons);
+			
+			
+			return new DrainageArea(current.getGeometry().getFactory().createPolygon(p.getExteriorRing().getCoordinateSequence()), current.getArea() + addArea);
 		}
-		return g;
+		if(current.getGeometry() instanceof MultiPolygon) {
+			MultiPolygon mp = (MultiPolygon)current.getGeometry();
+			
+			Double addArea = 0.0;
+			
+			Polygon[] polygons = new Polygon[mp.getNumGeometries()];
+			for(int i = 0; i < mp.getNumGeometries(); i++) {
+				Polygon p = (Polygon)mp.getGeometryN(i);
+				for (int k = 0; i < p.getNumInteriorRing(); k ++) {
+					Polygon interior = current.getGeometry().getFactory().createPolygon(p.getInteriorRingN(k).getCoordinateSequence());
+					List<ECatchment> items = findECatchments(interior);
+					for (ECatchment item : items){addArea += item.getArea();}
+				}
+				polygons[i] = current.getGeometry().getFactory().createPolygon(p.getExteriorRing().getCoordinateSequence());
+			}
+			return new DrainageArea(current.getGeometry().getFactory().createMultiPolygon(polygons), current.getArea() + addArea);
+		}
+		return current;
 	}
 
 }

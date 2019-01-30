@@ -1,7 +1,7 @@
 package net.refractions.chyf.rest.controllers;
 
 import net.refractions.chyf.hygraph.HyGraph;
-import net.refractions.chyf.rest.ReverseGeocodeParameters;
+import net.refractions.chyf.rest.HygraphParameters;
 import net.refractions.chyf.rest.exceptions.InvalidParameterException;
 import net.refractions.chyf.rest.messageconverters.ApiResponse;
 import net.refractions.util.StopWatch;
@@ -24,7 +24,7 @@ public class DrainageAreaController {
 	
 	@RequestMapping(value = "/upstreamOf/ecatchment/{id}", method = {RequestMethod.GET,RequestMethod.POST})
 	public ApiResponse getDrainageAreaUpstreamOfCatchment(@PathVariable("id") int id, 
-			ReverseGeocodeParameters params, BindingResult bindingResult) {
+			HygraphParameters params, BindingResult bindingResult) {
 		if(bindingResult.hasErrors()) {
 			throw new InvalidParameterException(bindingResult);
 		}
@@ -41,7 +41,7 @@ public class DrainageAreaController {
 
 	@RequestMapping(value = "/downstreamOf/ecatchment/{id}", method = {RequestMethod.GET,RequestMethod.POST})
 	public ApiResponse getDrainageAreaDownstreamOfCatchment(@PathVariable("id") int id, 
-			ReverseGeocodeParameters params, BindingResult bindingResult) {
+			HygraphParameters params, BindingResult bindingResult) {
 		if(bindingResult.hasErrors()) {
 			throw new InvalidParameterException(bindingResult);
 		}
@@ -58,7 +58,7 @@ public class DrainageAreaController {
 
 	@RequestMapping(value = "/upstreamOf/eflowpath/{id}", method = {RequestMethod.GET,RequestMethod.POST})
 	public ApiResponse getDrainageAreaUpstreamOfFlowpath(@PathVariable("id") int id, 
-			ReverseGeocodeParameters params, BindingResult bindingResult) {
+			HygraphParameters params, BindingResult bindingResult) {
 		if(bindingResult.hasErrors()) {
 			throw new InvalidParameterException(bindingResult);
 		}
@@ -75,7 +75,7 @@ public class DrainageAreaController {
 
 	@RequestMapping(value = "/downstreamOf/eflowpath/{id}", method = {RequestMethod.GET,RequestMethod.POST})
 	public ApiResponse getDrainageAreaDownstreamOfFlowpath(@PathVariable("id") int id, 
-			ReverseGeocodeParameters params, BindingResult bindingResult) {
+			HygraphParameters params, BindingResult bindingResult) {
 		if(bindingResult.hasErrors()) {
 			throw new InvalidParameterException(bindingResult);
 		}
@@ -91,7 +91,7 @@ public class DrainageAreaController {
 	}
 
 	@RequestMapping(value = "/upstreamOf", method = {RequestMethod.GET,RequestMethod.POST})
-	public ApiResponse getDrainageAreaUpstreamOfLocation(ReverseGeocodeParameters params, BindingResult bindingResult) {
+	public ApiResponse getDrainageAreaUpstreamOfLocation(HygraphParameters params, BindingResult bindingResult) {
 		if(bindingResult.hasErrors()) {
 			throw new InvalidParameterException(bindingResult);
 		}
@@ -112,7 +112,7 @@ public class DrainageAreaController {
 	}
 
 	@RequestMapping(value = "/downstreamOf", method = {RequestMethod.GET,RequestMethod.POST})
-	public ApiResponse getDrainageAreaDownstreamOfLocation(ReverseGeocodeParameters params, BindingResult bindingResult) {
+	public ApiResponse getDrainageAreaDownstreamOfLocation(HygraphParameters params, BindingResult bindingResult) {
 		if(bindingResult.hasErrors()) {
 			throw new InvalidParameterException(bindingResult);
 		}

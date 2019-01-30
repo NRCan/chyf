@@ -18,12 +18,12 @@ import org.geotools.geopkg.FeatureEntry;
 import org.geotools.geopkg.GeoPackage;
 import org.opengis.feature.simple.SimpleFeatureType;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Envelope;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.LineString;
-import com.vividsolutions.jts.geom.Point;
-import com.vividsolutions.jts.geom.Polygon;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Envelope;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.LineString;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.geom.Polygon;
 
 import net.refractions.chyf.ChyfDatastore;
 import net.refractions.chyf.hygraph.DrainageArea;
@@ -129,7 +129,7 @@ public class GeoPackageHelper {
 				featureBuilder.set(field.fieldName, field.getValue(flowpath));
 			}
 			
-			featureBuilder.set("geometry", GeotoolsGeometryReprojector.reproject(flowpath.getLineString(), response.getSrs()));
+			featureBuilder.set("geometry", reproject(flowpath.getLineString(), response.getSrs()));
 			features.add(featureBuilder.buildFeature(String.valueOf(flowpath.getId())));
 		}
 			
@@ -157,7 +157,7 @@ public class GeoPackageHelper {
 				featureBuilder.set(field.fieldName, field.getValue(area));
 			}
 			
-			featureBuilder.set("geometry", GeotoolsGeometryReprojector.reproject(area.getGeometry(), response.getSrs()));
+			featureBuilder.set("geometry", reproject(area.getGeometry(), response.getSrs()));
 			features.add(featureBuilder.buildFeature(String.valueOf(fid++)));
 		}
 			
@@ -183,7 +183,7 @@ public class GeoPackageHelper {
 				featureBuilder.set(field.fieldName, field.getValue(catchment));
 			}
 			
-			featureBuilder.set("geometry", GeotoolsGeometryReprojector.reproject(catchment.getPolygon(), response.getSrs()));
+			featureBuilder.set("geometry", reproject(catchment.getPolygon(), response.getSrs()));
 			features.add(featureBuilder.buildFeature(String.valueOf(catchment.getId())));
 		}
 			
@@ -208,7 +208,7 @@ public class GeoPackageHelper {
 			for(ConverterHelper.NexusField field : ConverterHelper.NexusField.values()) {
 				featureBuilder.set(field.fieldName, field.getValue(nexus));
 			}	
-			featureBuilder.set("geometry", GeotoolsGeometryReprojector.reproject(nexus.getPoint(), response.getSrs()));
+			featureBuilder.set("geometry",reproject(nexus.getPoint(), response.getSrs()));
 			features.add(featureBuilder.buildFeature(String.valueOf(nexus.getId())));
 		}
 		
@@ -241,7 +241,7 @@ public class GeoPackageHelper {
 			};
 			Polygon polygon = ChyfDatastore.GEOMETRY_FACTORY.createPolygon(coords);
 			
-			featureBuilder.set("geometry", GeotoolsGeometryReprojector.reproject(polygon, response.getSrs()));
+			featureBuilder.set("geometry", reproject(polygon, response.getSrs()));
 			features.add(featureBuilder.buildFeature(String.valueOf(fid++)));
 		}
 			
@@ -289,6 +289,10 @@ public class GeoPackageHelper {
 			builder.add("geometry", Polygon.class);
 		}
 		return builder.buildFeatureType();
+	}
+	
+	private <T extends Geometry> T reproject(T geom, int tosrs) {
+		return (T)GeotoolsGeometryReprojector.reproject(geom, ChyfDatastore.BASE_CRS, GeotoolsGeometryReprojector.srsCodeToCRS(tosrs));
 	}
 
 }

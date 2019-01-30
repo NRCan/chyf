@@ -14,12 +14,12 @@ import net.refractions.chyf.indexing.SpatiallyIndexable;
 import net.refractions.chyf.pourpoint.PourpointOutput;
 import net.refractions.chyf.rest.GeotoolsGeometryReprojector;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.CoordinateSequence;
-import com.vividsolutions.jts.geom.Envelope;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.LineString;
-import com.vividsolutions.jts.geom.Polygon;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.CoordinateSequence;
+import org.locationtech.jts.geom.Envelope;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.LineString;
+import org.locationtech.jts.geom.Polygon;
 
 public abstract class ConverterHelper {
 	
@@ -169,14 +169,14 @@ public abstract class ConverterHelper {
 	}
 
 	protected void nexus(Nexus nexus, ApiResponse response, ApiResponse responseMetadata) throws IOException {
-		featureHeader(GeotoolsGeometryReprojector.reproject(nexus.getPoint(), response.getSrs()), nexus.getId(), responseMetadata);
+		featureHeader(GeotoolsGeometryReprojector.reproject(nexus.getPoint(), ChyfDatastore.BASE_CRS, GeotoolsGeometryReprojector.srsCodeToCRS(response.getSrs())), nexus.getId(), responseMetadata);
 		for (NexusField f : NexusField.values()) {
 			nfield(f.fieldName, f.getValue(nexus));
 		}
 		featureFooter();
 	}
 	protected void eFlowpath(EFlowpath eFlowpath, ApiResponse response, ApiResponse responseMetadata) throws IOException {
-		featureHeader(filterCoords(GeotoolsGeometryReprojector.reproject(eFlowpath.getLineString(), response.getSrs()), response.getScale()), eFlowpath.getId(), responseMetadata);
+		featureHeader(filterCoords(GeotoolsGeometryReprojector.reproject(eFlowpath.getLineString(), ChyfDatastore.BASE_CRS, GeotoolsGeometryReprojector.srsCodeToCRS(response.getSrs())), response.getScale()), eFlowpath.getId(), responseMetadata);
 		for (EFlowpathField f : EFlowpathField.values()) {
 			nfield(f.fieldName, f.getValue(eFlowpath));
 		}
@@ -184,7 +184,7 @@ public abstract class ConverterHelper {
 	}
 
 	protected void eCatchment(ECatchment eCatchment, ApiResponse response, ApiResponse responseMetadata) throws IOException {
-		featureHeader(GeotoolsGeometryReprojector.reproject(eCatchment.getPolygon(), response.getSrs()), eCatchment.getId(), responseMetadata);
+		featureHeader(GeotoolsGeometryReprojector.reproject(eCatchment.getPolygon(), ChyfDatastore.BASE_CRS, GeotoolsGeometryReprojector.srsCodeToCRS(response.getSrs())), eCatchment.getId(), responseMetadata);
 		for (ECatchmentField f : ECatchmentField.values()) {
 			nfield(f.fieldName, f.getValue(eCatchment));
 		}
@@ -192,7 +192,7 @@ public abstract class ConverterHelper {
 	}
 
 	protected void drainageArea(DrainageArea drainageArea, ApiResponse response, ApiResponse responseMetadata) throws IOException {
-		featureHeader(GeotoolsGeometryReprojector.reproject(drainageArea.getGeometry(), response.getSrs()), 1, responseMetadata);
+		featureHeader(GeotoolsGeometryReprojector.reproject(drainageArea.getGeometry(), ChyfDatastore.BASE_CRS, GeotoolsGeometryReprojector.srsCodeToCRS(response.getSrs())), 1, responseMetadata);
 		for (DrainageAreaField f : DrainageAreaField.values()) {
 			nfield(f.fieldName, f.getValue(drainageArea));
 		}
@@ -209,7 +209,7 @@ public abstract class ConverterHelper {
 				new Coordinate(e.getMinX(), e.getMinY())
 		};
 		Polygon polygon = ChyfDatastore.GEOMETRY_FACTORY.createPolygon(coords);
-		featureHeader(GeotoolsGeometryReprojector.reproject(polygon, response.getSrs()), null, responseMetadata);
+		featureHeader(GeotoolsGeometryReprojector.reproject(polygon, ChyfDatastore.BASE_CRS, GeotoolsGeometryReprojector.srsCodeToCRS(response.getSrs())), null, responseMetadata);
 		featureFooter();
 	}
 

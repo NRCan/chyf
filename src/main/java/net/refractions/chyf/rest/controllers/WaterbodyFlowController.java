@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import net.refractions.chyf.hygraph.HyGraph;
-import net.refractions.chyf.rest.ReverseGeocodeParameters;
+import net.refractions.chyf.rest.HygraphParameters;
 import net.refractions.chyf.rest.exceptions.InvalidParameterException;
 import net.refractions.chyf.rest.messageconverters.ApiResponse;
 import net.refractions.util.StopWatch;
@@ -23,7 +23,7 @@ public class WaterbodyFlowController {
 	
 	
 	@RequestMapping(value = "/multiDimensionalDownstreamOf", method = {RequestMethod.GET,RequestMethod.POST})
-	public ApiResponse getMultiDimensionalDownstreamOfLocation(ReverseGeocodeParameters params, BindingResult bindingResult) {
+	public ApiResponse getMultiDimensionalDownstreamOfLocation(HygraphParameters params, BindingResult bindingResult) {
 		if(bindingResult.hasErrors()) {
 			throw new InvalidParameterException(bindingResult);
 		}
@@ -45,7 +45,7 @@ public class WaterbodyFlowController {
 	
 	
 	@RequestMapping(value = "/multiDimensionalUpstreamOf", method = {RequestMethod.GET,RequestMethod.POST})
-	public ApiResponse getMultiDimensionalUpstreamOfLocation(ReverseGeocodeParameters params, BindingResult bindingResult) {
+	public ApiResponse getMultiDimensionalUpstreamOfLocation(HygraphParameters params, BindingResult bindingResult) {
 		if(bindingResult.hasErrors()) {
 			throw new InvalidParameterException(bindingResult);
 		}

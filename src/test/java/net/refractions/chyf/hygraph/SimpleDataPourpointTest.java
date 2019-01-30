@@ -11,15 +11,14 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.Point;
-import com.vividsolutions.jts.io.ParseException;
-import com.vividsolutions.jts.io.WKTReader;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.io.ParseException;
+import org.locationtech.jts.io.WKTReader;
 
 import net.refractions.chyf.ChyfDatastore;
-import net.refractions.chyf.hygraph.DrainageArea;
+import net.refractions.chyf.ChyfShapeDataReader;
 import net.refractions.chyf.pourpoint.Pourpoint;
 import net.refractions.chyf.pourpoint.PourpointEngine;
 import net.refractions.chyf.pourpoint.PourpointOutput;
@@ -41,7 +40,7 @@ public class SimpleDataPourpointTest {
 	
 	@BeforeClass 
 	public static void startup() throws URISyntaxException{
-		URL url = ClassLoader.getSystemResource("data_small/" + ChyfDatastore.FLOWPATH_FILE);
+		URL url = ClassLoader.getSystemResource("data_small/" + ChyfShapeDataReader.FLOWPATH_FILE);
 		Path datapath = Paths.get(url.toURI()).getParent();
 		datastore = new ChyfDatastore(datapath.toString() + "/");
 	}
@@ -49,7 +48,7 @@ public class SimpleDataPourpointTest {
 	@Test
 	public void test_pourpointProjection() throws URISyntaxException {
 		List<Pourpoint> points = new ArrayList<>();
-		points.add(new Pourpoint(GeotoolsGeometryReprojector.reproject(BasicTestSuite.GF.createPoint(new Coordinate(-73.47460180813951, 45.111997089079395)), ChyfDatastore.BASE_SRS), -2, "P4"));
+		points.add(new Pourpoint(GeotoolsGeometryReprojector.reproject(BasicTestSuite.GF.createPoint(new Coordinate(-73.47460180813951, 45.111997089079395)), BasicTestSuite.TEST_CRS, ChyfDatastore.BASE_CRS), -2, "P4"));
 		
 		HashMap<String, Coordinate> projectedPoints = new HashMap<>();
 		projectedPoints.put("P4", new Coordinate(-73.47452470185075, 45.112175703542384));
@@ -59,7 +58,7 @@ public class SimpleDataPourpointTest {
 		//test point projection
 		for(Pourpoint point : results.getPoints()) {
 			Coordinate c = projectedPoints.get(point.getId());
-			Point expected = GeotoolsGeometryReprojector.reproject(BasicTestSuite.GF.createPoint(new Coordinate(c)), ChyfDatastore.BASE_SRS);
+			Point expected = GeotoolsGeometryReprojector.reproject(BasicTestSuite.GF.createPoint(new Coordinate(c)), BasicTestSuite.TEST_CRS, ChyfDatastore.BASE_CRS);
 			Point actual = point.getProjectedPoint();
 			Assert.assertTrue("Pourpoint not projected to expected location ( " + c.x + " " + c.y +")", expected.equalsExact(actual, 0.00001));
 		}
@@ -70,14 +69,14 @@ public class SimpleDataPourpointTest {
 	@Test
 	public void test_simplePourpointTest() throws URISyntaxException, ParseException{
 		List<Pourpoint> points = new ArrayList<>();
-		points.add(new Pourpoint(GeotoolsGeometryReprojector.reproject(BasicTestSuite.GF.createPoint(new Coordinate(-73.4622349011061, 45.101463647914315)), ChyfDatastore.BASE_SRS), 0, "P1"));
-		points.add(new Pourpoint(GeotoolsGeometryReprojector.reproject(BasicTestSuite.GF.createPoint(new Coordinate(-73.46392456572985, 45.10495082809525)), ChyfDatastore.BASE_SRS), 2, "P2"));
-		points.add(new Pourpoint(GeotoolsGeometryReprojector.reproject(BasicTestSuite.GF.createPoint(new Coordinate(-73.46755554715536, 45.106892144897)), ChyfDatastore.BASE_SRS), 1, "P3"));
-		points.add(new Pourpoint(GeotoolsGeometryReprojector.reproject(BasicTestSuite.GF.createPoint(new Coordinate(-73.474930904963, 45.1122588226033)), ChyfDatastore.BASE_SRS), -2, "P4"));
-		points.add(new Pourpoint(GeotoolsGeometryReprojector.reproject(BasicTestSuite.GF.createPoint(new Coordinate(-73.46838240431167, 45.11530451770461)), ChyfDatastore.BASE_SRS), 0, "P5"));
+		points.add(new Pourpoint(GeotoolsGeometryReprojector.reproject(BasicTestSuite.GF.createPoint(new Coordinate(-73.4622349011061, 45.101463647914315)), BasicTestSuite.TEST_CRS, ChyfDatastore.BASE_CRS), 0, "P1"));
+		points.add(new Pourpoint(GeotoolsGeometryReprojector.reproject(BasicTestSuite.GF.createPoint(new Coordinate(-73.46392456572985, 45.10495082809525)), BasicTestSuite.TEST_CRS, ChyfDatastore.BASE_CRS), 2, "P2"));
+		points.add(new Pourpoint(GeotoolsGeometryReprojector.reproject(BasicTestSuite.GF.createPoint(new Coordinate(-73.46755554715536, 45.106892144897)), BasicTestSuite.TEST_CRS, ChyfDatastore.BASE_CRS), 1, "P3"));
+		points.add(new Pourpoint(GeotoolsGeometryReprojector.reproject(BasicTestSuite.GF.createPoint(new Coordinate(-73.474930904963, 45.1122588226033)), BasicTestSuite.TEST_CRS, ChyfDatastore.BASE_CRS), -2, "P4"));
+		points.add(new Pourpoint(GeotoolsGeometryReprojector.reproject(BasicTestSuite.GF.createPoint(new Coordinate(-73.46838240431167, 45.11530451770461)), BasicTestSuite.TEST_CRS, ChyfDatastore.BASE_CRS), 0, "P5"));
 		
-//		points.add(new Pourpoint(GeotoolsGeometryReprojector.reproject(BasicTestSuite.GF.createPoint(new Coordinate(-73.46277664320625, 45.12028525724857)), ChyfDatastore.BASE_SRS), -2, "P6"));
-//		points.add(new Pourpoint(GeotoolsGeometryReprojector.reproject(BasicTestSuite.GF.createPoint(new Coordinate(-73.46574430224715, 45.119594158567814)), ChyfDatastore.BASE_SRS), -2, "P7"));
+//		points.add(new Pourpoint(GeotoolsGeometryReprojector.reproject(BasicTestSuite.GF.createPoint(new Coordinate(-73.46277664320625, 45.12028525724857)), BasicTestSuite.TEST_CRS, ChyfDatastore.BASE_CRS), -2, "P6"));
+//		points.add(new Pourpoint(GeotoolsGeometryReprojector.reproject(BasicTestSuite.GF.createPoint(new Coordinate(-73.46574430224715, 45.119594158567814)), BasicTestSuite.TEST_CRS, ChyfDatastore.BASE_CRS), -2, "P7"));
 //		
 		
 		HashMap<String, Coordinate> projectedPoints = new HashMap<>();
@@ -92,7 +91,7 @@ public class SimpleDataPourpointTest {
 		//test point projection
 		for(Pourpoint point : results.getPoints()) {
 			Coordinate c = projectedPoints.get(point.getId());
-			Point expected = GeotoolsGeometryReprojector.reproject(BasicTestSuite.GF.createPoint(new Coordinate(c)), ChyfDatastore.BASE_SRS);
+			Point expected = GeotoolsGeometryReprojector.reproject(BasicTestSuite.GF.createPoint(new Coordinate(c)), BasicTestSuite.TEST_CRS, ChyfDatastore.BASE_CRS);
 			Point actual = point.getProjectedPoint();
 			Assert.assertTrue("Pourpoint not projected to expected location ( " + c.x + " " + c.y +")", expected.equalsExact(actual, 0.00001));
 		}
@@ -127,7 +126,7 @@ public class SimpleDataPourpointTest {
 		
 		for (Pourpoint point : results.getPoints()) {
 			DrainageArea actual = results.getCatchment(point);
-			Geometry expected = GeotoolsGeometryReprojector.reproject(reader.read(expectedCatchments.get(point.getId())), ChyfDatastore.BASE_SRS);
+			Geometry expected = GeotoolsGeometryReprojector.reproject(reader.read(expectedCatchments.get(point.getId())), BasicTestSuite.TEST_CRS, ChyfDatastore.BASE_CRS);
 			Assert.assertTrue("Pourpoint catchment incorrect (" + point.getId() + ")", expected.equalsExact(actual.getGeometry(), 0.00001));
 		}
 		
@@ -141,8 +140,8 @@ public class SimpleDataPourpointTest {
 		expectedUniqueCoveratesCombined.put("P5", "POLYGON (( -73.45931415243606 45.11948593684481, -73.45803219773404 45.11734934567479, -73.46012130910029 45.114690476663206, -73.46045366772674 45.11369340078386, -73.46339741556099 45.11302868353096, -73.46486928947812 45.11397827960653, -73.46672100182546 45.11445307764431, -73.4685416483889 45.11506456249201, -73.47076943479914 45.115092834944605, -73.47320822109108 45.11425377913806, -73.47433042478657 45.115263762464004, -73.47484320734478 45.115719569182396, -73.47538447782286 45.11842592157285, -73.47413100934729 45.120106708846926, -73.47094036231853 45.12004973300712, -73.4708042649504 45.12261960389417, -73.4679554767237 45.12323684134329, -73.46501172888945 45.12261960389417, -73.46154570321363 45.123046922128175, -73.45855447557561 45.121527568407274, -73.45931415243606 45.11948593684481 ))");
 				
 		for (Pourpoint point : results.getPoints()) {
-			DrainageArea actual = results.getPartitionedCatchments(point);
-			Geometry expected = GeotoolsGeometryReprojector.reproject(reader.read(expectedUniqueCoveratesCombined.get(point.getId())), ChyfDatastore.BASE_SRS);
+			DrainageArea actual = results.getPartitionedCatchment(point);
+			Geometry expected = GeotoolsGeometryReprojector.reproject(reader.read(expectedUniqueCoveratesCombined.get(point.getId())), BasicTestSuite.TEST_CRS, ChyfDatastore.BASE_CRS);
 			Assert.assertTrue("Pourpoint non-overlapping catchment incorrect (" + point.getId() + ")", expected.equalsExact(actual.getGeometry(), 0.00001));
 		}
 		
@@ -157,13 +156,12 @@ public class SimpleDataPourpointTest {
 		expectedMergedCoverages.add("POLYGON (( -73.47438740062638 45.10842666168814, -73.47521355030347 45.107942367049844, -73.47578803670191 45.10747087245369, -73.47612516374025 45.10708772945284, -73.47624448344973 45.106398222596376, -73.48008498460628 45.10591972473701, -73.48481397930962 45.108540613367694, -73.48757730753987 45.11090511071941, -73.48717847666127 45.11489341950532, -73.48358899875393 45.11571956918244, -73.47703677717703 45.115406202063525, -73.47433042478657 45.11526376246401, -73.47320822109107 45.114253779138096, -73.47233627039363 45.113469023510326, -73.47452470185077 45.11217570354236, -73.47376066638859 45.110135936882116, -73.47368838166199 45.10888585737189, -73.47438740062638 45.10842666168814 ))");
 		expectedMergedCoverages.add("POLYGON (( -73.45931415243606 45.11948593684484, -73.45803219773404 45.11734934567477, -73.4601213091003 45.11469047666323, -73.46045366772674 45.11369340078384, -73.46339741556099 45.113028683530985, -73.46486928947812 45.113978279606485, -73.46672100182545 45.11445307764433, -73.4685416483889 45.115064562491945, -73.47076943479914 45.11509283494458, -73.47320822109107 45.114253779138096, -73.47433042478657 45.11526376246401, -73.47484320734478 45.11571956918242, -73.47538447782284 45.11842592157284, -73.47413100934729 45.120106708846954, -73.47094036231852 45.12004973300711, -73.4708042649504 45.12261960389417, -73.4679554767237 45.12323684134334, -73.46501172888945 45.12261960389417, -73.46154570321363 45.1230469221282, -73.45855447557561 45.1215275684073, -73.45931415243606 45.11948593684484 ))");
 			
-		for (Pourpoint point : results.getPoints()) {
-			for (UniqueSubCatchment pcat : point.getTraversalCompliantCatchments()) {
-				for (int i = 0; i < expectedMergedCoverages.size();i ++) {
-					Geometry expected = GeotoolsGeometryReprojector.reproject(reader.read(expectedMergedCoverages.get(i)), ChyfDatastore.BASE_SRS);
-					if (pcat.getDrainageArea().getGeometry().equalsExact(expected, 0.0001)) {
-						indexToId.put(pcat.getId(), i);
-					}
+		
+		for (DrainageArea pcat : results.getTraversalCompliantCatchments()) {
+			for (int i = 0; i < expectedMergedCoverages.size();i ++) {
+				Geometry expected = GeotoolsGeometryReprojector.reproject(reader.read(expectedMergedCoverages.get(i)), BasicTestSuite.TEST_CRS, ChyfDatastore.BASE_CRS);
+				if (pcat.getGeometry().equalsExact(expected, 0.0001)) {
+					indexToId.put(pcat.getId(), i);
 				}
 			}
 		}

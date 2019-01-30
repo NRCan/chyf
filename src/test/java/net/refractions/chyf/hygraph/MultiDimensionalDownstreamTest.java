@@ -14,11 +14,12 @@ import org.junit.Test;
 import org.junit.rules.TestRule;
 
 import com.google.gson.stream.JsonReader;
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.Point;
-import com.vividsolutions.jts.io.ParseException;
-import com.vividsolutions.jts.io.WKTReader;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.io.ParseException;
+import org.locationtech.jts.io.WKTReader;
+import org.locationtech.jts.precision.GeometryPrecisionReducer;
 
 import net.refractions.chyf.ChyfDatastore;
 import net.refractions.chyf.hygraph.ECatchment;
@@ -103,7 +104,7 @@ public class MultiDimensionalDownstreamTest {
 		
 		WKTReader reader = new WKTReader(BasicTestSuite.GF);
 		for (Entry<Coordinate, List<String>> result : testData.entrySet()) {
-			Point pnt = GeotoolsGeometryReprojector.reproject(BasicTestSuite.GF.createPoint(result.getKey()), ChyfDatastore.BASE_SRS);
+			Point pnt = GeotoolsGeometryReprojector.reproject(BasicTestSuite.GF.createPoint(result.getKey()),  BasicTestSuite.TEST_CRS, ChyfDatastore.BASE_CRS);
 			
 			Collection<SpatiallyIndexable> paths = function.apply(pnt);
 			
@@ -111,8 +112,8 @@ public class MultiDimensionalDownstreamTest {
 			
 			for (String ls : result.getValue()) {
 				Geometry g = reader.read(ls);
-				Geometry projection = GeotoolsGeometryReprojector.reproject(g, ChyfDatastore.BASE_SRS);
-
+				Geometry projection = GeotoolsGeometryReprojector.reproject(g,  BasicTestSuite.TEST_CRS, ChyfDatastore.BASE_CRS);
+				projection = GeometryPrecisionReducer.reduce(projection, ChyfDatastore.PRECISION_MODEL);
 				//find the same linestring in the actual results
 				SpatiallyIndexable found = null;
 				for (SpatiallyIndexable p : paths) {

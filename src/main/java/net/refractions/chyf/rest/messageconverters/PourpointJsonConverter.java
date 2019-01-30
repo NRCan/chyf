@@ -6,13 +6,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import com.vividsolutions.jts.geom.Point;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.Point;
 
+import net.refractions.chyf.ChyfDatastore;
 import net.refractions.chyf.hygraph.DrainageArea;
 import net.refractions.chyf.pourpoint.Pourpoint;
 import net.refractions.chyf.pourpoint.PourpointEngine;
 import net.refractions.chyf.pourpoint.PourpointOutput;
-import net.refractions.chyf.pourpoint.UniqueSubCatchment;
 import net.refractions.chyf.rest.GeotoolsGeometryReprojector;
 
 public class PourpointJsonConverter extends JsonConverterHelper {
@@ -68,7 +69,7 @@ public class PourpointJsonConverter extends JsonConverterHelper {
 		}
 		
 		if (result.getAvailableOutputs().contains(PourpointEngine.OutputType.TRAVERSAL_COMPLIANT_CATCHMENT_RELATION)){
-			List<UniqueSubCatchment> items = result.getTraversalCompliantCatchments();
+			List<DrainageArea> items = result.getTraversalCompliantCatchments();
 			String[] headers =new String[items.size()];
 			for (int i = 0; i < headers.length; i ++) {
 				headers[i] = items.get(i).getId();
@@ -101,7 +102,7 @@ public class PourpointJsonConverter extends JsonConverterHelper {
 		this.featureCollectionHeader(response, PourpointEngine.OutputType.INTERIOR_CATCHMENT);
 		int counter = 1;
 		for (DrainageArea g : result.getInteriorCatchments()) {
-			this.featureHeader(GeotoolsGeometryReprojector.reproject(g.getGeometry(), response.getSrs()), counter, null);
+			this.featureHeader(reproject(g.getGeometry(), response.getSrs()), counter, null);
 			this.field("id", counter++);
 			this.field("area", g.getArea() / 10_000);
 			this.featureFooter();
@@ -114,10 +115,10 @@ public class PourpointJsonConverter extends JsonConverterHelper {
 		this.featureCollectionHeader(response, PourpointEngine.OutputType.OUTPUT_PP);
 		int counter = 1;
 		for (Pourpoint p : result.getPoints()) {
-			this.featureHeader(GeotoolsGeometryReprojector.reproject(p.getProjectedPoint(), response.getSrs()), counter++, null);
+			this.featureHeader(reproject(p.getProjectedPoint(), response.getSrs()), counter++, null);
 			this.field("id", p.getId());
 			this.field("ccode", p.getCcode());
-			Point rawPoint = GeotoolsGeometryReprojector.reproject(p.getPoint(), response.getSrs());
+			Point rawPoint =reproject(p.getRawPoint(), response.getSrs());
 			jw.name("raw_x").value(rawPoint.getX());
 			jw.name("raw_y").value(rawPoint.getY());
 			this.featureFooter();
@@ -141,7 +142,7 @@ public class PourpointJsonConverter extends JsonConverterHelper {
 		int counter = 1;
 		for (Pourpoint p : result.getPoints()) {
 			DrainageArea g = result.getCatchment(p);
-			this.featureHeader(GeotoolsGeometryReprojector.reproject(g.getGeometry(), response.getSrs()), counter++, null);
+			this.featureHeader(reproject(g.getGeometry(), response.getSrs()), counter++, null);
 			this.field("id", p.getId());
 			this.field("area", g.getArea() / 10_000);
 			this.featureFooter();
@@ -153,11 +154,10 @@ public class PourpointJsonConverter extends JsonConverterHelper {
 	private void writeTraversalCompliantCatchments(ApiResponse response) throws IOException {
 		this.featureCollectionHeader(response, PourpointEngine.OutputType.TRAVERSAL_COMPLIANT_CATCHMENTS);
 		int counter = 1;
-		Collection<UniqueSubCatchment> items =  result.getTraversalCompliantCatchments();
-		for (UniqueSubCatchment i : items) {
-			DrainageArea g = i.getDrainageArea();
-			this.featureHeader(GeotoolsGeometryReprojector.reproject(g.getGeometry(), response.getSrs()), counter++, null);
-			this.field("id", i.getId());
+		Collection<DrainageArea> items =  result.getTraversalCompliantCatchments();
+		for (DrainageArea g : items) {
+			this.featureHeader(reproject(g.getGeometry(), response.getSrs()), counter++, null);
+			this.field("id", g.getId());
 			this.field("area", g.getArea() / 10_000);
 			this.featureFooter();
 		}
@@ -169,8 +169,8 @@ public class PourpointJsonConverter extends JsonConverterHelper {
 		this.featureCollectionHeader(response, PourpointEngine.OutputType.PARTITIONED_CATCHMENTS);
 		int counter = 1;
 		for (Pourpoint p : result.getPoints()) {
-			DrainageArea g = result.getPartitionedCatchments(p);
-			this.featureHeader(GeotoolsGeometryReprojector.reproject(g.getGeometry(), response.getSrs()), counter++, null);
+			DrainageArea g = result.getPartitionedCatchment(p);
+			this.featureHeader(reproject(g.getGeometry(), response.getSrs()), counter++, null);
 			this.field("id", p.getId());
 			this.field("area", g.getArea() / 10_000);
 			this.featureFooter();
@@ -240,4 +240,7 @@ public class PourpointJsonConverter extends JsonConverterHelper {
 		jw.endObject();
 	}
 	
+	private <T extends Geometry> T reproject(T geom, int tosrs) {
+		return (T)GeotoolsGeometryReprojector.reproject(geom, ChyfDatastore.BASE_CRS, GeotoolsGeometryReprojector.srsCodeToCRS(tosrs));
+	}
 }

@@ -8,16 +8,15 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.IntersectionMatrix;
+import org.locationtech.jts.geom.LineString;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.geom.Polygon;
+import org.locationtech.jts.index.quadtree.Quadtree;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.IntersectionMatrix;
-import com.vividsolutions.jts.geom.LineString;
-import com.vividsolutions.jts.geom.Point;
-import com.vividsolutions.jts.geom.Polygon;
-import com.vividsolutions.jts.index.quadtree.Quadtree;
 
 import net.refractions.chyf.enumTypes.CatchmentType;
 import net.refractions.chyf.enumTypes.FlowpathType;
@@ -69,9 +68,9 @@ public class HyGraphBuilder {
 				eCatchments.toArray(new ECatchment[eCatchments.size()]));
 	}
 	
-	public EFlowpath addEFlowpath(FlowpathType type, Rank rank, String name, UUID nameId, LineString lineString) {
+	public EFlowpath addEFlowpath(FlowpathType type, Rank rank, String name, UUID nameId, double length, LineString lineString) {
 		return addEFlowpath(getNexus(lineString.getStartPoint()), getNexus(lineString.getEndPoint()), 
-				lineString.getLength(), type, rank, name, nameId, getECatchment(lineString, type), lineString);
+				length, type, rank, name, nameId, getECatchment(lineString, type), lineString);
 	}
 
 	private EFlowpath addEFlowpath(Nexus fromNexus, Nexus toNexus, double length, FlowpathType type, Rank rank, String name,
@@ -107,7 +106,7 @@ public class HyGraphBuilder {
 		return null;
 	}
 
-	public ECatchment addECatchment(CatchmentType type, Polygon polygon) {
+	public ECatchment addECatchment(CatchmentType type, Double area, Polygon polygon) {
 		@SuppressWarnings("unchecked")
 		List<ECatchment> possibleCatchments = eCatchmentIndex.query(polygon.getEnvelopeInternal());
 		for(ECatchment catchment : possibleCatchments) {
@@ -128,7 +127,7 @@ public class HyGraphBuilder {
 			}
 		}
 		// not a duplicate so create and add it
-		ECatchment eCatchment = new ECatchment(nextCatchmentId++, type, polygon);
+		ECatchment eCatchment = new ECatchment(nextCatchmentId++, type, area, polygon);
 		eCatchments.add(eCatchment);
 		eCatchmentIndex.insert(eCatchment.getEnvelope(), eCatchment);
 		return eCatchment;
@@ -264,6 +263,7 @@ public class HyGraphBuilder {
 					c.setType(CatchmentType.BANK);
 					c.setRank(Rank.PRIMARY);
 				} else {
+					System.out.println(c.getPolygon().toText());
 					logger.warn("Catchment " + c.getId() + " has no flowpaths and an unexpected number of nexuses (" + totalNexuses + ").");
 					c.setType(CatchmentType.UNKNOWN);
 				}

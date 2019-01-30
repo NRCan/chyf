@@ -14,8 +14,8 @@ import org.junit.rules.TestRule;
 
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Point;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Point;
 
 import net.refractions.chyf.ChyfDatastore;
 import net.refractions.chyf.enumTypes.FlowpathType;
@@ -59,8 +59,8 @@ public class StreamOrderTest {
 		ChyfDatastore datastore = BasicTestSuite.DATASTORE;
 		Coordinate c = new Coordinate(-73.13851109999999, 45.99991639999997);
 		Point pnt = BasicTestSuite.GF.createPoint(c);
-		pnt = GeotoolsGeometryReprojector.reproject(pnt, ChyfDatastore.BASE_SRS);
-		List<EFlowpath> paths = datastore.getHyGraph().findEFlowpaths(pnt, 1, 1, 
+		pnt = GeotoolsGeometryReprojector.reproject(pnt, BasicTestSuite.TEST_CRS, ChyfDatastore.BASE_CRS);
+		List<EFlowpath> paths = datastore.getHyGraph().findEFlowpaths(pnt, 1, 1.0, 
 				new PredicateFilter<EFlowpath>(EFlowpath::getType, 
 						PredicateParameter.notEquals.get(), 
 						FlowpathType.BANK));
@@ -68,28 +68,23 @@ public class StreamOrderTest {
 		Assert.assertTrue(paths.get(0).getLineString().getNumPoints() > 2);
 	}
 
-	
+
 	@Test
 	public void test_Order() throws Exception {
 		ChyfDatastore datastore = BasicTestSuite.DATASTORE;
 		List<TestPoint> tests = readOrderJson();
 		for (TestPoint point : tests) {		
-			Point pnt = GeotoolsGeometryReprojector.reproject(point.point, ChyfDatastore.BASE_SRS);
-			List<EFlowpath> paths = datastore.getHyGraph().findEFlowpaths(pnt, 1, 1,  null);
+			Point pnt = GeotoolsGeometryReprojector.reproject(point.point, BasicTestSuite.TEST_CRS, ChyfDatastore.BASE_CRS);
+			List<EFlowpath> paths = datastore.getHyGraph().findEFlowpaths(pnt, 1, 1.0,  null);
 						
-			Assert.assertEquals(1, paths.size());
-				
+			Assert.assertEquals(1, paths.size());				
 			EFlowpath path = paths.get(0);
-
 			Assert.assertEquals("Strahler order failure at POINT(" + point.point.getX() + " " + point.point.getY() + ")", point.strahlerorder, path.getStrahlerOrder());
 			Assert.assertEquals("Horton order failure at POINT(" + point.point.getX() + " " + point.point.getY() + ")", point.hortonorder, path.getHortonOrder());
 			Assert.assertEquals("Hack order failure at POINT(" + point.point.getX() + " " + point.point.getY() + ")", point.hackorder, path.getHackOrder());			
 		}
 		
 	}
-	
-	
-	
 	
 	/*
 	 * reads expected results for order from json file

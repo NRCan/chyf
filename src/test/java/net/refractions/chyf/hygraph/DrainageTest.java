@@ -9,15 +9,14 @@ import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestRule;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.io.WKTReader;
 
 import com.google.gson.stream.JsonReader;
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.Point;
-import com.vividsolutions.jts.io.WKTReader;
 
 import net.refractions.chyf.ChyfDatastore;
-import net.refractions.chyf.hygraph.DrainageArea;
 import net.refractions.chyf.rest.GeotoolsGeometryReprojector;
 
 /**
@@ -66,9 +65,9 @@ public class DrainageTest {
 					point-> BasicTestSuite.DATASTORE.getHyGraph().getDownstreamDrainageArea( BasicTestSuite.DATASTORE.getHyGraph().getECatchment(point), false),
 					"Downstream");
 			
-//			validateDrainage(DOWNSTREAMEDRAINAGE_NOHOLE_RESULTS, 
-//					point-> BasicTestSuite.DATASTORE.getHyGraph().getDownstreamDrainageArea( BasicTestSuite.DATASTORE.getHyGraph().getECatchment(point), true),
-//					"Downstream");
+			validateDrainage(DOWNSTREAMEDRAINAGE_NOHOLE_RESULTS, 
+					point-> BasicTestSuite.DATASTORE.getHyGraph().getDownstreamDrainageArea( BasicTestSuite.DATASTORE.getHyGraph().getECatchment(point), true),
+					"Downstream");
 		}catch (Exception ex) {
 			ex.printStackTrace();
 			Assert.fail(ex.getMessage());
@@ -103,14 +102,14 @@ public class DrainageTest {
 		}
 		
 		for (Entry<Coordinate, String> result : testData.entrySet()) {
-			Point pnt = GeotoolsGeometryReprojector.reproject(BasicTestSuite.GF.createPoint(result.getKey()), ChyfDatastore.BASE_SRS);
+			Point pnt = GeotoolsGeometryReprojector.reproject(BasicTestSuite.GF.createPoint(result.getKey()), BasicTestSuite.TEST_CRS, ChyfDatastore.BASE_CRS);
 			
 			DrainageArea paths = function.apply(pnt);
 			
 			Geometry expectedResult = (new WKTReader()).read(result.getValue());
 			expectedResult.setSRID(BasicTestSuite.TEST_DATA_SRID);
-			expectedResult = GeotoolsGeometryReprojector.reproject(expectedResult, ChyfDatastore.BASE_SRS);
-			
+			expectedResult = GeotoolsGeometryReprojector.reproject(expectedResult,  BasicTestSuite.TEST_CRS, ChyfDatastore.BASE_CRS);
+
 			if (!paths.getGeometry().equalsExact(expectedResult, 0.00001)) {
 				Assert.fail(type + " drainage at (" + result.getKey().x + ", " +result.getKey().y + ") does not match excepted results");
 			}

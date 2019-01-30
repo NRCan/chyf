@@ -9,10 +9,11 @@ import org.geotools.geometry.jts.Geometries;
 import org.geotools.geopkg.FeatureEntry;
 import org.geotools.geopkg.GeoPackage;
 import org.opengis.feature.simple.SimpleFeatureType;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.geom.Polygon;
 
-import com.vividsolutions.jts.geom.Point;
-import com.vividsolutions.jts.geom.Polygon;
-
+import net.refractions.chyf.ChyfDatastore;
 import net.refractions.chyf.hygraph.DrainageArea;
 import net.refractions.chyf.pourpoint.Pourpoint;
 import net.refractions.chyf.pourpoint.PourpointEngine;
@@ -63,14 +64,14 @@ public class PourpointGeoPackageConverter {
 			for (DrainageArea area : result.getInteriorCatchments()) {
 				featureBuilder.set("id",id);
 				featureBuilder.set("area", area.getArea() / 10_000);
-				featureBuilder.set("geometry", GeotoolsGeometryReprojector.reproject(area.getGeometry(), response.getSrs()));
+				featureBuilder.set("geometry", reproject(area.getGeometry(), response.getSrs()));
 				features.add(featureBuilder.buildFeature(String.valueOf(id++)));
 			}
 		}else if (type == PourpointEngine.OutputType.TRAVERSAL_COMPLIANT_CATCHMENTS) {
-			for (UniqueSubCatchment c : result.getTraversalCompliantCatchments()) {
+			for (DrainageArea c : result.getTraversalCompliantCatchments()) {
 				featureBuilder.set("id", c.getId());
-				featureBuilder.set("area", c.getDrainageArea().getArea() / 10_000);
-				featureBuilder.set("geometry", GeotoolsGeometryReprojector.reproject(c.getDrainageArea().getGeometry(), response.getSrs()));
+				featureBuilder.set("area", c.getArea() / 10_000);
+				featureBuilder.set("geometry", reproject(c.getGeometry(), response.getSrs()));
 				features.add(featureBuilder.buildFeature(c.getId()));
 			}
 		}else {
@@ -79,23 +80,23 @@ public class PourpointGeoPackageConverter {
 					DrainageArea area = result.getCatchment(p);
 					featureBuilder.set("id", p.getId());
 					featureBuilder.set("area", area.getArea() / 10_000);
-					featureBuilder.set("geometry", GeotoolsGeometryReprojector.reproject(area.getGeometry(), response.getSrs()));
+					featureBuilder.set("geometry", reproject(area.getGeometry(), response.getSrs()));
 					features.add(featureBuilder.buildFeature(p.getId()));
 				}else if (type == PourpointEngine.OutputType.PARTITIONED_CATCHMENTS) {
-					DrainageArea area = result.getPartitionedCatchments(p);
+					DrainageArea area = result.getPartitionedCatchment(p);
 					
 					featureBuilder.set("id", p.getId());
 					featureBuilder.set("area", area.getArea() / 10_000);
-					featureBuilder.set("geometry", GeotoolsGeometryReprojector.reproject(area.getGeometry(), response.getSrs()));
+					featureBuilder.set("geometry", reproject(area.getGeometry(), response.getSrs()));
 					features.add(featureBuilder.buildFeature(p.getId()));
 				
 				}else if (type == PourpointEngine.OutputType.OUTPUT_PP) {
-					Point raw =  GeotoolsGeometryReprojector.reproject(p.getRawPoint(), response.getSrs());
+					Point raw =  reproject(p.getRawPoint(), response.getSrs());
 					featureBuilder.set("id", p.getId());
 					featureBuilder.set("ccode", p.getCcode());
 					featureBuilder.set("raw_x", raw.getX());
 					featureBuilder.set("raw_y", raw.getY());
-					featureBuilder.set("geometry", GeotoolsGeometryReprojector.reproject(p.getProjectedPoint(), response.getSrs()));
+					featureBuilder.set("geometry",reproject(p.getProjectedPoint(), response.getSrs()));
 					features.add(featureBuilder.buildFeature(p.getId()));	
 				}
 			}
@@ -146,5 +147,9 @@ public class PourpointGeoPackageConverter {
 		}
 	
 		return builder.buildFeatureType();
+	}
+
+	private <T extends Geometry> T reproject(T geom, int tosrs) {
+		return (T)GeotoolsGeometryReprojector.reproject(geom, ChyfDatastore.BASE_CRS, GeotoolsGeometryReprojector.srsCodeToCRS(tosrs));
 	}
 }

@@ -4,7 +4,7 @@ import net.refractions.chyf.ChyfDatastore;
 import net.refractions.chyf.hygraph.ECatchment;
 import net.refractions.chyf.hygraph.HyGraph;
 import net.refractions.chyf.indexing.BboxIntersectsFilter;
-import net.refractions.chyf.rest.ReverseGeocodeParameters;
+import net.refractions.chyf.rest.HygraphParameters;
 import net.refractions.chyf.rest.SharedParameters;
 import net.refractions.chyf.rest.exceptions.InvalidParameterException;
 import net.refractions.chyf.rest.messageconverters.ApiResponse;
@@ -39,7 +39,7 @@ public class ECatchmentController {
 	}
 
 	@RequestMapping(value = "/near", method = {RequestMethod.GET,RequestMethod.POST})
-	public ApiResponse getECatchmentsNear(ReverseGeocodeParameters params, BindingResult bindingResult) {
+	public ApiResponse getECatchmentsNear(HygraphParameters params, BindingResult bindingResult) {
 		if(bindingResult.hasErrors()) {
 			throw new InvalidParameterException(bindingResult);
 		}
@@ -60,7 +60,7 @@ public class ECatchmentController {
 	}
 
 	@RequestMapping(value = "/within", method = {RequestMethod.GET,RequestMethod.POST})
-	public ApiResponse getECatchmentsWithin(ReverseGeocodeParameters params, BindingResult bindingResult) {
+	public ApiResponse getECatchmentsWithin(HygraphParameters params, BindingResult bindingResult) {
 		if(bindingResult.hasErrors()) {
 			throw new InvalidParameterException(bindingResult);
 		}
@@ -84,7 +84,7 @@ public class ECatchmentController {
 	}
 
 	@RequestMapping(value = "/containing", method = {RequestMethod.GET,RequestMethod.POST})
-	public ApiResponse getECatchmentsContaining(ReverseGeocodeParameters params, BindingResult bindingResult) {
+	public ApiResponse getECatchmentsContaining(HygraphParameters params, BindingResult bindingResult) {
 		if(bindingResult.hasErrors()) {
 			throw new InvalidParameterException(bindingResult);
 		}
@@ -107,7 +107,7 @@ public class ECatchmentController {
 
 	@RequestMapping(value = "/{id}/upstream", method = {RequestMethod.GET,RequestMethod.POST})
 	public ApiResponse getECatchmentsUpstream(@PathVariable("id") int id, 
-			ReverseGeocodeParameters params, BindingResult bindingResult) {
+			HygraphParameters params, BindingResult bindingResult) {
 		if(bindingResult.hasErrors()) {
 			throw new InvalidParameterException(bindingResult);
 		}
@@ -124,7 +124,7 @@ public class ECatchmentController {
 
 	@RequestMapping(value = "/{id}/downstream", method = {RequestMethod.GET,RequestMethod.POST})
 	public ApiResponse getECatchmentsDownstream(@PathVariable("id") int id, 
-			ReverseGeocodeParameters params, BindingResult bindingResult) {
+			HygraphParameters params, BindingResult bindingResult) {
 		if(bindingResult.hasErrors()) {
 			throw new InvalidParameterException(bindingResult);
 		}
@@ -140,7 +140,7 @@ public class ECatchmentController {
 	}
 
 	@RequestMapping(value = "/upstreamOf", method = {RequestMethod.GET,RequestMethod.POST})
-	public ApiResponse getECatchmentsUpstreamOf(ReverseGeocodeParameters params, BindingResult bindingResult) {
+	public ApiResponse getECatchmentsUpstreamOf(HygraphParameters params, BindingResult bindingResult) {
 		if(bindingResult.hasErrors()) {
 			throw new InvalidParameterException(bindingResult);
 		}
@@ -161,7 +161,7 @@ public class ECatchmentController {
 	}
 
 	@RequestMapping(value = "/downstreamOf", method = {RequestMethod.GET,RequestMethod.POST})
-	public ApiResponse getECatchmentsDownstreamOf(ReverseGeocodeParameters params, BindingResult bindingResult) {
+	public ApiResponse getECatchmentsDownstreamOf(HygraphParameters params, BindingResult bindingResult) {
 		if(bindingResult.hasErrors()) {
 			throw new InvalidParameterException(bindingResult);
 		}

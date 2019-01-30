@@ -4,7 +4,7 @@ import net.refractions.chyf.ChyfDatastore;
 import net.refractions.chyf.hygraph.HyGraph;
 import net.refractions.chyf.hygraph.Nexus;
 import net.refractions.chyf.indexing.BboxIntersectsFilter;
-import net.refractions.chyf.rest.ReverseGeocodeParameters;
+import net.refractions.chyf.rest.HygraphParameters;
 import net.refractions.chyf.rest.SharedParameters;
 import net.refractions.chyf.rest.exceptions.InvalidParameterException;
 import net.refractions.chyf.rest.messageconverters.ApiResponse;
@@ -43,7 +43,7 @@ public class NexusController {
 	}
 
 	@RequestMapping(value = "/near", method = {RequestMethod.GET,RequestMethod.POST})
-	public ApiResponse getNexusesNear(ReverseGeocodeParameters params, BindingResult bindingResult) {
+	public ApiResponse getNexusesNear(HygraphParameters params, BindingResult bindingResult) {
 		if(bindingResult.hasErrors()) {
 			throw new InvalidParameterException(bindingResult);
 		}
@@ -64,7 +64,7 @@ public class NexusController {
 	}
 
 	@RequestMapping(value = "/within", method = {RequestMethod.GET,RequestMethod.POST})
-	public ApiResponse getNexusesWithin(ReverseGeocodeParameters params, BindingResult bindingResult) {
+	public ApiResponse getNexusesWithin(HygraphParameters params, BindingResult bindingResult) {
 		if(bindingResult.hasErrors()) {
 			throw new InvalidParameterException(bindingResult);
 		}

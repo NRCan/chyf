@@ -7,7 +7,7 @@ import net.refractions.chyf.hygraph.EFlowpath;
 
 import org.apache.commons.lang3.StringEscapeUtils;
 
-import com.vividsolutions.jts.geom.Geometry;
+import org.locationtech.jts.geom.Geometry;
 
 public class HtmlConverterHelper extends ConverterHelper {
 	

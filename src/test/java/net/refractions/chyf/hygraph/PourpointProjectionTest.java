@@ -7,11 +7,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestRule;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.Point;
-import com.vividsolutions.jts.io.ParseException;
-import com.vividsolutions.jts.io.WKTReader;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.io.ParseException;
+import org.locationtech.jts.io.WKTReader;
 
 import net.refractions.chyf.ChyfDatastore;
 import net.refractions.chyf.hygraph.EFlowpath;
@@ -234,7 +234,7 @@ public class PourpointProjectionTest {
 			Coordinate c = points[i];
 			String[] thisResult = expectedResults[i];
 			
-			Point pnt = GeotoolsGeometryReprojector.reproject(BasicTestSuite.GF.createPoint(c), ChyfDatastore.BASE_SRS);
+			Point pnt = GeotoolsGeometryReprojector.reproject(BasicTestSuite.GF.createPoint(c),  BasicTestSuite.TEST_CRS, ChyfDatastore.BASE_CRS);
 			
 			Pourpoint pp = new Pourpoint(pnt, ccode, String.valueOf(i));
 			pp.findDownstreamFlowpaths(BasicTestSuite.DATASTORE.getHyGraph());
@@ -249,7 +249,7 @@ public class PourpointProjectionTest {
 			WKTReader reader = new WKTReader(BasicTestSuite.GF);
 			for (String ls : thisResult) {
 				Geometry g = reader.read(ls);
-				Geometry projection = GeotoolsGeometryReprojector.reproject(g, ChyfDatastore.BASE_SRS);
+				Geometry projection = GeotoolsGeometryReprojector.reproject(g,  BasicTestSuite.TEST_CRS, ChyfDatastore.BASE_CRS);
 
 				EFlowpath found = null;
 				for (EFlowpath p : actualResults) {

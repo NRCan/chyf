@@ -15,9 +15,9 @@ import org.junit.Test;
 import org.junit.rules.TestRule;
 
 import com.google.gson.stream.JsonReader;
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.LineString;
-import com.vividsolutions.jts.geom.Point;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.LineString;
+import org.locationtech.jts.geom.Point;
 
 import net.refractions.chyf.ChyfDatastore;
 import net.refractions.chyf.hygraph.EFlowpath;
@@ -105,14 +105,14 @@ public class FlowpathTest {
 		}
 		
 		for (Entry<Coordinate, List<LineString>> result : testData.entrySet()) {
-			Point pnt = GeotoolsGeometryReprojector.reproject(BasicTestSuite.GF.createPoint(result.getKey()), ChyfDatastore.BASE_SRS);
+			Point pnt = GeotoolsGeometryReprojector.reproject(BasicTestSuite.GF.createPoint(result.getKey()),  BasicTestSuite.TEST_CRS, ChyfDatastore.BASE_CRS);
 			
 			Collection<EFlowpath> paths = function.apply(pnt);
 			
 			Assert.assertEquals(type + " flowpath at (" + result.getKey().x + ", " +result.getKey().y + ") returned incorrect number of segments", result.getValue().size(), paths.size());
 			
 			for (LineString ls : result.getValue()) {
-				LineString projection = GeotoolsGeometryReprojector.reproject(ls, ChyfDatastore.BASE_SRS);
+				LineString projection = GeotoolsGeometryReprojector.reproject(ls,  BasicTestSuite.TEST_CRS, ChyfDatastore.BASE_CRS);
 				//find the same linestring in the actual results
 				EFlowpath found = null;
 				for (EFlowpath p : paths) {

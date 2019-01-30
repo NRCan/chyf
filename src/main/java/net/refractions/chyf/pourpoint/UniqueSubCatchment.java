@@ -96,7 +96,7 @@ public class UniqueSubCatchment {
 		catchments.addAll(pc.getCatchments());
 	}
 
-	public DrainageArea getDrainageArea() {
-		return HyGraph.buildDrainageArea(catchments, false);
+	public DrainageArea getDrainageArea(HyGraph graph) {
+		return graph.buildDrainageArea(catchments, false);
 	}
 }

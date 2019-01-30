@@ -12,15 +12,16 @@ import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestRule;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.LinearRing;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.geom.Polygon;
+import org.locationtech.jts.geom.PrecisionModel;
+import org.locationtech.jts.precision.GeometryPrecisionReducer;
 
 import com.google.gson.stream.JsonReader;
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.LinearRing;
-import com.vividsolutions.jts.geom.Point;
-import com.vividsolutions.jts.geom.Polygon;
 
 import net.refractions.chyf.ChyfDatastore;
-import net.refractions.chyf.hygraph.ECatchment;
 import net.refractions.chyf.rest.GeotoolsGeometryReprojector;
 
 /**
@@ -120,19 +121,24 @@ public class ElementaryDrainageTest {
 			}
 		}
 		
+		
 		for (Entry<Coordinate, List<Polygon>> result : testData.entrySet()) {
-			Point pnt = GeotoolsGeometryReprojector.reproject(BasicTestSuite.GF.createPoint(result.getKey()), ChyfDatastore.BASE_SRS);
+			Point pnt = GeotoolsGeometryReprojector.reproject(BasicTestSuite.GF.createPoint(result.getKey()),  BasicTestSuite.TEST_CRS, ChyfDatastore.BASE_CRS);
 			
 			Collection<ECatchment> paths = function.apply(pnt);
 			
 			Assert.assertEquals(type + " elementary catchment at (" + result.getKey().x + ", " +result.getKey().y + ") returned incorrect number of polygons", result.getValue().size(), paths.size());
 			
 			for (Polygon ls : result.getValue()) {
-				Polygon projection = GeotoolsGeometryReprojector.reproject(ls, ChyfDatastore.BASE_SRS);
+				Polygon projection = GeotoolsGeometryReprojector.reproject(ls,  BasicTestSuite.TEST_CRS, ChyfDatastore.BASE_CRS);
+				
+				projection = (Polygon) GeometryPrecisionReducer.reduce(projection, new PrecisionModel(100_000.0));
 				//find the same linestring in the actual results
 				ECatchment found = null;
 				for (ECatchment p : paths) {
-					if (p.getPolygon().equalsExact(projection, 0.00001)) {
+					Polygon test = (Polygon) GeometryPrecisionReducer.reduce(p.getPolygon(), new PrecisionModel(100_000.0));
+
+					if (test.equalsExact(projection, 0.00001)) {
 						found = p;
 						break;
 					}

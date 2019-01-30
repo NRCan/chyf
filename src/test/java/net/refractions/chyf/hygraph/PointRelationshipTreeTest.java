@@ -12,9 +12,10 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 import net.refractions.chyf.ChyfDatastore;
+import net.refractions.chyf.ChyfShapeDataReader;
 import net.refractions.chyf.pourpoint.Pourpoint;
 import net.refractions.chyf.pourpoint.PourpointEngine;
 import net.refractions.chyf.pourpoint.PourpointOutput;
@@ -58,7 +59,7 @@ public class PointRelationshipTreeTest {
 	
 	@BeforeClass 
 	public static void startup() throws URISyntaxException{
-		URL url = ClassLoader.getSystemResource("data_small2/" + ChyfDatastore.FLOWPATH_FILE);
+		URL url = ClassLoader.getSystemResource("data_small2/" + ChyfShapeDataReader.FLOWPATH_FILE);
 		Path datapath = Paths.get(url.toURI()).getParent();
 		datastore = new ChyfDatastore(datapath.toString() + "/");
 	}
@@ -149,7 +150,7 @@ public class PointRelationshipTreeTest {
 		for (TestData t : tests) {
 			List<Pourpoint> points = new ArrayList<>();
 			for (int i : t.index) {
-				points.add(new Pourpoint(GeotoolsGeometryReprojector.reproject(BasicTestSuite.GF.createPoint(c[i]), ChyfDatastore.BASE_SRS), -2, ids[i]));
+				points.add(new Pourpoint(GeotoolsGeometryReprojector.reproject(BasicTestSuite.GF.createPoint(c[i]),  BasicTestSuite.TEST_CRS, ChyfDatastore.BASE_CRS), -2, ids[i]));
 			}
 			PourpointOutput results = ( new PourpointEngine(points, datastore.getHyGraph(), true) ).compute(Collections.singleton( PourpointEngine.OutputType.PRT) );
 			System.out.println(results.getPointRelationshipTree() );

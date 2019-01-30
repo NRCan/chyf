@@ -8,9 +8,9 @@ import net.refractions.chyf.enumTypes.CatchmentType;
 import net.refractions.chyf.enumTypes.Rank;
 import net.refractions.chyf.indexing.SpatiallyIndexable;
 
-import com.vividsolutions.jts.geom.Envelope;
-import com.vividsolutions.jts.geom.Point;
-import com.vividsolutions.jts.geom.Polygon;
+import org.locationtech.jts.geom.Envelope;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.geom.Polygon;
 
 public class ECatchment implements SpatiallyIndexable {
 	private final int id;
@@ -26,11 +26,11 @@ public class ECatchment implements SpatiallyIndexable {
 	private List<Nexus> upNexuses; 
 	private List<Nexus> downNexuses; 
 	
-	public ECatchment(int id, CatchmentType type, Polygon polygon) {
+	public ECatchment(int id, CatchmentType type, double area, Polygon polygon) {
 		this.id = id;
 		this.type = type;
 		this.polygon = polygon;
-		this.area = polygon.getArea();
+		this.area = area;
 		this.flowpaths = new ArrayList<EFlowpath>(1);
 		this.upNexuses = new ArrayList<Nexus>(1);
 		this.downNexuses = new ArrayList<Nexus>(1);

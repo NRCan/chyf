@@ -5,10 +5,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.GeometryFactory;
-import com.vividsolutions.jts.geom.Point;
-import com.vividsolutions.jts.geom.PrecisionModel;
+import org.geotools.referencing.CRS;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.geom.PrecisionModel;
 
 import net.refractions.chyf.ChyfDatastore;
 import net.refractions.chyf.pourpoint.Pourpoint;
@@ -57,7 +58,7 @@ public class PourpointParameters extends SharedParameters {
 				Double dy = Double.parseDouble(y);
 				Point pnt = gf.createPoint(new Coordinate(dx, dy));
 				
-				inputPoints.add(new Pourpoint(GeotoolsGeometryReprojector.reproject(pnt, ChyfDatastore.BASE_SRS),code,id));
+				inputPoints.add(new Pourpoint(GeotoolsGeometryReprojector.reproject(pnt, GeotoolsGeometryReprojector.srsCodeToCRS(getSrs()), ChyfDatastore.BASE_CRS),code,id));
 			}
 		}catch (PourpointException pe) {
 			throw pe;

@@ -10,8 +10,8 @@ import java.util.Queue;
 
 import net.refractions.chyf.indexing.Filter;
 
-import com.vividsolutions.jts.geom.Envelope;
-import com.vividsolutions.jts.geom.Point;
+import org.locationtech.jts.geom.Envelope;
+import org.locationtech.jts.geom.Point;
 
 class IndexableEnvelope extends Envelope implements SpatiallyIndexable {
 
@@ -59,11 +59,11 @@ public class RTree<T extends SpatiallyIndexable> {
 		}
 	}
 
-	public List<T> search(Point query, int nResults, Integer maxDistance) {
+	public List<T> search(Point query, int nResults, Double maxDistance) {
 		return search(query, nResults, maxDistance, null);
 	}
 	
-	public List<T> search(Point query, int nResults, Integer maxDistance,
+	public List<T> search(Point query, int nResults, Double maxDistance,
 			Filter<? super T> filter) {
 		if(filter == null) {
 			filter = new Filter<T>() {
@@ -78,7 +78,7 @@ public class RTree<T extends SpatiallyIndexable> {
 	
 	@SuppressWarnings("unchecked")
 	private Queue<PrioNode<T>> searchInternal(
-			Point query, Integer nResults, Integer maxDistance, Filter<? super T> filter) {
+			Point query, Integer nResults, Double maxDistance, Filter<? super T> filter) {
 		double maxDist;
 		if(maxDistance == null) {
 			maxDist = Double.POSITIVE_INFINITY;
