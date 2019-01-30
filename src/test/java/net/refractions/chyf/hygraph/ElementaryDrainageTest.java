@@ -16,8 +16,6 @@ import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.LinearRing;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.Polygon;
-import org.locationtech.jts.geom.PrecisionModel;
-import org.locationtech.jts.precision.GeometryPrecisionReducer;
 
 import com.google.gson.stream.JsonReader;
 
@@ -132,16 +130,22 @@ public class ElementaryDrainageTest {
 			for (Polygon ls : result.getValue()) {
 				Polygon projection = GeotoolsGeometryReprojector.reproject(ls,  BasicTestSuite.TEST_CRS, ChyfDatastore.BASE_CRS);
 				
-				projection = (Polygon) GeometryPrecisionReducer.reduce(projection, new PrecisionModel(100_000.0));
 				//find the same linestring in the actual results
 				ECatchment found = null;
 				for (ECatchment p : paths) {
-					Polygon test = (Polygon) GeometryPrecisionReducer.reduce(p.getPolygon(), new PrecisionModel(100_000.0));
-
-					if (test.equalsExact(projection, 0.00001)) {
+					Polygon test =p.getPolygon();
+					
+					double a1 = projection.getArea();
+					double a2 = test.getArea();
+					if (  Math.abs((a2 - a1) / a2) <= 0.002  ) {
 						found = p;
 						break;
 					}
+
+//					if (test.equalsExact(projection, 0.00001)) {
+//						found = p;
+//						break;
+//					}
 				}
 				Assert.assertNotNull(type + " elementary catchment at (" + result.getKey().x + ", " +result.getKey().y + ") does not match excepted results", found);
 				if (found != null) paths.remove(found);

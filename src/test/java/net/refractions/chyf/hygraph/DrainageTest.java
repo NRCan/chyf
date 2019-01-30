@@ -13,6 +13,7 @@ import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.io.WKTReader;
+import org.locationtech.jts.precision.GeometryPrecisionReducer;
 
 import com.google.gson.stream.JsonReader;
 
@@ -109,8 +110,13 @@ public class DrainageTest {
 			Geometry expectedResult = (new WKTReader()).read(result.getValue());
 			expectedResult.setSRID(BasicTestSuite.TEST_DATA_SRID);
 			expectedResult = GeotoolsGeometryReprojector.reproject(expectedResult,  BasicTestSuite.TEST_CRS, ChyfDatastore.BASE_CRS);
-
-			if (!paths.getGeometry().equalsExact(expectedResult, 0.00001)) {
+			expectedResult = GeometryPrecisionReducer.reduce(expectedResult, ChyfDatastore.PRECISION_MODEL);
+			
+			Geometry overlap = expectedResult.intersection(paths.getGeometry());
+			double a1 = paths.getGeometry().getArea();
+			double a2 = overlap.getArea();
+			if (  Math.abs((a2 - a1) / a2) > 0.002  ) {
+//			if (!paths.getGeometry().equalsExact(expectedResult, 0.00001)) {
 				Assert.fail(type + " drainage at (" + result.getKey().x + ", " +result.getKey().y + ") does not match excepted results");
 			}
 		}

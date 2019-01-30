@@ -8,16 +8,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.MultiPolygon;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.Polygon;
 import org.locationtech.jts.operation.union.UnaryUnionOp;
-import org.locationtech.jts.precision.GeometryPrecisionReducer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import net.refractions.chyf.ChyfDatastore;
 import net.refractions.chyf.enumTypes.CatchmentType;
@@ -380,7 +378,7 @@ public class HyGraph {
 			area += c.getArea();
 		}
 
-		Geometry g = GeometryPrecisionReducer.reduce(UnaryUnionOp.union(geoms), ChyfDatastore.PRECISION_MODEL);
+		Geometry g = UnaryUnionOp.union(geoms);
 		DrainageArea da = new DrainageArea(g, area);
 		if(removeHoles) {
 			da = removeHoles(da);		
@@ -411,7 +409,7 @@ public class HyGraph {
 			Polygon[] polygons = new Polygon[mp.getNumGeometries()];
 			for(int i = 0; i < mp.getNumGeometries(); i++) {
 				Polygon p = (Polygon)mp.getGeometryN(i);
-				for (int k = 0; i < p.getNumInteriorRing(); k ++) {
+				for (int k = 0; k < p.getNumInteriorRing(); k ++) {
 					Polygon interior = current.getGeometry().getFactory().createPolygon(p.getInteriorRingN(k).getCoordinateSequence());
 					List<ECatchment> items = findECatchments(interior);
 					for (ECatchment item : items){addArea += item.getArea();}

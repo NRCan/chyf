@@ -39,6 +39,7 @@ public class PourpointOutput {
 		this.points = engine.getPoints();
 		this.pcr = engine.getPartitionedCatchmentRelationship();
 		this.tccr = engine.getTraversalCompliantCoverageRelationship();
+		
 		if (engine.getSortedTraveralCompliantCoverages() != null) {
 			tcc = new ArrayList<>();
 			for (UniqueSubCatchment c : engine.getSortedTraveralCompliantCoverages()) {
