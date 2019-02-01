@@ -19,7 +19,7 @@ import net.refractions.chyf.hygraph.HyGraphBuilder;
 public class ChyfGeoPackageReader extends ChyfDataReader{
 
 	public static final String FLOWPATH_LAYER = "Flowpath";
-	public static final String CATCHMENT_LAYER = "Catchment";
+	public static final String CATCHMENT_LAYER = "ElementaryCatchment";
 	public static final String WATERBODY_LAYER = "Waterbody";
 	public static final String BOUNDARY_LAYER = "Working_limit";
 	
