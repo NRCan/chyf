@@ -18,8 +18,6 @@ public class GeotoolsGeometryReprojector {
 		if(geom == null) {
 			return null;
 		}
-//		CoordinateReferenceSystem fromCRS = srsCodeToCRS(geom.getSRID());
-//		CoordinateReferenceSystem toCRS = srsCodeToCRS(toSRSCode);
 		try {
 			//TODO: fix this
 			MathTransform transform = CRS.findMathTransform(fromCRS, toCRS, true);
@@ -33,7 +31,6 @@ public class GeotoolsGeometryReprojector {
 					.equals(AxisDirection.NORTH)) {
 				newGeom = flipAxes(newGeom);
 			}
-//			newGeom.setSRID(toSRSCode);
 			return newGeom;
 		} catch(FactoryException fe) {
 			throw new RuntimeException("Unexpected error in coordinate reprojection.", fe);
@@ -41,14 +38,7 @@ public class GeotoolsGeometryReprojector {
 			throw new RuntimeException("Unexpected error in coordinate reprojection.", te);
 		}
 	}
-	
-//	public static <T extends Geometry> T reproject(T geom, CoordinateReferenceSystem toCRS) {
-//		if(geom == null) {
-//			return null;
-//		}
-//		return reproject(geom, srsCodeToCRS(geom.getSRID()), toCRS);
-//	}
-//	
+
 	
 	public static CoordinateReferenceSystem srsCodeToCRS(int srsCode) {
 		try {

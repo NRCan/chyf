@@ -598,23 +598,22 @@ public class PourpointEngine {
 				}
 				if (out == null) {
 					toprocess2.add(current);
-					
-					for (Pourpoint p : matched) {
-						if (p.getDownstreamFlowpaths().contains(current)) {
-							matched.remove(p);
-							toprocess.removeAll(p.getDownstreamFlowpaths());
-						}
+					for (Pourpoint p : ed.keySet()) {
+						toprocess.removeAll(p.getDownstreamFlowpaths());
+						matched.remove(p);
 					}
 					if (toprocess.isEmpty()) break;
 					current = toprocess.get(0);
-					break;
+				}else {
+					current = out;
 				}
-				current = out;
 			}	
 		}
 		
 		for (EFlowpath p : toprocess2) {
-			processEdge2(p, frt, primarydistances, false);
+			StringBuilder sb = new StringBuilder();
+			processEdge2(p, sb, primarydistances, false);
+			frt.append(sb.toString());
 			frt.append(";");	
 		}
 		frt.deleteCharAt(frt.length() - 1);
