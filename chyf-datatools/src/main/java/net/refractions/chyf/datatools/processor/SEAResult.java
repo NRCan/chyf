@@ -70,7 +70,7 @@ public class SEAResult {
 		
 		//north, south, east, west, flat (slope < 5)
 		private int[] aspectClassCnt = {0,0,0,0,0};
-		
+
 		Statistics(double elevation, double slope, double aspect){
 			this.maxElevation = elevation;
 			this.minElevation = elevation;
@@ -190,7 +190,23 @@ public class SEAResult {
 		}
 		private double getPercent(int index) {
 			return aspectClassCnt[index] / (double)(aspectClassCnt[0] + aspectClassCnt[1] + aspectClassCnt[2] + aspectClassCnt[3] + aspectClassCnt[4] );
-			
 		}
+		
+		public SEAResult.Statistics clone(){
+			SEAResult.Statistics clone = new SEAResult.Statistics(-1);
+			clone.slopeSum = this.slopeSum;
+			clone.numItem = this.numItem;
+			clone.elvSum = this.elvSum;
+			clone.numItemElv = this.numItemElv;
+			clone.maxElevation = this.maxElevation;
+			clone.minElevation = this.minElevation;
+			clone.maxSlope = this.maxSlope;
+			clone.minSlope = this.minSlope;
+			
+			clone.aspectClassCnt = new int[this.aspectClassCnt.length];
+			for (int i = 0; i < clone.aspectClassCnt.length; i ++) clone.aspectClassCnt[i] = this.aspectClassCnt[i];
+			return clone;
+		}
+		
 	}
 }

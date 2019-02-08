@@ -79,7 +79,7 @@
 			bottom: 0;
 			left: 300px;
 			height: 200px;
-			width: 923px;
+			width: 750px;
 			border: 1px solid lightSlateGrey;
 			display:none;
 		}
@@ -2129,7 +2129,9 @@
 				var $table = createMatrixTable(layers.scr.headers, layers.scr.values, 0);
 				var $div = $('<div/>').append($('<div class="toolCat">' + layers.scr.name + '</div>'));
 				$div.append($table);
-				$div.append( $('<div>[i,j]<br>1 = i upstream of j;<br>-1 = i downstream of j</div>' ));
+				$div.append( $('<div>[i,j]<br>1 = i upstream* of j;<br>-1 = i downstream* of j</div>' ));
+				$div.append( $('<div>*Upstream and downstream  may be only partly true, as the definition of the subcatchments involves a subtractive process that does not guarantee a partitioned result. As well, in some situations where secondary flows exist, the areas for i and j may overlap. Details are provided elsewhere.</div>' ));
+				$div.append( $('<div>Whereas the subcatchments are useful as a means of understanding general relationships, they have limitations in the context of hydrologic applications. For such purposes, partitioned catchments are preferred.<br></div><br><br>' ));				
 				layers.sc_tab.append($div);
 			}
 			if (layers.pc != null){

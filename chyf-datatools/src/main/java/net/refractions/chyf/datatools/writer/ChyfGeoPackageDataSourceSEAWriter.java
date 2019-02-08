@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import net.refractions.chyf.datatools.processor.SEAResult;
 import net.refractions.chyf.datatools.readers.ChyfGeoPackageDataSource;
+import net.refractions.chyf.datatools.writer.ChyfShapeDataSourceSEAWriter.StatField;
 
 
 /*
@@ -64,21 +65,16 @@ public class ChyfGeoPackageDataSourceSEAWriter {
 			SimpleFeatureTypeBuilder b = new SimpleFeatureTypeBuilder();
 			b.setName(featureType.getName());
 			for (AttributeDescriptor d : featureType.getAttributeDescriptors()) {
-				b.add(d);
+				boolean add = true;
+				for (StatField field : StatField.values()) {
+					if (field.fieldName.equalsIgnoreCase(d.getLocalName())) add = false;
+				}
+				if (add) b.add(d);
 			}
-			b.add("ELV_MIN", Double.class);
-			b.add("ELV_MAX", Double.class);
-			b.add("ELV_MEAN", Double.class);
 			
-			b.add("SLOPE_MIN", Double.class);
-			b.add("SLOPE_MAX", Double.class);
-			b.add("SLOPE_MEAN", Double.class);
-			
-			b.add("NORTH_PCT", Double.class);
-			b.add("SOUTH_PCT", Double.class);
-			b.add("EAST_PCT", Double.class);
-			b.add("WEST_PCT", Double.class);
-			b.add("FLAT_PCT", Double.class);
+			for (StatField s : StatField.values()) {
+				b.add(s.fieldName, Double.class);
+			}
 			
 			SimpleFeatureType newType = b.buildFeatureType();
 			
@@ -101,26 +97,21 @@ public class ChyfGeoPackageDataSourceSEAWriter {
 		
 				List<Object> values = new ArrayList<>();
 				
-				for (AttributeDescriptor d : featureType.getAttributeDescriptors()) {
+				for (AttributeDescriptor d : newType.getAttributeDescriptors()) {
 					values.add( feature.getAttribute(d.getLocalName()) );
 				}
 				
 				SEAResult.Statistics stats = seavalues.getStats().get(feature.getID());
 				if (stats != null) {
-					values.add(stats.getMinElevation());
-					values.add(stats.getMaxElevation());
-					values.add(stats.getAverageElevation());
-					if (stats.getAverageSlope() != Double.NaN) {
-						values.add(stats.getMinSlope());
-						values.add(stats.getMaxSlope());
-						values.add( stats.getAverageSlope());
-						values.add(stats.getNorthPercent() * 100);
-						values.add(stats.getSouthPercent() * 100);
-						values.add(stats.getEastPercent() * 100);
-						values.add(stats.getWestPercent() * 100);
-						values.add(stats.getFlatPercent() * 100);
+					for (StatField s : StatField.values()) {
+						Double d = s.getValue(stats);
+						if (!Double.isNaN(d)) {
+							values.add(d);
+						}
 					}
 				}
+				
+			
 				features.add(SimpleFeatureBuilder.build(newType, values, feature.getID()));
 			
 				writer.add(catchment, DataUtilities.collection(features));

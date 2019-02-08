@@ -4,8 +4,13 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.geotools.data.simple.SimpleFeatureReader;
 import org.geotools.geometry.GeneralEnvelope;
 import org.geotools.geometry.jts.ReferencedEnvelope;
+import org.locationtech.jts.geom.Geometry;
+import org.opengis.feature.simple.SimpleFeature;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import net.refractions.chyf.datatools.readers.ChyfDataSource;
 import net.refractions.chyf.datatools.readers.GeoTiffDemReader;
@@ -16,6 +21,8 @@ import net.refractions.chyf.datatools.readers.GeoTiffDemReader;
  *
  */
 public class SEAProcessor {
+
+	static final Logger logger = LoggerFactory.getLogger(ChyfDataSource.class.getCanonicalName());
 
 	private int processingtilesize = 1024; 
 	
@@ -30,6 +37,13 @@ public class SEAProcessor {
 		this.tiles = generateTiles();
 	}
 	
+	//Feature id:
+	//Generation of the identifier is dependent on the underlying data storage medium. 
+	//Often this identifier is not persistent. Mediums such shapefiles and database tables
+	//have "keys" built in which map naturally to persistent feature identifiers. But other
+	//mediums do not have such keys and may have to generate feature identifiers "on-the-fly".
+	//This means that client code being able to depend on this value as a persistent entity is
+	//dependent on which storage medium or data source is being used.
 	
 	public SEAResult doWork() throws Exception {
 		//process by tile
@@ -45,7 +59,48 @@ public class SEAProcessor {
 		//merge all results
 		SEAResult total = new SEAResult();
 		results.forEach(r->total.merge(r));
+			
+		//compute values for catchments with no data
+		//assigne the values to those of the catchment with the longest shared edge
+		SimpleFeatureReader all = data.getECatchments(null);
+		while(all.hasNext()) {
+			SimpleFeature feature = all.next();
+			if (!total.getStats().containsKey(feature.getID())) {
+				//compute a value for this based on the longest shared edge
+				logger.warn("Catchment " + feature.getID() + " has no SEA values.  Will assign values of the catchment with the longest shared edge");
+				SEAResult.Statistics s = findLongestSharedEdgeWithStats(feature, total);
+				total.getStats().put(feature.getID(), s);
+			}
+		}
+		
 		return total;
+	}
+	
+	private SEAResult.Statistics findLongestSharedEdgeWithStats(SimpleFeature currentFeature, SEAResult allData) throws Exception{
+		ReferencedEnvelope toSearch = new ReferencedEnvelope(currentFeature.getBounds());
+		Geometry g = (Geometry) currentFeature.getDefaultGeometry();
+		try(SimpleFeatureReader near = data.getECatchments(toSearch)){
+			SimpleFeature longestShared = null;
+			double length = Double.MIN_VALUE;
+			while(near.hasNext()) {
+				SimpleFeature n = near.next();
+				if (!allData.getStats().containsKey(n.getID())) continue;  //there are no stats for this polygons so don't test it
+			
+				Geometry gn = (Geometry)n.getDefaultGeometry();
+				Geometry intersection = g.intersection(gn);
+				if (intersection.getLength() > length) {
+					length = intersection.getLength();
+					longestShared = n;
+				}
+			}
+			if (longestShared == null) {
+				logger.warn("Unable to compute slope aspect elevation for feature " + currentFeature.getID() + ".  No DEM points and no surrounding polygons with values.");
+				//log warning
+				return null;
+			}else {
+				return allData.getStats().get(longestShared.getID()).clone();
+			}
+		}
 	}
 	
 	private List<Tile> generateTiles() throws IOException {

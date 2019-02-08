@@ -34,13 +34,51 @@ public class ChyfShapeDataSourceSEAWriter {
 	
 	static final Logger logger = LoggerFactory.getLogger(ChyfShapeDataSourceSEAWriter.class.getCanonicalName());
 	
+	public static enum StatField{
+		ELV_MIN ("ELV_MIN"),
+		ELV_MAX ("ELV_MAX"),
+		ELV_MEAN ("ELV_MEAN"),
+		
+		SLOPE_MIN ("SLOPE_MIN"),
+		SLOPE_MAX ("SLOPE_MAX"),
+		SLOPE_MEAN ("SLOPE_MEAN"),
+		
+		NORTH_PCT ("NORTH_PCT"),
+		SOUTH_PCT ("SOUTH_PCT"),
+		EAST_PCT ("EAST_PCT"),
+		WEST_PCT ("WEST_PCT"),
+		FLAT_PCT ("FLAT_PCT");
+		
+		public String fieldName;
+		
+		StatField(String fieldName){
+			this.fieldName = fieldName;
+		}
+		public Double getValue(SEAResult.Statistics stats) {
+			switch(this) {
+			case EAST_PCT: return stats.getEastPercent()* 100;
+			case ELV_MAX: return stats.getMaxElevation();
+			case ELV_MEAN: return stats.getAverageElevation();
+			case ELV_MIN: return stats.getMinElevation();
+			case FLAT_PCT: return stats.getFlatPercent()* 100;
+			case NORTH_PCT: return stats.getNorthPercent()* 100;
+			case SLOPE_MAX: return stats.getMaxSlope();
+			case SLOPE_MEAN: return stats.getAverageSlope();
+			case SLOPE_MIN: return stats.getMinSlope();
+			case SOUTH_PCT: return stats.getSouthPercent() * 100;
+			case WEST_PCT: return stats.getWestPercent()* 100;
+			}
+			return null;
+		}
+	}
+	
+	
 	private ChyfDataSource dataStore;
 	private Path outputFile;
 	
 	public ChyfShapeDataSourceSEAWriter(ChyfDataSource dataStore, Path outputFile) throws IOException {
 		this.dataStore = dataStore;
 		this.outputFile = outputFile;
-			
 	}
 	
 	public void write(SEAResult seavalues) throws IOException{
@@ -54,21 +92,16 @@ public class ChyfShapeDataSourceSEAWriter {
 			SimpleFeatureTypeBuilder b = new SimpleFeatureTypeBuilder();
 			b.setName(featureType.getName());
 			for (AttributeDescriptor d : featureType.getAttributeDescriptors()) {
-				b.add(d);
+				boolean add = true;
+				for (StatField field : StatField.values()) {
+					if (field.fieldName.equalsIgnoreCase(d.getLocalName())) add = false;
+				}
+				if (add) b.add(d);
 			}
-			b.add("ELV_MIN", Double.class);
-			b.add("ELV_MAX", Double.class);
-			b.add("ELV_MEAN", Double.class);
 			
-			b.add("SLOPE_MIN", Double.class);
-			b.add("SLOPE_MAX", Double.class);
-			b.add("SLOPE_MEAN", Double.class);
-			
-			b.add("NORTH_PCT", Double.class);
-			b.add("SOUTH_PCT", Double.class);
-			b.add("EAST_PCT", Double.class);
-			b.add("WEST_PCT", Double.class);
-			b.add("FLAT_PCT", Double.class);
+			for (StatField s : StatField.values()) {
+				b.add(s.fieldName, Double.class);
+			}
 			
 			SimpleFeatureType newType = b.buildFeatureType();
 			
@@ -93,20 +126,11 @@ public class ChyfShapeDataSourceSEAWriter {
 		
 					SEAResult.Statistics stats = seavalues.getStats().get(feature.getID());
 					if (stats != null) {
-						toWrite.setAttribute("ELV_MIN", stats.getMinElevation());
-						toWrite.setAttribute("ELV_MAX", stats.getMaxElevation());
-						toWrite.setAttribute("ELV_MEAN", stats.getAverageElevation());
-		
-						if (stats.getAverageSlope() != Double.NaN) {
-							toWrite.setAttribute("SLOPE_MIN", stats.getMinSlope());
-							toWrite.setAttribute("SLOPE_MAX", stats.getMaxSlope());
-							toWrite.setAttribute("SLOPE_MEAN", stats.getAverageSlope());
-		
-							toWrite.setAttribute("NORTH_PCT", stats.getNorthPercent() * 100);
-							toWrite.setAttribute("SOUTH_PCT", stats.getSouthPercent() * 100);
-							toWrite.setAttribute("EAST_PCT", stats.getEastPercent() * 100);
-							toWrite.setAttribute("WEST_PCT", stats.getWestPercent() * 100);
-							toWrite.setAttribute("FLAT_PCT", stats.getFlatPercent() * 100);
+						for (StatField s : StatField.values()) {
+							Double d = s.getValue(stats);
+							if (!Double.isNaN(d)) {
+								toWrite.setAttribute(s.fieldName, d);
+							}
 						}
 					}
 					writer.write();
