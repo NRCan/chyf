@@ -94,8 +94,7 @@ public abstract class ChyfDataReader {
 				if (d.getLocalName().equalsIgnoreCase(ECatchment.ECatchmentStat.values()[i].getFieldName())) hasAttribute[i] = true;
 			}
 		}
-		reader.getFeatureType().getDescriptor("ELV_MIN");
-		
+				
 		while (reader.hasNext()) {
 			SimpleFeature feature = reader.next();
 			Geometry g = (Geometry) feature.getDefaultGeometryProperty().getValue();
