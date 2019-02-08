@@ -85,7 +85,7 @@ public class PourpointTest {
 				{null, 1, null, -1},
 				{null, 1, 1, null},
 		};
-		Integer[][] actual = out.getPartitionedCatchmentRelationship();
+		Integer[][] actual = out.getSubCatchmentRelationship();
 		for (int i = 0; i < expected.length; i ++) {
 			for (int j = 0; j < expected.length; j ++) {
 				Assert.assertEquals("Invalid PP Relationships", expected[i][j], actual[i][j]);
@@ -115,7 +115,7 @@ public class PourpointTest {
 			reader.beginObject();
 			while(reader.hasNext()) {
 				String key = reader.nextName();
-				if (key.equals( "tcc")) {
+				if (key.equals( PourpointEngine.OutputType.PARTITIONED_CATCHMENTS.key)) {
 					ArrayList<String> tccs = new ArrayList<>();
 					typeidgeom.put(key,  tccs);
 					reader.beginArray();
@@ -151,22 +151,22 @@ public class PourpointTest {
 			
 		}
 		
-		//upstream unique catchments
+		//upstream subcatchments
 		for (Pourpoint p : out.getPoints()) {
-			String wkt = ((HashMap<String,String>)typeidgeom.get(PourpointEngine.OutputType.PARTITIONED_CATCHMENTS.key)).get(p.getId());
+			String wkt = ((HashMap<String,String>)typeidgeom.get(PourpointEngine.OutputType.SUBCATCHMENTS.key)).get(p.getId());
 			Geometry g = reader.read(wkt);			
-			Geometry a = GeotoolsGeometryReprojector.reproject(out.getPartitionedCatchment(p).getGeometry(),  ChyfDatastore.BASE_CRS, BasicTestSuite.TEST_CRS);
+			Geometry a = GeotoolsGeometryReprojector.reproject(out.getSubcatchment(p).getGeometry(),  ChyfDatastore.BASE_CRS, BasicTestSuite.TEST_CRS);
 			if (!g.equalsExact(a, 0.00001)) {
 				Assert.fail("non overlapping catchments incorrect for pp: " + p.getId());
 			}
 		}
 		
-		//upstream unique sub catchments
+		//upstream partitioned catchments
 		HashMap<String, Integer> indexToId = new HashMap<>();
-		ArrayList<String> expectedMergedCoverages = (ArrayList<String>) typeidgeom.get(PourpointEngine.OutputType.TRAVERSAL_COMPLIANT_CATCHMENTS.key);
+		ArrayList<String> expectedMergedCoverages = (ArrayList<String>) typeidgeom.get(PourpointEngine.OutputType.PARTITIONED_CATCHMENTS.key);
 		
 		
-		for (DrainageArea pcat : out.getTraversalCompliantCatchments()) {
+		for (DrainageArea pcat : out.getPartitionedCatchments()) {
 			for (int i = 0; i < expectedMergedCoverages.size();i ++) {
 				Geometry expectedp = GeotoolsGeometryReprojector.reproject(reader.read(expectedMergedCoverages.get(i)), BasicTestSuite.TEST_CRS, ChyfDatastore.BASE_CRS);
 				if (pcat.getGeometry().equalsExact(expectedp, 0.0001)) {
@@ -223,14 +223,14 @@ public class PourpointTest {
 		
 		//upstream unique catchments
 		for (Pourpoint p : out.getPoints()) {
-			Geometry a = GeotoolsGeometryReprojector.reproject(out.getPartitionedCatchment(p).getGeometry(),  ChyfDatastore.BASE_CRS, BasicTestSuite.TEST_CRS);
+			Geometry a = GeotoolsGeometryReprojector.reproject(out.getSubcatchment(p).getGeometry(),  ChyfDatastore.BASE_CRS, BasicTestSuite.TEST_CRS);
 			if (!g.equalsExact(a, 0.00001)) {
 				Assert.fail("unique catchment incorrect for pp: " + p.getId());
 			}
 		}
 		
 		//upstream unique sub catchments
-		for (DrainageArea s : out.getTraversalCompliantCatchments()) {
+		for (DrainageArea s : out.getPartitionedCatchments()) {
 			Geometry a = GeotoolsGeometryReprojector.reproject(s.getGeometry(),  ChyfDatastore.BASE_CRS, BasicTestSuite.TEST_CRS);
 			if (!g.equalsExact(a, 0.00001)) {
 				Assert.fail("incorrect traversal compliate catchments" );

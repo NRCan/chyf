@@ -8,6 +8,11 @@ import net.refractions.chyf.hygraph.DrainageArea;
 import net.refractions.chyf.hygraph.ECatchment;
 import net.refractions.chyf.hygraph.HyGraph;
 
+/**
+ * Used for computing paritioned catchments
+ * @author Emily
+ *
+ */
 public class UniqueSubCatchment {
 
 	//these are the most upstream pourpoints that 

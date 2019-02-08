@@ -393,24 +393,24 @@
   				<label class="form-check-label" for="pourpointdistance">Output Pourpoint Distances</label>
 			</div>
 			<div class="form-check">
-  				<input class="form-check-input" type="checkbox" value="" id="upstreamcatchments" checked>
-  				<label class="form-check-label" for="upstreamcatchments">Upstream Catchments</label>
+  				<input class="form-check-input" type="checkbox" value="" id="associatedcatchments" checked>
+  				<label class="form-check-label" for="associatedcatchments">Associated Catchments</label>
 			</div>
 			<div class="form-check">
+  				<input class="form-check-input" type="checkbox" value="" id="subcatchments" checked>
+  				<label class="form-check-label" for="subcatchments">Subcatchments</label>
+			</div>
+			<div class="form-check">
+				<input class="form-check-input" type="checkbox" value="" id="subcatchmentrelations" checked>
+				<label class="form-check-label" for="subcatchmentrelations">Subcatchment Relations</label>
+				</div>
+			<div class="form-check" style="white-space:nowrap">
   				<input class="form-check-input" type="checkbox" value="" id="partitionedcatchments" checked>
   				<label class="form-check-label" for="partitionedcatchments">Partitioned Catchments</label>
 			</div>
-			<div class="form-check">
-				<input class="form-check-input" type="checkbox" value="" id="partitionedcatchmentrelations" checked>
-				<label class="form-check-label" for="partitionedcatchmentrelations">Partitioned Catchment Relations</label>
-				</div>
 			<div class="form-check" style="white-space:nowrap">
-  				<input class="form-check-input" type="checkbox" value="" id="traversalcompliantcatchments" checked>
-  				<label class="form-check-label" for="traversalcompliantcatchments">Pourpoint Subgraph Partitioned Catchments</label>
-			</div>
-			<div class="form-check" style="white-space:nowrap">
-  				<input class="form-check-input" type="checkbox" value="" id="traversalcompliantcatchmentrelations" checked>
-  				<label class="form-check-label" for="traversalcompliantcatchmentrelations">Pourpoint Subgraph Partitioned Catchments Relations</label>
+  				<input class="form-check-input" type="checkbox" value="" id="partitionedcatchmentrelations" checked>
+  				<label class="form-check-label" for="partitionedcatchmentrelations">Partitioned Catchments Relations</label>
 			</div>
 			<div class="form-check">
 				<input class="form-check-input" type="checkbox" value="" id="interiorcatchments" checked>
@@ -421,11 +421,15 @@
 			
 			<div class="toolCat">Options</div>
 			<div class="form-check">
-				<input class="form-check-input" type="checkbox" value="" id="ppholes" checked>
-				<label class="form-check-label" for="ppholes" style="font-weight:normal">Remove Holes</label><br>
-				<input class="form-check-input" type="checkbox" value="" id="includestats">
-				<label class="form-check-label" for="includestats" style="font-weight:normal">Include Catchment Statistics</label>
+				<div>
+					<input class="form-check-input" type="checkbox" value="" id="ppholes" checked>
+					<label class="form-check-label" for="ppholes" style="font-weight:normal">Remove Holes</label><br>
 				</div>
+				<div>
+					<input class="form-check-input" type="checkbox" value="" id="includestats">
+					<label class="form-check-label" for="includestats" style="font-weight:normal; display:inline">Include Catchment Slope, Elevation, Aspect Statistics</label>
+				</div>
+			</div>
 			<div class="toolCat">Actions</div>
 			<button id="doPPCalc" class="btn btn-default btn-sm" type="button" title="DoIt!" >Do It!</button>
 			<button id="clearPPMapLayers" class="btn btn-default btn-sm" style="margin-top:10px; width:100%" type="button" title="Clear Map" >Clear Map</button>
@@ -1516,17 +1520,17 @@
 					'hortonor': 'Horton Order',
 					'hackor': 'Hack Order',
 					'area': 'Area (ha)',
-					'elv_min': 'Elevation Minimum',
-					'elv_max': 'Elevation Maximum',
+					'elv_min': 'Elevation Min',
+					'elv_max': 'Elevation Max',
 					'elv_mean': 'Elevation Mean',
-					'slope_min': 'Slope Minimum',
-					'slope_max': 'Slope Maximum',
+					'slope_min': 'Slope Min',
+					'slope_max': 'Slope Max',
 					'slope_mean': 'Slope Mean',
-					'north_pct': 'Aspect Percent North',
-					'south_pct': 'Aspect Percent South',
-					'east_pct': 'Aspect Percent East',
-					'west_pct': 'Aspect Percent West',
-					'flat_pct': 'Aspect Percent Flat',
+					'north_pct': 'Aspect % North',
+					'south_pct': 'Aspect % South',
+					'east_pct': 'Aspect % East',
+					'west_pct': 'Aspect % West',
+					'flat_pct': 'Aspect % Flat',
 				}
 			},
 			eMulti:{
@@ -1550,17 +1554,17 @@
 				titlePlural: "Drainage Areas",
 				cols: {
 					'area': 'Area (ha)',
-					'elv_min': 'Elevation Minimum',
-					'elv_max': 'Elevation Maximum',
+					'elv_min': 'Elevation Min',
+					'elv_max': 'Elevation Max',
 					'elv_mean': 'Elevation Mean',
-					'slope_min': 'Slope Minimum',
-					'slope_max': 'Slope Maximum',
+					'slope_min': 'Slope Min',
+					'slope_max': 'Slope Max',
 					'slope_mean': 'Slope Mean',
-					'north_pct': 'Aspect Percent North',
-					'south_pct': 'Aspect Percent South',
-					'east_pct': 'Aspect Percent East',
-					'west_pct': 'Aspect Percent West',
-					'flat_pct': 'Aspect Percent Flat'
+					'north_pct': 'Aspect % North',
+					'south_pct': 'Aspect % South',
+					'east_pct': 'Aspect % East',
+					'west_pct': 'Aspect % West',
+					'flat_pct': 'Aspect % Flat'
 				}
 			}
 		};
@@ -1899,8 +1903,8 @@
 		
 		var outputPpLayer;
 		var catchmentPpLayer;
-		var uniqueCatchmentPpLayer;
-		var uniqueSubCatchmentPpLayer;
+		var subCatchmentPpLayer;
+		var partitionedCatchmentPpLayer;
 		var interiorCatchmentPpLayer;
 		var pPLayer;
 		var highlightLayer;
@@ -1924,13 +1928,13 @@
 				map.removeLayer(catchmentPpLayer);
 				catchmentPpLayer = null;
 			}
-			if (uniqueCatchmentPpLayer != null){
-				map.removeLayer(uniqueCatchmentPpLayer);
-				uniqueCatchmentPpLayer = null;
+			if (subCatchmentPpLayer != null){
+				map.removeLayer(subCatchmentPpLayer);
+				subCatchmentPpLayer = null;
 			}
-			if (uniqueSubCatchmentPpLayer != null){
-				map.removeLayer(uniqueSubCatchmentPpLayer);
-				uniqueSubCatchmentPpLayer = null;
+			if (partitionedCatchmentPpLayer != null){
+				map.removeLayer(partitionedCatchmentPpLayer);
+				partitionedCatchmentPpLayer = null;
 			}
 			if (interiorCatchmentPpLayer != null){
 				map.removeLayer(interiorCatchmentPpLayer);
@@ -1979,12 +1983,12 @@
 			}
 			query +="&output=";
 			if ($("#outputpourpoints").is(':checked')) query +="op,prt,";
-			if ($("#partitionedcatchmentrelations").is(':checked')) query +="pcr,";
  			if ($("#pourpointdistance").is(':checked')) query +="opdmin,opdmax,opdprimary,";
-			if ($("#upstreamcatchments").is(':checked')) query +="c,ccr,";
+			if ($("#associatedcatchments").is(':checked')) query +="c,ccr,";
+			if ($("#subcatchments").is(':checked')) query +="sc,";
+			if ($("#subcatchmentrelations").is(':checked')) query +="scr,";
 			if ($("#partitionedcatchments").is(':checked')) query +="pc,";
-			if ($("#traversalcompliantcatchments").is(':checked')) query +="tcc,";
- 			if ($("#traversalcompliantcatchmentrelations").is(':checked')) query +="tccr,";		
+ 			if ($("#partitionedcatchmentrelations").is(':checked')) query +="pcr,";		
  			if ($("#interiorcatchments").is(':checked')) query +="ic,";
  			
  			//holes
@@ -2051,53 +2055,53 @@
 					
 				}else if (item.key=="c"){
 					addPourpointCatchmentLayer(item);
-					layers.pc = item;
+					layers.c = item;
+				}else if (item.key =="sc"){
+					addPourpointSubcatchmentLayer(item);
+					layers.sc = item;
 				}else if (item.key =="pc"){
-					addPourpointUniqueCatchmentLayer(item);
-					layers.noc = item;
-				}else if (item.key =="tcc"){
-					addPourpointUniqueSubCatchmentLayer(item);
-					layers.tcc = item;
+					addPourpointPartitionedCatchmentLayer(item);
+					layers.pc = item;
 				}else if (item.key =="ic"){
 					addInteriorCatchmentLayer(item);
 					layers.ic = item;
-				}else if (item.key == "pcr"){
-					layers.nocr = item;
+				}else if (item.key == "scr"){
+					layers.scr = item;
 				}else if (item.key == "opdmin"){
 					layers.opdmin = item;
 				}else if (item.key == "opdmax"){
 					layers.opdmax = item;
 				}else if (item.key == "opdprimary"){
 					layers.opdprimary = item;
-				}else if (item.key == "tccr"){
-					layers.tccr = item;
+				}else if (item.key == "pcr"){
+					layers.pcr = item;
 				}else if (item.key == "ccr"){
-					layers.pcc = item;
+					layers.ccr = item;
 				}else if (item.key = "prt"){
 					layers.prt = item;
 				}
 			}
 			var isActive = true;
 			
+			if (layers.c != null){
+				layers.c_tab = createTab("c", layers.c, layers.c.name, $(ul), $(tabbody), isActive, catchmentPpLayer, includestats);
+				isActive = false;
+			}else if (layers.ccr != null){
+				layers.c_tab = createTab("c", null, layers.ccr.name, $(ul), $(tabbody), isActive, null, includestats);
+				isActive = false;
+			}
+			if (layers.sc != null){
+				layers.sc_tab = createTab("sc", layers.sc, layers.sc.name, $(ul), $(tabbody), isActive, subCatchmentPpLayer, includestats);
+				isActive = false;
+			}else if (layers.scr != null ){
+				layers.sc_tab = createTab("sc", null, layers.scr.name, $(ul), $(tabbody), isActive, null, includestats);
+				isActive = false;
+			}
 			if (layers.pc != null){
-				layers.pc_tab = createTab("pc", layers.pc, layers.pc.name, $(ul), $(tabbody), isActive, catchmentPpLayer, includestats);
+				layers.pc_tab = createTab("pc", layers.pc, layers.pc.name, $(ul), $(tabbody), isActive, partitionedCatchmentPpLayer, includestats);
 				isActive = false;
-			}else if (layers.pcc != null){
-				layers.pc_tab = createTab("pc", null, layers.ppc.name, $(ul), $(tabbody), isActive, null, includestats);
-				isActive = false;
-			}
-			if (layers.noc != null){
-				layers.noc_tab = createTab("noc", layers.noc, layers.noc.name, $(ul), $(tabbody), isActive, uniqueCatchmentPpLayer, includestats);
-				isActive = false;
-			}else if (layers.nocr != null ){
-				layers.noc_tab = createTab("noc", null, layers.nocr.name, $(ul), $(tabbody), isActive, null, includestats);
-				isActive = false;
-			}
-			if (layers.tcc != null){
-				layers.tcc_tab = createTab("tcc", layers.tcc, "Pourpoint Subgraph Partitioned Catchments", $(ul), $(tabbody), isActive, uniqueSubCatchmentPpLayer, includestats);
-				isActive = false;
-			}else if (layers.tccr != null){
-				layers.tcc_tab = createTab("tcc", null, "Pourpoint Subgraph Partitioned Catchments", $(ul), $(tabbody), isActive, null, includestats);
+			}else if (layers.pcr != null){
+				layers.pc_tab = createTab("pc", null, layers.pcr.name, $(ul), $(tabbody), isActive, null, includestats);
 				isActive = false;
 			}
 			
@@ -2121,16 +2125,16 @@
 			}
 			
 			
-			if (layers.nocr != null){
-				var $table = createMatrixTable(layers.nocr.headers, layers.nocr.values, 0);
-				var $div = $('<div/>').append($('<div class="toolCat">Catchment Flow Relationship</div>'));
+			if (layers.scr != null){
+				var $table = createMatrixTable(layers.scr.headers, layers.scr.values, 0);
+				var $div = $('<div/>').append($('<div class="toolCat">' + layers.scr.name + '</div>'));
 				$div.append($table);
 				$div.append( $('<div>[i,j]<br>1 = i upstream of j;<br>-1 = i downstream of j</div>' ));
-				layers.noc_tab.append($div);
+				layers.sc_tab.append($div);
 			}
-			if (layers.tcc != null){
-				var $div = $('<div/>').append($('<div>The pourpoints are used to partition the hygraph, and thus the overall drainage area, into catchments associated with the pourpoints that meet the following condition.  If Catchment X and Catchment Y flow into Catchment Z through Pourpoint  P, then X, Y, and Z do not overlap. P is a common outflow for X and Y.  P is also an inflow of Z and all of Z drains downstream of P.</div><br>'));				
-				layers.tcc_tab.prepend($div);
+			if (layers.pc != null){
+				var $div = $('<div/>').append($('<div>Partitioning implies that all inflows to a lower catchment flow through a single hydro nexus, and that the hydro nexus is upstream of all parts of the lower catchment.</div>'));				
+				layers.pc_tab.prepend($div);
 			}
 			
 			if (layers.prt != null){
@@ -2172,20 +2176,20 @@
 				layers.op_tab.append($div);
 			}
 			
-			if (layers.tccr != null){
-				var $table = createMatrixTable(layers.tccr.headers, layers.tccr.values, 0);
-				var $div = $('<div/>').append($('<div class="toolCat">Catchment Flow Relationships</div>'));
+			if (layers.pcr != null){
+				var $table = createMatrixTable(layers.pcr.headers, layers.pcr.values, 0);
+				var $div = $('<div/>').append($('<div class="toolCat">' + layers.pcr.name + '</div>'));
 				$div.append($table);
 				$div.append( $('<div>[i,j]<br>1 = i upstream of j;<br>-1 = i downstream of j</div>' ));
-				layers.tcc_tab.append($div);
+				layers.pc_tab.append($div);
 			}
 			
-			if (layers.pcc != null){
-				var $table = createMatrixTable(layers.pcc.headers, layers.pcc.values, 0);
-				var $div = $('<div/>').append($('<div class="toolCat">Catchment Containment</div>'));
+			if (layers.ccr != null){
+				var $table = createMatrixTable(layers.ccr.headers, layers.ccr.values, 0);
+				var $div = $('<div/>').append($('<div class="toolCat">' + layers.ccr.name + '</div>'));
 				$div.append($table);
 				$div.append( $('<div>[i,j]<br>1 = i contains j;<br>-1 = i contained by j</div>' ));
-				layers.pc_tab.append($div);
+				layers.c_tab.append($div);
 			}
 			
 
@@ -2204,6 +2208,9 @@
 		}
 		
 		function createTab(id, data, tabname, tabheaders, tabbody, active, maplayer, includeStat){
+			
+			
+
 			var tab = document.createElement('li');
 			$(tab).attr("id", id + "_tab").appendTo(tabheaders);
 			if (active) $(tab).addClass("active");
@@ -2216,6 +2223,9 @@
 			$(optabBody).css("padding", "2px");
 			
 			if (active) $(optabBody).addClass("active");
+			
+			var $headerdiv = $('<div/>').append($('<div class="toolCat">' + data.name + '</div>'));
+			$headerdiv.appendTo($(optabBody));
 			
 			if (maplayer != null){
 				var $ctrl = $('<input/>', 
@@ -2250,17 +2260,17 @@
 				}else{
 					if (includeStat){
 						cols = {'id': 'ID','area': 'Area (ha)', 
-							'elv_min': 'Elevation Minimum', 
-							'elv_max': 'Elevation Maximum',
+							'elv_min': 'Elevation Min', 
+							'elv_max': 'Elevation Max',
 							'elv_mean': 'Elevation Mean',
-							'slope_min': 'Slope Minimum', 
-							'slope_max': 'Slope Maximum',
+							'slope_min': 'Slope Min', 
+							'slope_max': 'Slope Max',
 							'slope_mean': 'Slope Mean',
-							'north_pct': 'Aspect Percent North',
-							'south_pct': 'Aspect Percent South',
-							'east_pct': 'Aspect Percent East',
-							'west_pct': 'Aspect Percent West',
-							'flat_pct': 'Aspect Percent Flat',
+							'north_pct': 'Aspect % North',
+							'south_pct': 'Aspect % South',
+							'east_pct': 'Aspect % East',
+							'west_pct': 'Aspect % West',
+							'flat_pct': 'Aspect % Flat',
 						};
 					}else{
 						cols = {'id': 'ID','area': 'Area (ha)'};
@@ -2409,16 +2419,16 @@
 					},
 			}).addTo(map);
 		}
-		function addPourpointUniqueCatchmentLayer(layerdata){
-			uniqueCatchmentPpLayer = L.geoJson(layerdata, {
+		function addPourpointSubcatchmentLayer(layerdata){
+			subCatchmentPpLayer = L.geoJson(layerdata, {
 				  pane: 'pourpointpane',
 				  style: function(feature){
 						return {color: "#82461C"};
 					},
 			}).addTo(map);
 		}
-		function addPourpointUniqueSubCatchmentLayer(layerdata){
-				uniqueSubCatchmentPpLayer = L.geoJson(layerdata, {
+		function addPourpointPartitionedCatchmentLayer(layerdata){
+				partitionedCatchmentPpLayer = L.geoJson(layerdata, {
 					  pane: 'pourpointpane',
 					  style: function(feature){
 							return {color: "#82461C"};

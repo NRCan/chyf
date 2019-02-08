@@ -51,13 +51,13 @@ public class PourpointEngine {
 		DISTANCE_MIN("opdmin", "Pourpoint Minimum Distance Matrix"), 
 		DISTANCE_MAX("opdmax", "Pourpoint Maximum Distance Matrix"),
 		DISTANCE_PRIMARY("opdprimary", "Pourpoint Primary Distance Matrix"),
-		PRT("prt", "Point Relationship Tree"),
+		PRT("prt", "Pourpoint Relationship Tree"),
 		CATCHMENTS("c", "Catchments"), 
-		CATCHMENT_CONTAINMENT("ccr", "Catchment Containment Relationship"), 
+		CATCHMENT_CONTAINMENT("ccr", "Catchment Containment Relationships"), 
+		SUBCATCHMENTS("sc", "Subcatchments"), 
+		SUBCATCHMENT_RELATIONSHIP("scr", "Subcatchment Flow Relationships"), 
 		PARTITIONED_CATCHMENTS("pc", "Partitioned Catchments"), 
-		PARTITIONEDCATCHMENT_RELATIONSHIP("pcr", "Partitioned Catchment Flow Relationships"), 
-		TRAVERSAL_COMPLIANT_CATCHMENTS("tcc", "Traversal Compliant Catchments"), 
-		TRAVERSAL_COMPLIANT_CATCHMENT_RELATION("tccr", "Traversal Compliant Catchment Flow Relationships"),
+		PARTITIONED_CATCHMENT_RELATION("pcr", "Partitioned Catchment Flow Relationships"),
 		INTERIOR_CATCHMENT("ic", "Interior Catchments");
 		
 		public String key;
@@ -194,10 +194,10 @@ public class PourpointEngine {
 		}
 		
 		//compute pourpoint relationship & distances between points
-		if (containsOutput(OutputType.PARTITIONEDCATCHMENT_RELATIONSHIP,
+		if (containsOutput(OutputType.SUBCATCHMENT_RELATIONSHIP,
+				OutputType.SUBCATCHMENTS,
 				OutputType.PARTITIONED_CATCHMENTS,
-				OutputType.TRAVERSAL_COMPLIANT_CATCHMENTS,
-				OutputType.TRAVERSAL_COMPLIANT_CATCHMENT_RELATION,
+				OutputType.PARTITIONED_CATCHMENT_RELATION,
 				OutputType.DISTANCE_MAX,
 				OutputType.DISTANCE_PRIMARY,
 				OutputType.DISTANCE_MIN,
@@ -208,9 +208,9 @@ public class PourpointEngine {
 		
 		//catchments for pourpoints
 		if (containsOutput(OutputType.CATCHMENTS,
+				OutputType.SUBCATCHMENTS,
 				OutputType.PARTITIONED_CATCHMENTS,
-				OutputType.TRAVERSAL_COMPLIANT_CATCHMENTS,
-				OutputType.TRAVERSAL_COMPLIANT_CATCHMENT_RELATION,
+				OutputType.PARTITIONED_CATCHMENT_RELATION,
 				OutputType.INTERIOR_CATCHMENT)) {
 			computeUniqueCatchments();
 		}
@@ -221,12 +221,12 @@ public class PourpointEngine {
 		}
 			
 		//catchment relationships
-		if (availableOutputs.contains(OutputType.TRAVERSAL_COMPLIANT_CATCHMENT_RELATION)) {
-			computeUniqueSubCatchmentRelationship();
+		if (availableOutputs.contains(OutputType.PARTITIONED_CATCHMENT_RELATION)) {
+			computePartitionedCatchmentRelations();
 		}
 	
 		if (containsOutput(OutputType.INTERIOR_CATCHMENT) || 
-			 (removeHoles && containsOutput(OutputType.CATCHMENTS, OutputType.PARTITIONED_CATCHMENTS, OutputType.TRAVERSAL_COMPLIANT_CATCHMENTS))) {
+			 (removeHoles && containsOutput(OutputType.CATCHMENTS, OutputType.SUBCATCHMENTS, OutputType.PARTITIONED_CATCHMENTS))) {
 			processHoles();
 		}
 		
@@ -270,6 +270,7 @@ public class PourpointEngine {
 		if (!availableOutputs.contains(OutputType.DISTANCE_MIN) ) return null;
 		return getPourpointDistanceMatrix(true);
 	}
+	
 	public Double[][] getProjectedPourpointMaxDistanceMatrix(){
 		if (!availableOutputs.contains(OutputType.DISTANCE_MAX) ) return null;
 		return getPourpointDistanceMatrix(false);
@@ -333,20 +334,17 @@ public class PourpointEngine {
 		return values;
 	}
 	
-	
 	public HashMap<PourpointKey, Range> getPourpointDistances(){
 		return this.distanceValues;
 	}
-	
-
 	
 	/**
 	 * results are ordered in the same order the pourpoints are 
 	 * provided to the engine (see getPoints)
 	 * @return
 	 */
-	public Integer[][] getPartitionedCatchmentRelationship(){
-		if (!availableOutputs.contains(OutputType.PARTITIONEDCATCHMENT_RELATIONSHIP)) return null;
+	public Integer[][] getSubCatchmentRelationship(){
+		if (!availableOutputs.contains(OutputType.SUBCATCHMENT_RELATIONSHIP)) return null;
 		Integer[][] values = new Integer[points.size()][points.size()];
 	
 		for (int i = 0 ; i < points.size(); i ++) {
@@ -364,8 +362,8 @@ public class PourpointEngine {
 		return values;
 	}
 	
-	public List<UniqueSubCatchment> getSortedTraveralCompliantCoverages(){
-		if (!availableOutputs.contains(OutputType.TRAVERSAL_COMPLIANT_CATCHMENTS) && !availableOutputs.contains(OutputType.TRAVERSAL_COMPLIANT_CATCHMENT_RELATION) ) return null;
+	public List<UniqueSubCatchment> getSortedPartitionedCatchments(){
+		if (!availableOutputs.contains(OutputType.PARTITIONED_CATCHMENTS) && !availableOutputs.contains(OutputType.PARTITIONED_CATCHMENT_RELATION) ) return null;
 		Set<UniqueSubCatchment> allCatchments = new HashSet<>();
 		for (Pourpoint p : points) {
 			allCatchments.addAll(p.getTraversalCompliantCatchments());
@@ -381,9 +379,9 @@ public class PourpointEngine {
 	 * results are ordered by catchment id (see getSortedUniqueSubCatchments)
 	 * @return
 	 */
-	public Integer[][] getTraversalCompliantCoverageRelationship(){
-		if (!availableOutputs.contains(OutputType.TRAVERSAL_COMPLIANT_CATCHMENT_RELATION)) return null;
-		List<UniqueSubCatchment> ordered = getSortedTraveralCompliantCoverages();
+	public Integer[][] getPartitionedCatchmentRelationship(){
+		if (!availableOutputs.contains(OutputType.PARTITIONED_CATCHMENT_RELATION)) return null;
+		List<UniqueSubCatchment> ordered = getSortedPartitionedCatchments();
 		Integer[][] values = new Integer[ordered.size()][ordered.size()];
 		for (int i = 0 ; i < ordered.size(); i ++) {
 			for (int j = 0 ; j < ordered.size(); j ++) {
@@ -404,7 +402,7 @@ public class PourpointEngine {
 	}
 	
 	
-	private void computeUniqueSubCatchmentRelationship() {
+	private void computePartitionedCatchmentRelations() {
 		HashMap<EFlowpath, Set<UniqueSubCatchment>> flowToCatchments = new HashMap<>();
 		for(Pourpoint p : points) {
 			for (UniqueSubCatchment cat : p.getTraversalCompliantCatchments()) {
@@ -639,6 +637,7 @@ public class PourpointEngine {
 		}
 		sb.append(id);
 	}
+	
 	private void processEdge2(EFlowpath edge, StringBuilder frt, HashMap<EFlowpath,HashMap<Pourpoint, Double>> primarydistances, boolean ignorestart) {
 		
 		List<Set<Pourpoint>> upEdges = new ArrayList<>();
@@ -925,7 +924,7 @@ public class PourpointEngine {
 		
 		Set<ECatchment> allcatchments = mappings.keySet();
 		Set<ECatchment> usedcatchments = new HashSet<>();
-		points.forEach(p->createUniqueSubCatchments(p, stopPoints, usedcatchments, allcatchments));
+		points.forEach(p->createPartitionedCatchments(p, stopPoints, usedcatchments, allcatchments));
 		
 		//assign an unique identifier
 		int id = 0;
@@ -1000,9 +999,9 @@ public class PourpointEngine {
 	}
 	
 	/*
-	 * Computes the unique subcatchments
+	 * Computes the partitioned catchments
 	 */
-	private void createUniqueSubCatchments(Pourpoint point, Set<ECatchment> stopPoints, Set<ECatchment> processed, Set<ECatchment> allcatchments) {
+	private void createPartitionedCatchments(Pourpoint point, Set<ECatchment> stopPoints, Set<ECatchment> processed, Set<ECatchment> allcatchments) {
 		HashMap<ECatchment, UniqueSubCatchment> catchmentMapping = new HashMap<>();
 
 		for (ECatchment e : point.getUniqueCatchments()) {

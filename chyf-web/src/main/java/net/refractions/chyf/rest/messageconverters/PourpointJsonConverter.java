@@ -53,29 +53,29 @@ public class PourpointJsonConverter extends JsonConverterHelper {
 			writeCatchmentContainment(response);
 		}
 		
-		if (result.getAvailableOutputs().contains(PourpointEngine.OutputType.PARTITIONED_CATCHMENTS)){
+		if (result.getAvailableOutputs().contains(PourpointEngine.OutputType.SUBCATCHMENTS)){
 			writePartitionedCatchments(response);
 		}
 		
-		if (result.getAvailableOutputs().contains(PourpointEngine.OutputType.PARTITIONEDCATCHMENT_RELATIONSHIP)){
+		if (result.getAvailableOutputs().contains(PourpointEngine.OutputType.SUBCATCHMENT_RELATIONSHIP)){
 			String[] headers =new String[result.getPoints().size()];
 			for (int i = 0; i < headers.length; i ++) {
 				headers[i] = result.getPoints().get(i).getId();
 			}
-			writeRelationship(PourpointEngine.OutputType.PARTITIONEDCATCHMENT_RELATIONSHIP, headers, result.getPartitionedCatchmentRelationship());
+			writeRelationship(PourpointEngine.OutputType.SUBCATCHMENT_RELATIONSHIP, headers, result.getSubCatchmentRelationship());
 		}
 		
-		if (result.getAvailableOutputs().contains(PourpointEngine.OutputType.TRAVERSAL_COMPLIANT_CATCHMENTS)){
+		if (result.getAvailableOutputs().contains(PourpointEngine.OutputType.PARTITIONED_CATCHMENTS)){
 			writeTraversalCompliantCatchments(response);
 		}
 		
-		if (result.getAvailableOutputs().contains(PourpointEngine.OutputType.TRAVERSAL_COMPLIANT_CATCHMENT_RELATION)){
-			List<DrainageArea> items = result.getTraversalCompliantCatchments();
+		if (result.getAvailableOutputs().contains(PourpointEngine.OutputType.PARTITIONED_CATCHMENT_RELATION)){
+			List<DrainageArea> items = result.getPartitionedCatchments();
 			String[] headers =new String[items.size()];
 			for (int i = 0; i < headers.length; i ++) {
 				headers[i] = items.get(i).getId();
 			}
-			writeRelationship(PourpointEngine.OutputType.TRAVERSAL_COMPLIANT_CATCHMENT_RELATION, headers, result.getTraversalCompliantCatchmentRelationship());
+			writeRelationship(PourpointEngine.OutputType.PARTITIONED_CATCHMENT_RELATION, headers, result.getPartitionedCatchmentRelationship());
 		}
 		
 		if (result.getAvailableOutputs().contains(PourpointEngine.OutputType.INTERIOR_CATCHMENT)) {
@@ -167,9 +167,9 @@ public class PourpointJsonConverter extends JsonConverterHelper {
 	}
 	
 	private void writeTraversalCompliantCatchments(ApiResponse response) throws IOException {
-		this.featureCollectionHeader(response, PourpointEngine.OutputType.TRAVERSAL_COMPLIANT_CATCHMENTS);
+		this.featureCollectionHeader(response, PourpointEngine.OutputType.PARTITIONED_CATCHMENTS);
 		int counter = 1;
-		Collection<DrainageArea> items =  result.getTraversalCompliantCatchments();
+		Collection<DrainageArea> items =  result.getPartitionedCatchments();
 		for (DrainageArea g : items) {
 			this.featureHeader(reproject(g.getGeometry(), response.getSrs()), counter++, null);
 			this.field("id", g.getId());
@@ -187,10 +187,10 @@ public class PourpointJsonConverter extends JsonConverterHelper {
 	
 	
 	private void writePartitionedCatchments(ApiResponse response) throws IOException {
-		this.featureCollectionHeader(response, PourpointEngine.OutputType.PARTITIONED_CATCHMENTS);
+		this.featureCollectionHeader(response, PourpointEngine.OutputType.SUBCATCHMENTS);
 		int counter = 1;
 		for (Pourpoint p : result.getPoints()) {
-			DrainageArea g = result.getPartitionedCatchment(p);
+			DrainageArea g = result.getSubcatchment(p);
 			this.featureHeader(reproject(g.getGeometry(), response.getSrs()), counter++, null);
 			this.field("id", p.getId());
 			this.field("area", g.getArea() / 10_000);

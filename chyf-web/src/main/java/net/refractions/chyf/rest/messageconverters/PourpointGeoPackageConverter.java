@@ -40,8 +40,8 @@ public class PourpointGeoPackageConverter {
 				PourpointEngine.OutputType.OUTPUT_PP,
 				PourpointEngine.OutputType.INTERIOR_CATCHMENT,
 				PourpointEngine.OutputType.CATCHMENTS,
+				PourpointEngine.OutputType.SUBCATCHMENTS,
 				PourpointEngine.OutputType.PARTITIONED_CATCHMENTS,
-				PourpointEngine.OutputType.TRAVERSAL_COMPLIANT_CATCHMENTS,
 		};
 		
 		for (PourpointEngine.OutputType out : geomOutputs) {
@@ -74,8 +74,8 @@ public class PourpointGeoPackageConverter {
 				}
 				features.add(featureBuilder.buildFeature(String.valueOf(id++)));
 			}
-		}else if (type == PourpointEngine.OutputType.TRAVERSAL_COMPLIANT_CATCHMENTS) {
-			for (DrainageArea c : result.getTraversalCompliantCatchments()) {
+		}else if (type == PourpointEngine.OutputType.PARTITIONED_CATCHMENTS) {
+			for (DrainageArea c : result.getPartitionedCatchments()) {
 				featureBuilder.set("id", c.getId());
 				featureBuilder.set("area", c.getArea() / 10_000);
 				featureBuilder.set("geometry", reproject(c.getGeometry(), response.getSrs()));
@@ -103,8 +103,8 @@ public class PourpointGeoPackageConverter {
 						}
 					}
 					features.add(featureBuilder.buildFeature(p.getId()));
-				}else if (type == PourpointEngine.OutputType.PARTITIONED_CATCHMENTS) {
-					DrainageArea area = result.getPartitionedCatchment(p);
+				}else if (type == PourpointEngine.OutputType.SUBCATCHMENTS) {
+					DrainageArea area = result.getSubcatchment(p);
 					
 					featureBuilder.set("id", p.getId());
 					featureBuilder.set("area", area.getArea() / 10_000);
@@ -148,8 +148,8 @@ public class PourpointGeoPackageConverter {
 		switch(type) {
 			case CATCHMENTS:
 			case INTERIOR_CATCHMENT:
-			case PARTITIONED_CATCHMENTS:		
-			case TRAVERSAL_COMPLIANT_CATCHMENTS:
+			case SUBCATCHMENTS:		
+			case PARTITIONED_CATCHMENTS:
 				builder.add("id", String.class);
 				builder.add("area", Double.class);
 				if (response.includeStats()) {
@@ -172,8 +172,8 @@ public class PourpointGeoPackageConverter {
 			case DISTANCE_MAX:
 			case DISTANCE_PRIMARY:
 			case DISTANCE_MIN:
-			case PARTITIONEDCATCHMENT_RELATIONSHIP:
-			case TRAVERSAL_COMPLIANT_CATCHMENT_RELATION:
+			case SUBCATCHMENT_RELATIONSHIP:
+			case PARTITIONED_CATCHMENT_RELATION:
 			default:
 				return null;
 		

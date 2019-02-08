@@ -18,34 +18,38 @@ import net.refractions.chyf.pourpoint.PourpointEngine.OutputType;
 public class PourpointOutput {
 
 	private List<Pourpoint> points;
-	private Integer[][] pcr;
-	private Integer[][] tccr;
+	
+	private Set<PourpointEngine.OutputType> outputs;
+	
+	//catchments
+	private HashMap<Pourpoint, DrainageArea> catchments;
 	private Integer[][] ccr;
-	private List<DrainageArea> tcc;
+	//sub catchment rel.
+	private Integer[][] scr;
+	private HashMap<Pourpoint, DrainageArea> subcatchments;
+	
+	//partitioned catchments
+	private List<DrainageArea> partitionedcatchments;
+	private Integer[][] pcr;
 	
 	private Double[][] minPpDistance;
 	private Double[][] maxPpDistance;
 	private Double[][] primaryPpDistance;
 	
-	private Set<PourpointEngine.OutputType> outputs;
 	private Set<DrainageArea> interiorCatchments;
 	private String prt = "";
 	
-	
-	private HashMap<Pourpoint, DrainageArea> catchments;
-	private HashMap<Pourpoint, DrainageArea> partitionedcatchments;
-	
 	public PourpointOutput(PourpointEngine engine) {
 		this.points = engine.getPoints();
+		this.scr = engine.getSubCatchmentRelationship();
 		this.pcr = engine.getPartitionedCatchmentRelationship();
-		this.tccr = engine.getTraversalCompliantCoverageRelationship();
 		
-		if (engine.getSortedTraveralCompliantCoverages() != null) {
-			tcc = new ArrayList<>();
-			for (UniqueSubCatchment c : engine.getSortedTraveralCompliantCoverages()) {
+		if (engine.getSortedPartitionedCatchments() != null) {
+			partitionedcatchments = new ArrayList<>();
+			for (UniqueSubCatchment c : engine.getSortedPartitionedCatchments()) {
 				DrainageArea da = c.getDrainageArea(engine.getGraph());
 				da.setId(c.getId());
-				tcc.add(da);
+				partitionedcatchments.add(da);
 			}
 		}
 		this.ccr = engine.getCatchmentContainment();
@@ -63,10 +67,10 @@ public class PourpointOutput {
 				catchments.put(p, p.getCatchmentDrainageArea(engine.getGraph(), engine.getRemoveHoles()));
 			}
 		}
-		if (engine.getAvailableOutputs().contains(OutputType.PARTITIONED_CATCHMENTS)) {
-			partitionedcatchments = new HashMap<>();
+		if (engine.getAvailableOutputs().contains(OutputType.SUBCATCHMENTS)) {
+			subcatchments = new HashMap<>();
 			for (Pourpoint p : points) {
-				partitionedcatchments.put(p, engine.getGraph().buildDrainageArea(p.getUniqueCatchments(), false));
+				subcatchments.put(p, engine.getGraph().buildDrainageArea(p.getUniqueCatchments(), false));
 			}
 		}
 		
@@ -104,23 +108,24 @@ public class PourpointOutput {
 		return this.ccr;
 	}
 	
+	public Integer[][] getSubCatchmentRelationship() {
+		return scr;
+	}
+
 	public Integer[][] getPartitionedCatchmentRelationship() {
 		return pcr;
 	}
 
-	public Integer[][] getTraversalCompliantCatchmentRelationship() {
-		return tccr;
-	}
-
-	public List<DrainageArea> getTraversalCompliantCatchments() {
-		return tcc;
+	public List<DrainageArea> getPartitionedCatchments() {
+		return partitionedcatchments;
 	}
 	
 	public DrainageArea getCatchment(Pourpoint point) {
 		return catchments.get(point);
 	}
-	public DrainageArea getPartitionedCatchment(Pourpoint point) {
-		return partitionedcatchments.get(point);
+	
+	public DrainageArea getSubcatchment(Pourpoint point) {
+		return subcatchments.get(point);
 	}
 
 

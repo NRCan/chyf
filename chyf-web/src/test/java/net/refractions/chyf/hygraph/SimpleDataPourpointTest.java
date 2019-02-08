@@ -98,7 +98,7 @@ public class SimpleDataPourpointTest {
 		
 		
 		//test pourpoint relationship
-		Integer[][] ppRel = results.getPartitionedCatchmentRelationship();
+		Integer[][] ppRel = results.getSubCatchmentRelationship();
 		Integer[][] expectedRel = new Integer[][]{
 				{null, -1, -1, -1, -1},
 				{1, null, null, null, null},
@@ -140,7 +140,7 @@ public class SimpleDataPourpointTest {
 		expectedUniqueCoveratesCombined.put("P5", "POLYGON (( -73.45931415243606 45.11948593684481, -73.45803219773404 45.11734934567479, -73.46012130910029 45.114690476663206, -73.46045366772674 45.11369340078386, -73.46339741556099 45.11302868353096, -73.46486928947812 45.11397827960653, -73.46672100182546 45.11445307764431, -73.4685416483889 45.11506456249201, -73.47076943479914 45.115092834944605, -73.47320822109108 45.11425377913806, -73.47433042478657 45.115263762464004, -73.47484320734478 45.115719569182396, -73.47538447782286 45.11842592157285, -73.47413100934729 45.120106708846926, -73.47094036231853 45.12004973300712, -73.4708042649504 45.12261960389417, -73.4679554767237 45.12323684134329, -73.46501172888945 45.12261960389417, -73.46154570321363 45.123046922128175, -73.45855447557561 45.121527568407274, -73.45931415243606 45.11948593684481 ))");
 				
 		for (Pourpoint point : results.getPoints()) {
-			DrainageArea actual = results.getPartitionedCatchment(point);
+			DrainageArea actual = results.getSubcatchment(point);
 			Geometry expected = GeotoolsGeometryReprojector.reproject(reader.read(expectedUniqueCoveratesCombined.get(point.getId())), BasicTestSuite.TEST_CRS, ChyfDatastore.BASE_CRS);
 			Assert.assertTrue("Pourpoint non-overlapping catchment incorrect (" + point.getId() + ")", expected.equalsExact(actual.getGeometry(), 0.00001));
 		}
@@ -157,7 +157,7 @@ public class SimpleDataPourpointTest {
 		expectedMergedCoverages.add("POLYGON (( -73.45931415243606 45.11948593684484, -73.45803219773404 45.11734934567477, -73.4601213091003 45.11469047666323, -73.46045366772674 45.11369340078384, -73.46339741556099 45.113028683530985, -73.46486928947812 45.113978279606485, -73.46672100182545 45.11445307764433, -73.4685416483889 45.115064562491945, -73.47076943479914 45.11509283494458, -73.47320822109107 45.114253779138096, -73.47433042478657 45.11526376246401, -73.47484320734478 45.11571956918242, -73.47538447782284 45.11842592157284, -73.47413100934729 45.120106708846954, -73.47094036231852 45.12004973300711, -73.4708042649504 45.12261960389417, -73.4679554767237 45.12323684134334, -73.46501172888945 45.12261960389417, -73.46154570321363 45.1230469221282, -73.45855447557561 45.1215275684073, -73.45931415243606 45.11948593684484 ))");
 			
 		
-		for (DrainageArea pcat : results.getTraversalCompliantCatchments()) {
+		for (DrainageArea pcat : results.getPartitionedCatchments()) {
 			for (int i = 0; i < expectedMergedCoverages.size();i ++) {
 				Geometry expected = GeotoolsGeometryReprojector.reproject(reader.read(expectedMergedCoverages.get(i)), BasicTestSuite.TEST_CRS, ChyfDatastore.BASE_CRS);
 				if (pcat.getGeometry().equalsExact(expected, 0.0001)) {
@@ -171,7 +171,7 @@ public class SimpleDataPourpointTest {
 			}
 		}
 		
-		Integer[][] catRel = results.getTraversalCompliantCatchmentRelationship();
+		Integer[][] catRel = results.getPartitionedCatchmentRelationship();
 		Integer[][] expectedCatRel = new Integer[][]{
 			new Integer[]{null,-1,-1,-1,-1,-1,-1},
 			new Integer[]{1,null,-1,null,-1,-1,-1},
@@ -184,10 +184,10 @@ public class SimpleDataPourpointTest {
 				
 		for (int i = 0; i < expectedCatRel.length; i ++) {
 			for (int j = 0; j < expectedCatRel.length; j ++) {
-				String id1 = results.getTraversalCompliantCatchments().get(i).getId();
-				String id2 = results.getTraversalCompliantCatchments().get(j).getId();
+				String id1 = results.getPartitionedCatchments().get(i).getId();
+				String id2 = results.getPartitionedCatchments().get(j).getId();
 				Integer val = expectedCatRel[indexToId.get(id1)][indexToId.get(id2)];
-				Assert.assertEquals("Catchment relationship matrix incorrect (" + results.getTraversalCompliantCatchments().get(i).getId() + " to " + results.getTraversalCompliantCatchments().get(j).getId() + ")", val,catRel[i][j]);
+				Assert.assertEquals("Catchment relationship matrix incorrect (" + results.getPartitionedCatchments().get(i).getId() + " to " + results.getPartitionedCatchments().get(j).getId() + ")", val,catRel[i][j]);
 			}
 		}
 		
