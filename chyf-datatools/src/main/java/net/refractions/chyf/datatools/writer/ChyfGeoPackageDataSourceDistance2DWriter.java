@@ -3,10 +3,10 @@ package net.refractions.chyf.datatools.writer;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import org.geotools.data.DataUtilities;
+import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureReader;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
@@ -18,6 +18,7 @@ import org.opengis.feature.type.AttributeDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import net.refractions.chyf.datatools.processor.Distance2DResult;
 import net.refractions.chyf.datatools.readers.ChyfGeoPackageDataSource;
 import net.refractions.chyf.datatools.writer.ChyfShapeDataSourceDistance2DWriter.StatField;
 
@@ -46,14 +47,18 @@ public class ChyfGeoPackageDataSourceDistance2DWriter {
 		this.outputFile = outputFile;
 	}
 	
-	public void write(HashMap<String,Double> distance2dValues) throws IOException{
+	public void write(Distance2DResult distance2dValues) throws IOException{
 		
 		GeoPackage reader = new GeoPackage(dataStore.getFile().toFile());
 		GeoPackage writer = new GeoPackage(outputFile.toFile());
 		
 		for (FeatureEntry d : reader.features()) {
-			if (!d.getIdentifier().equals(ChyfGeoPackageDataSource.CATCHMENT_LAYER))
-				writer.add(d, DataUtilities.collection(reader.reader(d, null, null)));
+			if (!d.getIdentifier().equals(ChyfGeoPackageDataSource.CATCHMENT_LAYER)) {
+				SimpleFeatureCollection fc = DataUtilities.collection(reader.reader(d, null, null));
+				//writing 4d geometries is not supported
+				d.setM(false);
+				writer.add(d, fc);
+			}
 		}
 
 		try(SimpleFeatureReader freader = dataStore.getECatchments(null)){
@@ -88,7 +93,8 @@ public class ChyfGeoPackageDataSourceDistance2DWriter {
 			catchment.setDataType(in.getDataType());
 			catchment.setDescription(in.getDescription());
 			catchment.setGeometryColumn(in.getGeometryColumn());
-			
+			catchment.setZ(in.isZ());
+			catchment.setM(false); //4d geometries not supportedin jts
 			List<SimpleFeature> features = new ArrayList<>();
 		    
 		   	while (freader.hasNext()) {
@@ -96,15 +102,20 @@ public class ChyfGeoPackageDataSourceDistance2DWriter {
 				List<Object> values = new ArrayList<>();
 				
 				for (AttributeDescriptor d : newType.getAttributeDescriptors()) {
-					values.add( feature.getAttribute(d.getLocalName()) );
+					boolean add = true;
+					for (StatField field : StatField.values()) {
+						if (field.fieldName.equalsIgnoreCase(d.getLocalName())) add = false;
+					}
+					if (add) values.add( feature.getAttribute(d.getLocalName()) );
 				}
-				Double value = distance2dValues.get(feature.getID());
+				Distance2DResult.Statistics value = distance2dValues.getResult(feature.getID());
 				if (value != null) {
-					values.add(value);
+					values.add(value.getMean());
+					values.add(value.getMax());
 				}
 				features.add(SimpleFeatureBuilder.build(newType, values, feature.getID()));
-				writer.add(catchment, DataUtilities.collection(features));
-			}   		    
+			}   
+		   	writer.add(catchment, DataUtilities.collection(features));
 		}
 	}
 	

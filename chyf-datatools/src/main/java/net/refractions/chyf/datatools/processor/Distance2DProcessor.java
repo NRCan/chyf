@@ -1,7 +1,6 @@
 package net.refractions.chyf.datatools.processor;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import org.geotools.data.simple.SimpleFeatureReader;
@@ -22,14 +21,20 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import net.refractions.chyf.datatools.readers.ChyfDataSource;
 
+/**
+ * Processor for computing mean and maximum 2d distance to water per catchment.
+ * 
+ * @author Emily
+ *
+ */
 public class Distance2DProcessor {
 
-	private int cellSize = 2;
+	private int cellSize = 1;
 	
 	private CoordinateReferenceSystem toWork;
 	private GeometryFactory gf = new GeometryFactory();
 	
-	private HashMap<String, Double> distanceToWater;
+	private Distance2DResult distanceToWater;
 	private ChyfDataSource dataSource;
 	
 	public Distance2DProcessor(ChyfDataSource dataSource, CoordinateReferenceSystem crs) {
@@ -37,12 +42,12 @@ public class Distance2DProcessor {
 		this.dataSource = dataSource;
 	}
 	
-	public HashMap<String,Double> getResults(){
+	public Distance2DResult getResults(){
 		return this.distanceToWater;
 	}
 	
 	/**
-	 * Default cell size is 2.
+	 * Default cell size is 1.
 	 * @param cellSize
 	 */
 	//I added this method to simplify the test case
@@ -51,7 +56,7 @@ public class Distance2DProcessor {
 	}
 	
 	public void doWork() throws Exception {
-		distanceToWater = new HashMap<>();
+		distanceToWater = new Distance2DResult();
 				
 		//lets make a 1m grid out of this
 		int cnt = 0;
@@ -83,7 +88,7 @@ public class Distance2DProcessor {
 						IntersectionMatrix matrix = p.relate(wbGeom);
 						if(matrix.isEquals(3,3)) {
 							//overlaps entirely - this is distance to water = 0
-							distanceToWater.put(sf.getID(), 0.0);
+							distanceToWater.addResult(sf.getID(), 0.0, 0.0);
 							process = false;
 							break;
 						}else if (matrix.matches("****1****")){
@@ -125,14 +130,14 @@ public class Distance2DProcessor {
 				p = ReprojectionUtils.reproject(p, sf.getType().getCoordinateReferenceSystem(), toWork);
 
 				//need to get all water edges that bound or reside in the polygon
-				double value = processFeature(p, waterEdges);
-				distanceToWater.put(sf.getID(), value);
+				double[] value = processFeature(p, waterEdges);
+				distanceToWater.addResult(sf.getID(), value[0], value[1]);
 			}
 		}
 		
 		
 	}
-	private double processFeature(Polygon polygon, List<LineString> waterEdges) {
+	private double[] processFeature(Polygon polygon, List<LineString> waterEdges) {
 		Envelope env = polygon.getEnvelopeInternal();
 		
 		int size = cellSize;
@@ -146,6 +151,7 @@ public class Distance2DProcessor {
 		PreparedPolygon pp = new PreparedPolygon(polygon);
 		
 		double distanceSum = 0;
+		double maxDistance = Double.NaN;
 		int count = 0;
 		for (int x = startx; x <= endx; x += size) {
 			for (int y = starty; y <= endy; y += size) {
@@ -159,12 +165,18 @@ public class Distance2DProcessor {
 					if (d != Double.MAX_VALUE) {
 						distanceSum += d;
 						count ++;
+						
+						if (Double.isNaN(maxDistance)) {
+							maxDistance = d;
+						}else if (d > maxDistance) {
+							maxDistance = d;
+						}
 					}
 				}
 			}
 			
 		}
-		if (count == 0) return Double.NaN;
-		return distanceSum / count;
+		if (count == 0) return new double[] {Double.NaN, Double.NaN};
+		return new double[] {distanceSum / count, maxDistance};
 	}
 }

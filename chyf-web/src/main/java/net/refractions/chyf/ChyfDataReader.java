@@ -110,14 +110,15 @@ public abstract class ChyfDataReader {
 			catchment = (Polygon) GeometryPrecisionReducer.reduce(catchment, ChyfDatastore.PRECISION_MODEL);
 			
 			ECatchment newCatchment = gb.addECatchment(CatchmentType.UNKNOWN, area, catchment);
-
-			//statistic attributes if applicable
-			for (int i = 0; i < hasAttribute.length; i ++) {
-				if (hasAttribute[i]) {
-					ECatchment.ECatchmentStat stat = ECatchment.ECatchmentStat.values()[i];
-					Double x = (Double)feature.getAttribute(stat.getFieldName());
-					if (x != null) {
-						stat.updateCatchment(newCatchment, x);
+			if (newCatchment != null) {
+				//statistic attributes if applicable
+				for (int i = 0; i < hasAttribute.length; i ++) {
+					if (hasAttribute[i]) {
+						ECatchment.ECatchmentStat stat = ECatchment.ECatchmentStat.values()[i];
+						Double x = (Double)feature.getAttribute(stat.getFieldName());
+						if (x != null) {
+							stat.updateCatchment(newCatchment, x);
+						}
 					}
 				}
 			}

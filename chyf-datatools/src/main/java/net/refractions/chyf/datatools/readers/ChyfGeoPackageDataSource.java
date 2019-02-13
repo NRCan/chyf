@@ -27,7 +27,7 @@ public class ChyfGeoPackageDataSource implements ChyfDataSource{
 	private static FilterFactory2 ff = CommonFactoryFinder.getFilterFactory2();
 
 	public static final String FLOWPATH_LAYER = "Flowpath";
-	public static final String CATCHMENT_LAYER = "Catchment";
+	public static final String CATCHMENT_LAYER = "ElementaryCatchment";
 	public static final String WATERBODY_LAYER = "Waterbody";
 	public static final String BOUNDARY_LAYER = "Working_limit";
 	
@@ -78,6 +78,10 @@ public class ChyfGeoPackageDataSource implements ChyfDataSource{
 	}
 	
 	private SimpleFeatureReader query(ReferencedEnvelope bounds, FeatureEntry source) throws IOException {
+		if (bounds == null) {
+			return reader.reader(source, null, null);
+		}
+		
 		String geom = source.getGeometryColumn();
 		Filter filter1 = ff.bbox(ff.property(geom), bounds);
 		Filter filter2 = ff.intersects(ff.property(geom), ff.literal(JTS.toGeometry(bounds)));

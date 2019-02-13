@@ -1129,7 +1129,8 @@ public class PourpointEngine {
 				if(item.getType() == FlowpathType.BANK) {
 					c = item.getFromNode().getBankCatchment();
 				}
-				uniqueCatchments.add(c);
+				//TODO: c should never be null here - this fix is added temporarily for KOTL data issues.
+				if (c != null) uniqueCatchments.add(c);
 				for(EFlowpath f: item.getFromNode().getUpFlows()) {
 					if (!visited.contains(f)) toProcess.addLast(f);
 				}
@@ -1150,8 +1151,13 @@ public class PourpointEngine {
 		
 		for (Pourpoint point : points) {
 			DrainageArea area = point.getCatchmentDrainageArea(hygraph, false);
-			Polygon p = ((Polygon)area.getGeometry());
-			geometries.add(p);
+			
+			//TODO: this should always be a single polygon; this was added because of issues
+			//with kotl dataset and multipolygons were returned
+			for (int i = 0; i < area.getGeometry().getNumGeometries(); i ++) {
+				Polygon p = ((Polygon)area.getGeometry().getGeometryN(i));
+				geometries.add(p);
+			}
 		}
 		
 		Geometry g = UnaryUnionOp.union(geometries);

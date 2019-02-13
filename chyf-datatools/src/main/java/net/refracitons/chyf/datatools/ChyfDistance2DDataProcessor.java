@@ -3,16 +3,16 @@ package net.refracitons.chyf.datatools;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map.Entry;
 
 import org.geotools.referencing.CRS;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import net.refractions.chyf.datatools.processor.Distance2DProcessor;
+import net.refractions.chyf.datatools.processor.Distance2DResult;
 import net.refractions.chyf.datatools.readers.ChyfDataSource;
 import net.refractions.chyf.datatools.readers.ChyfGeoPackageDataSource;
 import net.refractions.chyf.datatools.readers.ChyfShapeDataSource;
+import net.refractions.chyf.datatools.writer.ChyfGeoPackageDataSourceDistance2DWriter;
 import net.refractions.chyf.datatools.writer.ChyfShapeDataSourceDistance2DWriter;
 
 public class ChyfDistance2DDataProcessor {
@@ -34,6 +34,9 @@ public class ChyfDistance2DDataProcessor {
 			return;
 		}
 
+		Long now = System.nanoTime();
+		
+		
 		String sepsg = args[0];
 		String sinput = args[1];
 		String sout = args[2];
@@ -71,7 +74,7 @@ public class ChyfDistance2DDataProcessor {
 					return;
 				}
 				
-				HashMap<String, Double> results = run(dataSource, workingCRS);
+				Distance2DResult results = run(dataSource, workingCRS);
 				
 				if (results != null) {
 					ChyfShapeDataSourceDistance2DWriter writer = new ChyfShapeDataSourceDistance2DWriter(dataSource, outFile);
@@ -93,22 +96,26 @@ public class ChyfDistance2DDataProcessor {
 					printUsage();
 					return;
 				}
-				HashMap<String, Double> results = run(dataSource, workingCRS);
+				Distance2DResult results = run(dataSource, workingCRS);
 				
-//				if (results != null) {
-//					ChyfGeoPackageDataSourceSEAWriter writer = new ChyfGeoPackageDataSourceSEAWriter((ChyfGeoPackageDataSource) dataSource, outFile);
-//					writer.write(results);
-//				}
+				if (results != null) {
+					ChyfGeoPackageDataSourceDistance2DWriter writer = new ChyfGeoPackageDataSourceDistance2DWriter((ChyfGeoPackageDataSource) dataSource, outFile);
+					writer.write(results);
+				}
 			}
 		}else {
 			System.out.println("Input data source: '" + sinput + "' not supported.  Must be geopackage file or a directory");
 			printUsage();
 			return;
 		}
+		
+		Long then = System.nanoTime();
+		System.out.println("TIME:" + (then - now));
 	}
 	
-	private static HashMap<String, Double> run(ChyfDataSource dataSource, CoordinateReferenceSystem crs) throws Exception{
+	private static Distance2DResult run(ChyfDataSource dataSource, CoordinateReferenceSystem crs) throws Exception{
 		Distance2DProcessor engine = new Distance2DProcessor(dataSource, crs);
+		engine.setCellSize(100);
 		engine.doWork();
 		return engine.getResults();		
 	}

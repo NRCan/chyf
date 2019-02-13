@@ -52,8 +52,10 @@ public class ChyfGeoPackageDataSourceSEAWriter {
 		GeoPackage writer = new GeoPackage(outputFile.toFile());
 		
 		for (FeatureEntry d : reader.features()) {
-			if (!d.getIdentifier().equals(ChyfGeoPackageDataSource.CATCHMENT_LAYER))
+			if (!d.getIdentifier().equals(ChyfGeoPackageDataSource.CATCHMENT_LAYER)) {
+				d.setM(false);//don't support 4d geometries
 				writer.add(d, DataUtilities.collection(reader.reader(d, null, null)));
+			}
 		}
 
 		try(SimpleFeatureReader freader = dataStore.getECatchments(null)){
@@ -98,7 +100,11 @@ public class ChyfGeoPackageDataSourceSEAWriter {
 				List<Object> values = new ArrayList<>();
 				
 				for (AttributeDescriptor d : newType.getAttributeDescriptors()) {
-					values.add( feature.getAttribute(d.getLocalName()) );
+					boolean add = true;
+					for (StatField field : StatField.values()) {
+						if (field.fieldName.equalsIgnoreCase(d.getLocalName())) add = false;
+					}
+					if (add) values.add( feature.getAttribute(d.getLocalName()) );
 				}
 				
 				SEAResult.Statistics stats = seavalues.getStats().get(feature.getID());
@@ -110,12 +116,9 @@ public class ChyfGeoPackageDataSourceSEAWriter {
 						}
 					}
 				}
-				
-			
 				features.add(SimpleFeatureBuilder.build(newType, values, feature.getID()));
-			
-				writer.add(catchment, DataUtilities.collection(features));
-			}   		    
+			}   
+		   	writer.add(catchment, DataUtilities.collection(features));
 		}
 	}
 	

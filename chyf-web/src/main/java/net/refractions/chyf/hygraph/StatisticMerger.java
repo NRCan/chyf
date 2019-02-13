@@ -12,8 +12,8 @@ import net.refractions.chyf.hygraph.ECatchment.ECatchmentStat;
  */
 public class StatisticMerger {
 
-	private ECatchmentStat[] singleValues = new ECatchmentStat[]{ECatchmentStat.MIN_ELEVATION, ECatchmentStat.MAX_ELEVATION, ECatchmentStat.MIN_SLOPE, ECatchmentStat.MAX_SLOPE};
-	private ECatchmentStat[] awaValues = new ECatchmentStat[]{ECatchmentStat.MEAN_ELEVATION, ECatchmentStat.MEAN_SLOPE, ECatchmentStat.ASPECT_EAST_PCT,  ECatchmentStat.ASPECT_NORTH_PCT, ECatchmentStat.ASPECT_WEST_PCT, ECatchmentStat.ASPECT_SOUTH_PCT, ECatchmentStat.ASPECT_FLAT_PCT, ECatchmentStat.D2W_2D};
+	private ECatchmentStat[] singleValues = new ECatchmentStat[]{ECatchmentStat.MIN_ELEVATION, ECatchmentStat.MAX_ELEVATION, ECatchmentStat.MIN_SLOPE, ECatchmentStat.MAX_SLOPE, ECatchmentStat.MAX_D2W_2D};
+	private ECatchmentStat[] awaValues = new ECatchmentStat[]{ECatchmentStat.MEAN_ELEVATION, ECatchmentStat.MEAN_SLOPE, ECatchmentStat.ASPECT_EAST_PCT,  ECatchmentStat.ASPECT_NORTH_PCT, ECatchmentStat.ASPECT_WEST_PCT, ECatchmentStat.ASPECT_SOUTH_PCT, ECatchmentStat.ASPECT_FLAT_PCT, ECatchmentStat.MEAN_D2W_2D};
 
 	private HashMap<ECatchment.ECatchmentStat, Double> stats = new HashMap<>();
 	private HashMap<ECatchment.ECatchmentStat, Double> areaWAverages = new HashMap<>();
@@ -61,7 +61,7 @@ public class StatisticMerger {
 			}
 			return;
 		}
-		if (stat == ECatchmentStat.MAX_ELEVATION || stat == ECatchmentStat.MAX_SLOPE) {
+		if (stat == ECatchmentStat.MAX_ELEVATION || stat == ECatchmentStat.MAX_SLOPE || stat == ECatchmentStat.MAX_D2W_2D) {
 			if (value > stats.get(stat)) {
 				stats.put(stat, value);	
 			}

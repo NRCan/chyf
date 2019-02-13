@@ -19,6 +19,7 @@ import org.opengis.feature.type.AttributeDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import net.refractions.chyf.datatools.processor.Distance2DResult;
 import net.refractions.chyf.datatools.readers.ChyfDataSource;
 
 /**
@@ -34,7 +35,8 @@ public class ChyfShapeDataSourceDistance2DWriter {
 	static final Logger logger = LoggerFactory.getLogger(ChyfShapeDataSourceDistance2DWriter.class.getCanonicalName());
 	
 	public static enum StatField{
-		DISTANCE_2D ("D2W_2D");
+		DISTANCE_2D_MEAN ("D2W2D_MEAN"),
+		DISTANCE_2D_MAX ("D2W2D_MAX");
 		
 		public String fieldName;
 		
@@ -52,7 +54,7 @@ public class ChyfShapeDataSourceDistance2DWriter {
 		this.outputFile = outputFile;
 	}
 	
-	public void write(HashMap<String,Double> distance2dValues) throws IOException{
+	public void write(Distance2DResult distance2dValues) throws IOException{
 		
 		try(SimpleFeatureReader freader = dataStore.getECatchments(null)){
 		
@@ -95,9 +97,10 @@ public class ChyfShapeDataSourceDistance2DWriter {
 						toWrite.setAttribute(p.getName().toString(), p.getValue());
 					}
 		
-					Double d = distance2dValues.get(feature.getID());
+					Distance2DResult.Statistics d = distance2dValues.getResult(feature.getID());
 					if (d != null) {
-						toWrite.setAttribute(StatField.DISTANCE_2D.fieldName, d);
+						toWrite.setAttribute(StatField.DISTANCE_2D_MAX.fieldName, d.getMax());
+						toWrite.setAttribute(StatField.DISTANCE_2D_MEAN.fieldName, d.getMean());
 					}
 					writer.write();
 				}   

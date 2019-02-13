@@ -29,7 +29,8 @@ public class ECatchment implements SpatiallyIndexable {
 		ASPECT_WEST_PCT("WEST_PCT"),
 		ASPECT_FLAT_PCT("FLAT_PCT"),
 		
-		D2W_2D("D2W_2D");
+		MEAN_D2W_2D("D2W2D_MEAN"),
+		MAX_D2W_2D("D2W2D_MAX");
 		
 		private String shpName;
 		
@@ -65,8 +66,10 @@ public class ECatchment implements SpatiallyIndexable {
 				c.avgSlope = value; return;
 			case MIN_SLOPE:
 				c.minSlope = value; return;		
-			case D2W_2D:
-				c.distance2w2d = value; return;
+			case MEAN_D2W_2D:
+				c.meanDistance2w2d = value; return;
+			case MAX_D2W_2D:
+				c.maxDistance2w2d = value; return;
 			}
 		}
 		
@@ -94,8 +97,10 @@ public class ECatchment implements SpatiallyIndexable {
 				return c.avgSlope;
 			case MIN_SLOPE:
 				return c.minSlope;	
-			case D2W_2D:
-				return c.distance2w2d;
+			case MEAN_D2W_2D:
+				return c.meanDistance2w2d;
+			case MAX_D2W_2D:
+				return c.maxDistance2w2d;
 			}
 			return -1;
 		}
@@ -125,7 +130,8 @@ public class ECatchment implements SpatiallyIndexable {
 	private double eastPct = Double.NaN;
 	private double westPct = Double.NaN;
 	private double flatPct = Double.NaN;
-	private double distance2w2d =  Double.NaN;
+	private double meanDistance2w2d =  Double.NaN;
+	private double maxDistance2w2d =  Double.NaN;
 	
 	public ECatchment(int id, CatchmentType type, double area, Polygon polygon) {
 		this.id = id;
@@ -268,7 +274,10 @@ public class ECatchment implements SpatiallyIndexable {
 	public double getFlatPercent() {
 		return this.flatPct;
 	}
-	public double getDistance2Water2D() {
-		return this.distance2w2d;
+	public double getMean2dDistance2Water() {
+		return this.meanDistance2w2d;
+	}
+	public double getMaxdDistance2Water() {
+		return this.maxDistance2w2d;
 	}
 }
