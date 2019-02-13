@@ -49,8 +49,7 @@ public class HygraphParameters extends SharedParameters {
 	}
 	
 	private static Geometry precisionReducer(Geometry geometry) {
-		PrecisionModel pm = new PrecisionModel(1000);
-		return GeometryPrecisionReducer.reduce(geometry, pm);
+		return GeometryPrecisionReducer.reduce(geometry, ChyfDatastore.PRECISION_MODEL);
 	}
 	
 	public void resolveAndValidate() {

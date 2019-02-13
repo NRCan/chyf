@@ -26,6 +26,9 @@
 			font-family: Verdana, Arial, Helvetica, sans-serif;
 			font-size: 13px;
 		}
+		
+		.input-sm { padding: 5px 8px}
+		
 		#container {
 			height: 100%;
             width: 100%;
@@ -1520,6 +1523,7 @@
 					'hortonor': 'Horton Order',
 					'hackor': 'Hack Order',
 					'area': 'Area (ha)',
+					'd2w_2d': '2D Distance to Water (m)',
 					'elv_min': 'Elevation Min',
 					'elv_max': 'Elevation Max',
 					'elv_mean': 'Elevation Mean',
@@ -1564,7 +1568,8 @@
 					'south_pct': 'Aspect % South',
 					'east_pct': 'Aspect % East',
 					'west_pct': 'Aspect % West',
-					'flat_pct': 'Aspect % Flat'
+					'flat_pct': 'Aspect % Flat',
+					'd2w_2d': '2D Distance to Water (m)'
 				}
 			}
 		};
@@ -2130,11 +2135,16 @@
 				var $div = $('<div/>').append($('<div class="toolCat">' + layers.scr.name + '</div>'));
 				$div.append($table);
 				$div.append( $('<div>[i,j]<br>1 = i upstream* of j;<br>-1 = i downstream* of j</div>' ));
-				$div.append( $('<div>*Upstream and downstream  may be only partly true, as the definition of the subcatchments involves a subtractive process that does not guarantee a partitioned result. As well, in some situations where secondary flows exist, the areas for i and j may overlap. Details are provided elsewhere.</div>' ));
-				$div.append( $('<div>Whereas the subcatchments are useful as a means of understanding general relationships, they have limitations in the context of hydrologic applications. For such purposes, partitioned catchments are preferred.<br></div><br><br>' ));				
+				$div.append( $('<div>*Upstream and downstream (as defined on the Flow Relationships table below) may be only partly true, as the definition of the subcatchments involves a subtractive process that does not guarantee a partitioned result. As well, in some situations where secondary flows exist, the areas associated with different pourpoints may overlap. Details are provided elsewhere. For some purposes, partitioned catchments are preferred.</div>' ));				
 				layers.sc_tab.append($div);
 			}
-			if (layers.pc != null){
+			if (layers.sc != null || layers.scr != null){
+				var $div = $('<div/>');
+				$div.append( $('<div>Subcatchments are useful as a means of understanding general relationships, however they have limitations in the context of some hydrologic applications as their upstream/downstream relationships may be only partly true.</div>'));
+				layers.sc_tab.prepend($div);
+			}
+			
+			if (layers.pc != null || layers.pcr != null){
 				var $div = $('<div/>').append($('<div>Partitioning implies that all inflows to a lower catchment flow through a single hydro nexus, and that the hydro nexus is upstream of all parts of the lower catchment.</div>'));				
 				layers.pc_tab.prepend($div);
 			}
@@ -2273,6 +2283,7 @@
 							'east_pct': 'Aspect % East',
 							'west_pct': 'Aspect % West',
 							'flat_pct': 'Aspect % Flat',
+							'd2w_2d': '2D Distance to Water (m)',
 						};
 					}else{
 						cols = {'id': 'ID','area': 'Area (ha)'};

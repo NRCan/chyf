@@ -13,7 +13,7 @@ import net.refractions.chyf.datatools.readers.GeoTiffDemReader;
 import net.refractions.chyf.datatools.writer.ChyfGeoPackageDataSourceSEAWriter;
 import net.refractions.chyf.datatools.writer.ChyfShapeDataSourceSEAWriter;
 
-public class ChyfDataProcessor {
+public class ChyfSEADataProcessor {
 
 	/**
 	 * Takes three parameters
@@ -116,7 +116,7 @@ public class ChyfDataProcessor {
 	
 	private static void printUsage() {
 		System.out.println("Usage:");
-		System.out.println("ChyfDataProcessor [input] [dem] [output]");
+		System.out.println("ChyfSEADataProcessor [input] [dem] [output]");
 		System.out.println("[input] - the input dataset (either a directory containing shapefiles OR geopackage files)");
 		System.out.println("[dem] - the tiled DEM in geotiff format.  Must be in a projection that maintains area and aspect");
 		System.out.println("[output] - the output location (either a directory or a geopackage file)");

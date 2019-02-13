@@ -55,7 +55,7 @@ public class SharedParameters {
 	}
 
 	public void resolveAndValidate() {
-		if(maxFeatures == null || maxFeatures > ChyfDatastore.MAX_RESULTS) {
+		if(maxFeatures == null) {
 			maxFeatures = ChyfDatastore.MAX_RESULTS;
 		}
 	}

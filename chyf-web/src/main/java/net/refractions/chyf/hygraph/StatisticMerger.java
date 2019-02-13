@@ -13,7 +13,7 @@ import net.refractions.chyf.hygraph.ECatchment.ECatchmentStat;
 public class StatisticMerger {
 
 	private ECatchmentStat[] singleValues = new ECatchmentStat[]{ECatchmentStat.MIN_ELEVATION, ECatchmentStat.MAX_ELEVATION, ECatchmentStat.MIN_SLOPE, ECatchmentStat.MAX_SLOPE};
-	private ECatchmentStat[] awaValues = new ECatchmentStat[]{ECatchmentStat.MEAN_ELEVATION, ECatchmentStat.MEAN_SLOPE, ECatchmentStat.ASPECT_EAST_PCT,  ECatchmentStat.ASPECT_NORTH_PCT, ECatchmentStat.ASPECT_WEST_PCT, ECatchmentStat.ASPECT_SOUTH_PCT, ECatchmentStat.ASPECT_FLAT_PCT};
+	private ECatchmentStat[] awaValues = new ECatchmentStat[]{ECatchmentStat.MEAN_ELEVATION, ECatchmentStat.MEAN_SLOPE, ECatchmentStat.ASPECT_EAST_PCT,  ECatchmentStat.ASPECT_NORTH_PCT, ECatchmentStat.ASPECT_WEST_PCT, ECatchmentStat.ASPECT_SOUTH_PCT, ECatchmentStat.ASPECT_FLAT_PCT, ECatchmentStat.D2W_2D};
 
 	private HashMap<ECatchment.ECatchmentStat, Double> stats = new HashMap<>();
 	private HashMap<ECatchment.ECatchmentStat, Double> areaWAverages = new HashMap<>();

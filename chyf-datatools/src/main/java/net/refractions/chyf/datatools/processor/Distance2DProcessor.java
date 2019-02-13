@@ -1,43 +1,132 @@
 package net.refractions.chyf.datatools.processor;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import org.geotools.data.simple.SimpleFeatureReader;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Envelope;
+import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.IntersectionMatrix;
 import org.locationtech.jts.geom.LineString;
+import org.locationtech.jts.geom.MultiPolygon;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.Polygon;
 import org.locationtech.jts.geom.prep.PreparedPolygon;
 import org.locationtech.jts.operation.distance.DistanceOp;
+import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import net.refractions.chyf.datatools.readers.ChyfDataSource;
 
 public class Distance2DProcessor {
 
+	private int cellSize = 2;
+	
 	private CoordinateReferenceSystem toWork;
 	private GeometryFactory gf = new GeometryFactory();
 	
-	public Distance2DProcessor(CoordinateReferenceSystem crs) {
+	private HashMap<String, Double> distanceToWater;
+	private ChyfDataSource dataSource;
+	
+	public Distance2DProcessor(ChyfDataSource dataSource, CoordinateReferenceSystem crs) {
 		this.toWork = crs;
+		this.dataSource = dataSource;
 	}
 	
-	public void doWork(ChyfDataSource dataSource) throws Exception {
-		
-		ReferencedEnvelope env = dataSource.getCatchmentBounds();
-		
-		ReferencedEnvelope fullBounds = ReprojectionUtils.reproject(env, toWork);
-		
+	public HashMap<String,Double> getResults(){
+		return this.distanceToWater;
+	}
+	
+	/**
+	 * Default cell size is 2.
+	 * @param cellSize
+	 */
+	//I added this method to simplify the test case
+	public void setCellSize(int cellSize) {
+		this.cellSize = cellSize;
+	}
+	
+	public void doWork() throws Exception {
+		distanceToWater = new HashMap<>();
+				
 		//lets make a 1m grid out of this
-		
+		int cnt = 0;
 		try(SimpleFeatureReader reader = dataSource.getECatchments(null)){
 			while(reader.hasNext()) {
+				if (cnt % 10 == 0) System.out.println("Processing " + cnt);
+				cnt++;
 				
+				SimpleFeature sf = reader.next();
 				
+				Geometry g = (Geometry) sf.getDefaultGeometry();
+				Polygon p = null;
+				if (g instanceof Polygon) {
+					p = (Polygon)g;
+				}else if (g instanceof MultiPolygon && (((MultiPolygon)g).getNumGeometries() == 1)) {
+					p = (Polygon) ((MultiPolygon)g).getGeometryN(0);
+				}else {
+					throw new IllegalStateException("Geometry of type " + g.getClass().toString() + " is not supported for ecatchment.");
+				}
 				
+				boolean process = true;
+				List<LineString> waterEdges = new ArrayList<>();
+				
+				try(SimpleFeatureReader wbReader = dataSource.getWaterbodies( new ReferencedEnvelope(p.getEnvelopeInternal(), sf.getType().getCoordinateReferenceSystem()))){
+					while(wbReader.hasNext()) {
+						SimpleFeature sb = wbReader.next();
+						Geometry wbGeom = (Geometry) sb.getDefaultGeometry();
+					
+						IntersectionMatrix matrix = p.relate(wbGeom);
+						if(matrix.isEquals(3,3)) {
+							//overlaps entirely - this is distance to water = 0
+							distanceToWater.put(sf.getID(), 0.0);
+							process = false;
+							break;
+						}else if (matrix.matches("****1****")){
+							//boundary intersection is line - get these lines as water edge
+							Geometry intersection = p.intersection(wbGeom);
+							for (int i = 0; i < intersection.getNumGeometries(); i ++) {
+								if (intersection.getGeometryN(i) instanceof LineString) {
+									LineString ls = (LineString)(intersection.getGeometryN(i));
+									waterEdges.add(ReprojectionUtils.reproject(ls, sb.getType().getCoordinateReferenceSystem(), toWork));
+								}
+							}
+						}
+					}
+				}
+				if (!process) continue;
+				
+				//add flowpaths to list of edges
+				try(SimpleFeatureReader fpReader = dataSource.getFlowpaths( new ReferencedEnvelope(p.getEnvelopeInternal(), sf.getType().getCoordinateReferenceSystem()))){
+					while(fpReader.hasNext()) {
+						SimpleFeature sb = fpReader.next();
+						Geometry fpGeom = (Geometry) sb.getDefaultGeometry();
+						if (p.relate(fpGeom, "1********")){
+							for (int i = 0; i < fpGeom.getNumGeometries(); i ++) {
+								if (fpGeom.getGeometryN(i) instanceof LineString) {
+									LineString ls = (LineString)(fpGeom.getGeometryN(i));
+									waterEdges.add(ReprojectionUtils.reproject(ls, sb.getType().getCoordinateReferenceSystem(), toWork));
+								}
+							}
+						}
+					}
+				}
+				
+				if (waterEdges.isEmpty()) {
+					System.out.println("ERROR: NO WATER EDGES IN CATCHMENT");
+					continue;
+				}
+				
+				//reproject
+				p = ReprojectionUtils.reproject(p, sf.getType().getCoordinateReferenceSystem(), toWork);
+
+				//need to get all water edges that bound or reside in the polygon
+				double value = processFeature(p, waterEdges);
+				distanceToWater.put(sf.getID(), value);
 			}
 		}
 		
@@ -46,21 +135,22 @@ public class Distance2DProcessor {
 	private double processFeature(Polygon polygon, List<LineString> waterEdges) {
 		Envelope env = polygon.getEnvelopeInternal();
 		
-		int startx = (int)Math.floor( env.getMinX() );
-		int starty = (int)Math.floor( env.getMinY() );
+		int size = cellSize;
 		
-		int endx = (int)Math.ceil( env.getMaxX() );
-		int endy = (int)Math.ceil( env.getMaxY() );
+		int startx = (int)Math.floor( env.getMinX() / size ) * size;
+		int starty = (int)Math.floor( env.getMinY() / size ) * size;
+		
+		int endx = (int)Math.ceil( env.getMaxX() /size ) * size;
+		int endy = (int)Math.ceil( env.getMaxY() /size) * size;
 		
 		PreparedPolygon pp = new PreparedPolygon(polygon);
 		
 		double distanceSum = 0;
 		int count = 0;
-		for (int x = startx; x <= endx; x ++) {
-			for (int y = starty; y <= endy; y ++) {
+		for (int x = startx; x <= endx; x += size) {
+			for (int y = starty; y <= endy; y += size) {
 				Point p = gf.createPoint(new Coordinate(x,y));
 				if (pp.contains(p)) {
-					
 					double d = Double.MAX_VALUE;
 					for (LineString ls : waterEdges) {
 						double d1 = DistanceOp.distance(p, ls);
