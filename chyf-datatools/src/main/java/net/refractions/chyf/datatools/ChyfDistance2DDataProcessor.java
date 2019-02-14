@@ -1,4 +1,4 @@
-package net.refracitons.chyf.datatools;
+package net.refractions.chyf.datatools;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -115,7 +115,7 @@ public class ChyfDistance2DDataProcessor {
 	
 	private static Distance2DResult run(ChyfDataSource dataSource, CoordinateReferenceSystem crs) throws Exception{
 		Distance2DProcessor engine = new Distance2DProcessor(dataSource, crs);
-		engine.setCellSize(100);
+//		engine.setCellSize(100);
 		engine.doWork();
 		return engine.getResults();		
 	}

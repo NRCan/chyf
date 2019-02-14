@@ -1,4 +1,4 @@
-package net.refracitons.chyf.datatools;
+package net.refractions.chyf.datatools;
 
 import java.nio.file.Files;
 import java.nio.file.Path;

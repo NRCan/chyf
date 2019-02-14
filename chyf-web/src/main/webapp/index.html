@@ -116,32 +116,37 @@
 			background-color: #cce0ff;
 		}
 		.buttonGroup {
-			border: 1px solid lightSlateGrey;
+			border: 1px solid #aaaaaa;
 			padding: 2px;
+			border-radius: 4px
 		}
 		.idInput {
 			width: 60px;
 		}
-		.toolBtn {
-			font-size: 13px;
-			margin: 3px;
-			border: 1px solid grey;
-			padding: 3px 8px;
-			background-color: #cccccc;
-			box-shadow: -2px -2px 5px rgba(0,0,0,.25) inset, 2px 2px 5px white inset;
+		.btn-sm{
+			padding-top:4px;
+			padding-bottom:4px;
+			background-color:#F0F0F0;
 		}
-		.toolBtn:hover {
-			border: 1px solid #bbbbbb;
-			background-color: #dddddd;
+		.input-sm{
+			height: 27px;
 		}
+		
+		.go-button{
+			background-color:#15893A;
+			width: 100%;
+			color: white;
+		}
+		.go-button:hover{
+        	color:white;
+        	background-color:#117330;
+        	border: 1px solid #0C4C20;
+        }
 		.activeTool {
 			border-color: lightBlue;
 			box-shadow: 2px 2px 5px rgba(0,0,0,.25) inset, -2px -2px 5px white inset;
 		}
-		#flowpathValSel {
-			width: 170px;
-			margin: 2px;
-		}
+
 		#dataBar table {
 			/*display: block;*/
 			max-height: 190px;
@@ -170,10 +175,7 @@
 		#dataBar table tbody tr:nth-last-child(even) {
 			background-color:  #e5e5e5;
 		}
-		#clearSelection {
-			margin-top: 16px;
-			background-color: #cce0ff;
-		}
+
 		.featureTitle {
 			font-weight: bold;
 		}
@@ -264,15 +266,7 @@
         	font-weight: normal;
         }
         
-        #doPPCalc{
-        	width:100%; 
-        	color:black;  
-        	background-color:#FF0055;
-        }
-        #doPPCalc:hover{
-        	color:black;  
-        	background-color:#ABABAB;
-        }
+       
        .leaflet-tooltip.pourpointPointStyle{
 		   background-color: transparent;
        		border:transparent;
@@ -305,58 +299,86 @@
   			</ul>
 			<div class="tab-content">
 			<div class="tab-pane active" id="main_body" >
-				<div class="about"><a href="https://github.com/cmhodgson/chyf-pilot/wiki">About the CHyF Pilot...</a></div>
+				<div class="about"><a href="https://github.com/NRCan/chyf-pilot/wiki">About the CHyF Pilot...</a></div>
 				<div class="toolCat">Nexuses</div>
-				<button id="nexusById" type="button" class="toolBtn">Find by ID:</button>
-				<input id="nexusId" class="idInput" type="text"/>
-			 	<div class="toolCat">Elementary Flowpaths</div>
-				<button id="flowpathById" type="button" class="toolBtn">Find by ID:</button>
-				<input id="flowpathId" class="idInput" type="text"/>
-				<!-- 
-				<button id="flowpathsUpstreamOfId" type="button" class="toolBtn">Upstream Of ID</button>
-				<button id="flowpathsDownstreamOfId" type="button" class="toolBtn">Downstream Of ID</button>
-				-->
-				<button id="flowpathFlowsFrom" type="button" class="toolBtn tool">Flows From Point</button>
-				<button id="flowpathsUpstreamOf" type="button" class="toolBtn tool">Upstream Of Point</button>
-				<button id="flowpathsDownstreamOf" type="button" class="toolBtn tool">Downstream Of Point</button>
 				
-				<div class="buttonGroup">
-					<select id="flowpathPropSel">
-						<option value="name">Name</option>
-						<option value="type">Type</option>
-						<option value="rank">Rank</option>
-						<option value="strahleror">Strahler Order</option>
-						<option value="hortonor">Horton Order</option>
-						<option value="hackor">Hack Order</option>
-						<option value="length">Length (m)</option>
-					</select>
-					<select id="flowpathPredSel">
-						<option value="equals">=</option>
-						<option value="lessThan">&lt;</option>
-						<option value="greaterThan">&gt;</option>
-					</select>
-					<select id="flowpathValSel"></select><br/>
-					<button id="flowpathFilter" type="button" class="toolBtn">Find by Filter</button>
+				<div class="form-group" style="display:flex;">
+					<button id="nexusById" type="button" class="btn btn-default btn-sm">Find by ID:</button>
+					<div style="margin-left:10px">
+					<input id="nexusId" class="form-control input-sm" type="text"/>
+					</div>
+				</div>
+			 	
+			 	<div class="toolCat">Elementary Flowpaths</div>
+				
+				<div class="form-group">
+					<div style="display:flex;">
+						<button id="flowpathById" type="button" class="btn btn-default btn-sm">Find by ID:</button>
+						<div style="margin-left:10px">
+						<input id="flowpathId" class="form-control input-sm" type="text"/>
+						</div>
+					</div>
+					<button id="flowpathFlowsFrom" type="button" class="btn btn-default btn-sm tool" style="width:100%;margin-top:5px">Flows From Point</button>
+					<button id="flowpathsUpstreamOf" type="button" class="btn btn-default btn-sm tool" style="width:100%;margin-top:5px">Upstream Of Point</button>
+					<button id="flowpathsDownstreamOf" type="button" class="btn btn-default btn-sm tool" style="width:100%;margin-top:5px">Downstream Of Point</button>
+				
+				
+					<div class="buttonGroup input-group-sm input-group"style="width:100%; margin-top:4px">
+						<div style="display:flex;">
+						<select id="flowpathPropSel" class="form-control input-sm">
+							<option value="name">Name</option>
+							<option value="type">Type</option>
+							<option value="rank">Rank</option>
+							<option value="strahleror">Strahler Order</option>
+							<option value="hortonor">Horton Order</option>
+							<option value="hackor">Hack Order</option>
+							<option value="length">Length</option>
+						</select>
+						<select id="flowpathPredSel" class="form-control input-sm" style="width:100px">
+							<option value="equals">=</option>
+							<option value="lessThan">&lt;</option>
+							<option value="greaterThan">&gt;</option>
+						</select>
+						</div>
+						<select id="flowpathValSel" class="form-control input-sm" style="margin-top:3px"></select><br/>
+						<button id="flowpathFilter" type="button" class="btn btn-default btn-sm tool" style="width:100%;margin-top:3px">Find by Filter</button>
+					</div>
 				</div>
 				
+				
 				<div class="toolCat">Elementary Catchments</div>
-				<button id="catchmentById" type="button" class="toolBtn">Find by ID:</button>
-				<input id="catchmentId" class="idInput" type="text"/>
-				<!-- 
-				<button id="catchmentsUpstreamOfId" type="button" class="toolBtn">Upstream Of ID</button>
-				<button id="catchmentsDownstreamOfId" type="button" class="toolBtn">Downstream Of ID</button>
-				-->
-				<button id="catchmentContaining" type="button" class="toolBtn tool">Containing Point</button>
-				<button id="catchmentsUpstreamOf" type="button" class="toolBtn tool">Upstream Of Point</button>
-				<button id="catchmentsDownstreamOf" type="button" class="toolBtn tool">Downstream Of Point</button>
+				
+				<div class="form-group" >
+					<div style="display:flex;">
+						<button id="catchmentById" type="button" class="btn btn-default btn-sm">Find by ID:</button>
+						<div style="margin-left:10px">
+						<input id="catchmentId" class="form-control input-sm" type="text"/>
+						</div>
+					</div>
+					<button id="catchmentContaining" type="button" class="btn btn-default btn-sm tool" style="width:100%;margin-top:5px">Containing Point</button>
+					<button id="catchmentsUpstreamOf" type="button" class="btn btn-default btn-sm tool" style="width:100%;margin-top:5px">Upstream Of Point</button>
+					<button id="catchmentsDownstreamOf" type="button" class="btn btn-default btn-sm tool" style="width:100%;margin-top:5px">Downstream Of Point</button>
+				</div>
+				
+
 				<div class="toolCat">Waterbody Flows</div>
-				<button id="multiDimensionalUpstreamOf" type="button" class="toolBtn tool">Upstream Of Point</button>
-				<button id="multiDimensionalDownstreamOf" type="button" class="toolBtn tool">Downstream Of Point</button>
-				<div class="toolCat">Catchment<br>(Drainage Area)</div>
-				<div><input id="removeHoles" type="checkbox"/>Remove Holes</div>
-				<button id="drainageAreaUpstreamOf" type="button" class="toolBtn tool">Upstream Of Point</button>
-				<button id="drainageAreaDownstreamOf" type="button" class="toolBtn tool">Downstream Of Point</button>
-				<button id="clearSelection" type="button" class="toolBtn">Clear Selection</button>
+				<div class="form-group">
+					<button id="multiDimensionalUpstreamOf" type="button" class="btn btn-default btn-sm tool" style="width:100%;margin-top:5px">Upstream Of Point</button>
+					<button id="multiDimensionalDownstreamOf" type="button" class="btn btn-default btn-sm tool" style="width:100%;margin-top:5px">Downstream Of Point</button>
+				</div>
+				<div class="toolCat">Catchment (Drainage Area)</div>
+				<div>
+					<input class="form-check-input" type="checkbox" value="" id="removeHoles" checked>
+					<label class="form-check-label" for="removeHoles" style="font-weight:normal">Remove Holes</label><br>
+				</div>
+				<div class="form-group">
+					<button id="drainageAreaUpstreamOf" type="button" class="btn btn-default btn-sm tool" style="width:100%;margin-top:5px">Upstream Of Point</button>
+					<button id="drainageAreaDownstreamOf" type="button" class="btn btn-default btn-sm tool" style="width:100%;margin-top:5px">Downstream Of Point</button>
+				</div>
+				
+				
+				
+				<button id="clearSelection" type="button" class="go-button btn btn-sm tool" style="margin-bottom:20px">Clear Selection</button>
 			</div> <!-- maintab body -->
 			
 			<div class="tab-pane" id="pourpoint_body" >
@@ -430,11 +452,11 @@
 				</div>
 				<div>
 					<input class="form-check-input" type="checkbox" value="" id="includestats">
-					<label class="form-check-label" for="includestats" style="font-weight:normal; display:inline">Include Catchment Slope, Elevation, Aspect Statistics</label>
+					<label class="form-check-label" for="includestats" style="font-weight:normal; display:inline">Include Catchment Slope, Elevation, Aspect, & Distance to Water Statistics</label>
 				</div>
 			</div>
 			<div class="toolCat">Actions</div>
-			<button id="doPPCalc" class="btn btn-default btn-sm" type="button" title="DoIt!" >Do It!</button>
+			<button id="doPPCalc" class="btn btn-default btn-sm go-button" type="button" title="DoIt!" >Do It!</button>
 			<button id="clearPPMapLayers" class="btn btn-default btn-sm" style="margin-top:10px; width:100%" type="button" title="Clear Map" >Clear Map</button>
 			
 			<button id="ppUrlButtonJson" class="btn btn-default btn-sm" style="margin-top:10px; width:100%" type="button" title="Copy the json url to the clipboard" disabled=true>Copy URL (JSON)</button>
@@ -1507,7 +1529,7 @@
 					'strahleror': 'Strahler Order',
 					'hortonor': 'Horton Order',
 					'hackor': 'Hack Order',
-					'length': 'Length (metres)'
+					'length': 'Length*'
 				}
 			},
 			eCatchment: {
@@ -1522,20 +1544,20 @@
 					'strahleror': 'Strahler Order',
 					'hortonor': 'Horton Order',
 					'hackor': 'Hack Order',
-					'area': 'Area (ha)',
-					'd2w2d_mean': '2D Distance to Water (m) Mean',
-					'd2w2d_max': '2D Distance to Water (m) Max',
-					'elv_min': 'Elevation Min',
-					'elv_max': 'Elevation Max',
-					'elv_mean': 'Elevation Mean',
-					'slope_min': 'Slope Min',
-					'slope_max': 'Slope Max',
-					'slope_mean': 'Slope Mean',
+					'area': 'Area*',
+					'd2w2d_mean': '2D Distance to Water Mean*',
+					'd2w2d_max': '2D Distance to Water Max*',
+					'elv_min': 'Elevation Min*',
+					'elv_max': 'Elevation Max*',
+					'elv_mean': 'Elevation Mean*',
+					'slope_min': 'Slope Min*',
+					'slope_max': 'Slope Max*',
+					'slope_mean': 'Slope Mean*',
 					'north_pct': 'Aspect % North',
 					'south_pct': 'Aspect % South',
 					'east_pct': 'Aspect % East',
 					'west_pct': 'Aspect % West',
-					'flat_pct': 'Aspect % Flat',
+					'flat_pct': 'Aspect % Flat**',
 				}
 			},
 			eMulti:{
@@ -1550,28 +1572,28 @@
 					'strahleror': 'Strahler Order',
 					'hortonor': 'Horton Order',
 					'hackor': 'Hack Order',
-					'area': 'Area (ha)',
-					'length': 'Length (metres)'
+					'area': 'Area*',
+					'length': 'Length*'
 				}
 			},
 			drainageArea: {
 				title: "Drainage Area",
 				titlePlural: "Drainage Areas",
 				cols: {
-					'area': 'Area (ha)',
-					'elv_min': 'Elevation Min',
-					'elv_max': 'Elevation Max',
-					'elv_mean': 'Elevation Mean',
-					'slope_min': 'Slope Min',
-					'slope_max': 'Slope Max',
-					'slope_mean': 'Slope Mean',
+					'area': 'Area*',
+					'elv_min': 'Elevation Min*',
+					'elv_max': 'Elevation Max*',
+					'elv_mean': 'Elevation Mean*',
+					'slope_min': 'Slope Min*',
+					'slope_max': 'Slope Max*',
+					'slope_mean': 'Slope Mean*',
 					'north_pct': 'Aspect % North',
 					'south_pct': 'Aspect % South',
 					'east_pct': 'Aspect % East',
 					'west_pct': 'Aspect % West',
-					'flat_pct': 'Aspect % Flat',
-					'd2w2d_mean': '2D Distance to Water (m) Mean',
-					'd2w2d_max': '2D Distance to Water (m) Max',
+					'flat_pct': 'Aspect % Flat**',
+					'd2w2d_mean': '2D Distance to Water Mean*',
+					'd2w2d_max': '2D Distance to Water Max*',
 				}
 			}
 		};
@@ -1613,11 +1635,12 @@
 				$tbody.append($row);
 			}
 			$table.append($tbody);
+			$div.append($('<div style=\'font-size: 0.8em\'>*Areas are provided in hectares (ha), Distances in meters (m), Elevation in meters (m), Slope in degrees (<sup>o</sup>)<br>**Flat in the context of Aspect means that the slope is <3<sup>o</sup></div>'));
 			var geopkgurl = url.replace(/\.json/, ".gpkg");
 			$('#dataBar').empty();
 			$('#dataBar').append('<div id="dataTitle" title="' + url + '">' + dataMap[type].titlePlural + ' (' + features.length + ')'
-					+ ' <button id="urlButtonJson" type="button" data-clipboard-text="' + url + '">Copy Url (JSON)</button>'
-					+ ' <button id="urlButtonGeoPkg" type="button" data-clipboard-text="' + geopkgurl + '">Copy Url (GeoPkg)</button></div>');
+					+ ' <button class="btn btn-default btn-sm" id="urlButtonJson" type="button" data-clipboard-text="' + url + '">Copy Url (JSON)</button>'
+					+ ' <button class="btn btn-default btn-sm" id="urlButtonGeoPkg" type="button" data-clipboard-text="' + geopkgurl + '">Copy Url (GeoPkg)</button></div>');
 			//$('#dataBar').append('<div id="dataUrl">' + url + '</div>');
 			$('#dataBar').append($div);
 			new Clipboard('#urlButtonJson');
@@ -1654,6 +1677,8 @@
 				}
 			}
 			str += "</table>";
+			str += '<div style="font-size:.8em">*Areas are provided in hectares (ha), Distances in meters (m), Elevation in meters (m), Slope in degrees (<sup>o</sup>)<br>**Flat in the context of Aspect means that the slope is <3<sup>o</sup></div>';
+
 			return str;
 		}
 
@@ -2273,23 +2298,23 @@
 					cols = {'id': 'ID', 'ccode': 'C-Code', 'raw_x': 'Raw-X', 'raw_y': 'Raw-Y', 'projected_x': 'Projected-X', 'projected_y': 'Projected-Y'};
 				}else{
 					if (includeStat){
-						cols = {'id': 'ID','area': 'Area (ha)', 
-							'elv_min': 'Elevation Min', 
-							'elv_max': 'Elevation Max',
-							'elv_mean': 'Elevation Mean',
-							'slope_min': 'Slope Min', 
-							'slope_max': 'Slope Max',
-							'slope_mean': 'Slope Mean',
+						cols = {'id': 'ID','area': 'Area*', 
+							'elv_min': 'Elevation Min*', 
+							'elv_max': 'Elevation Max*',
+							'elv_mean': 'Elevation Mean*',
+							'slope_min': 'Slope Min*', 
+							'slope_max': 'Slope Max*',
+							'slope_mean': 'Slope Mean*',
 							'north_pct': 'Aspect % North',
 							'south_pct': 'Aspect % South',
 							'east_pct': 'Aspect % East',
 							'west_pct': 'Aspect % West',
-							'flat_pct': 'Aspect % Flat',
-							'd2w2d_mean': '2D Distance to Water (m) Mean',
-							'd2w2d_max': '2D Distance to Water (m) Max',
+							'flat_pct': 'Aspect % Flat**',
+							'd2w2d_mean': '2D Distance to Water Mean*',
+							'd2w2d_max': '2D Distance to Water Max*',
 						};
 					}else{
-						cols = {'id': 'ID','area': 'Area (ha)'};
+						cols = {'id': 'ID','area': 'Area*'};
 					}	
 				}
 
@@ -2300,6 +2325,7 @@
 				}
 				$table.append($thead);
 				var $tbody = $('<tbody/>');
+				
 				for(var f in features) {
 					var $row = $('<tr/>');
 					$row.data("geometry", features[f].geometry);
@@ -2315,7 +2341,7 @@
 								value = value.toFixed(5);
 							}
 						} 
-							
+						
 						$row.append('<td>' + (value == null ? "" : value) + '</td>');
 						
 					}
@@ -2353,6 +2379,15 @@
 				}
 				$table.append($tbody);
 				$table.appendTo($(optabBody));
+				if (data.key != "op"){
+					var msg = '<div style=\'font-size: 0.8em\'>*Areas are provided in hectares (ha), Distances in meters (m), Elevation in meters (m), Slope in degrees (<sup>o</sup>)';
+					if (includeStat){
+						msg = msg + '<br>**Flat in the context of Aspect means that the slope is <3<sup>o</sup>';
+					}
+					msg = msg + "</div>"
+					$(optabBody).append($(msg));
+				}
+
 			}
 			return $(optabBody);
 		}

@@ -125,7 +125,8 @@ public class SEAResult {
 		private void addAspect(double slope, double aspect) {
 			if (aspect < 0 || aspect > 360) throw new IllegalStateException("invalid aspect value");
 			int index = -1;
-			if (slope < 5) {
+			if (slope < 3) {
+				//flat
 				index = 4;
 			}else if (aspect >= 315 || aspect < 45) {
 				//north
