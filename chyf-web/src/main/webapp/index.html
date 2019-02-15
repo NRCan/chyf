@@ -300,23 +300,24 @@
 			<div class="tab-content">
 			<div class="tab-pane active" id="main_body" >
 				<div class="about"><a href="https://github.com/NRCan/chyf-pilot/wiki">About the CHyF Pilot...</a></div>
-				<div class="toolCat">Nexuses</div>
+				<div class="toolCat">Hydro Nexuses</div>
 				
 				<div class="form-group" style="display:flex;">
-					<button id="nexusById" type="button" class="btn btn-default btn-sm">Find by ID:</button>
-					<div style="margin-left:10px">
+					
+					<div style="margin-right:10px">
 					<input id="nexusId" class="form-control input-sm" type="text"/>
 					</div>
+					<button id="nexusById" type="button" class="btn btn-default btn-sm">Find by ID</button>
 				</div>
 			 	
 			 	<div class="toolCat">Elementary Flowpaths</div>
 				
 				<div class="form-group">
 					<div style="display:flex;">
-						<button id="flowpathById" type="button" class="btn btn-default btn-sm">Find by ID:</button>
-						<div style="margin-left:10px">
+						<div style="margin-right:10px">
 						<input id="flowpathId" class="form-control input-sm" type="text"/>
 						</div>
+						<button id="flowpathById" type="button" class="btn btn-default btn-sm">Find by ID</button>
 					</div>
 					<button id="flowpathFlowsFrom" type="button" class="btn btn-default btn-sm tool" style="width:100%;margin-top:5px">Flows From Point</button>
 					<button id="flowpathsUpstreamOf" type="button" class="btn btn-default btn-sm tool" style="width:100%;margin-top:5px">Upstream Of Point</button>
@@ -350,10 +351,10 @@
 				
 				<div class="form-group" >
 					<div style="display:flex;">
-						<button id="catchmentById" type="button" class="btn btn-default btn-sm">Find by ID:</button>
-						<div style="margin-left:10px">
+						<div style="margin-right:10px">
 						<input id="catchmentId" class="form-control input-sm" type="text"/>
 						</div>
+						<button id="catchmentById" type="button" class="btn btn-default btn-sm">Find by ID</button>
 					</div>
 					<button id="catchmentContaining" type="button" class="btn btn-default btn-sm tool" style="width:100%;margin-top:5px">Containing Point</button>
 					<button id="catchmentsUpstreamOf" type="button" class="btn btn-default btn-sm tool" style="width:100%;margin-top:5px">Upstream Of Point</button>
@@ -742,7 +743,7 @@
 				return marker;
 			}
 		});
-		overlays["Nexuses"] = nexusLayer;
+		overlays["Hydro Nexuses"] = nexusLayer;
 		nexusLayer.addTo(map);
 
 		var wellsLayer = new L.layerJSON({
@@ -1511,8 +1512,8 @@
 
 		var dataMap = {
 			nexus: {
-				title: "Nexus",
-				titlePlural: "Nexuses",
+				title: "Hydro Nexus",
+				titlePlural: "Hydro Nexuses",
 				cols: {
 					'id': 'ID',
 					'type': 'Type'
