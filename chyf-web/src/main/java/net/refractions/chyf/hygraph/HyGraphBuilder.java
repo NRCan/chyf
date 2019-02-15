@@ -223,7 +223,20 @@ public class HyGraphBuilder {
 				if(upTypes.get(FlowpathType.INFERRED) == 1 && n.getUpFlows().size() == 1 
 						&& downTypes.get(FlowpathType.INFERRED) == 1 && n.getDownFlows().size() == 1) {
 					// just two inferred
-					n.setType(NexusType.WATER);
+					//if this is on a boundary of a catchment then it should be type water
+					//if it is in the middle of a catchment then it should be type inferred
+					List<ECatchment> items = eCatchmentIndex.query(n.getEnvelope());
+					int cnt = 0;
+					for (ECatchment c : items) {
+						if (c.getPolygon().intersects(n.getPoint())) {
+							cnt ++;
+						}
+					}
+					if (cnt > 1) {
+						n.setType(NexusType.WATER);
+					}else {
+						n.setType(NexusType.INFERRED);
+					}
 				} else if(upTypes.get(FlowpathType.INFERRED) + upTypes.get(FlowpathType.BANK) == n.getUpFlows().size()
 						&& downTypes.get(FlowpathType.INFERRED) + downTypes.get(FlowpathType.BANK)== n.getDownFlows().size()) {
 					// all inferred and bank

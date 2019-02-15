@@ -300,7 +300,7 @@
 			<div class="tab-content">
 			<div class="tab-pane active" id="main_body" >
 				<div class="about"><a href="https://github.com/NRCan/chyf-pilot/wiki">About the CHyF Pilot...</a></div>
-				<div class="toolCat">Hydro Nexuses</div>
+				<div class="toolCat">Hydro Nodes</div>
 				
 				<div class="form-group" style="display:flex;">
 					
@@ -629,7 +629,7 @@
 					}
 				}
 				polygon.setStyle(style);
-				polygon.bindPopup(makeFeatureTable('eCatchment', data));
+				polygon.bindPopup(makeFeatureTable('eCatchment', data), {autoPan: false});
 				return polygon;
 			}
 		});
@@ -678,7 +678,7 @@
         			weight: weight,
         			dashArray: dasharray
 				});
-				path.bindPopup(makeFeatureTable('eFlowpath', data));
+				path.bindPopup(makeFeatureTable('eFlowpath', data), {autoPan: false});
 				return path;
 			}/*,
 			onEachMarker: function(data, marker) {
@@ -739,11 +739,11 @@
 						break;
 				}
 				var marker = L.circleMarker(latLng, options);
-				marker.bindPopup(makeFeatureTable('nexus', data));
+				marker.bindPopup(makeFeatureTable('nexus', data), {autoPan: false});
 				return marker;
 			}
 		});
-		overlays["Hydro Nexuses"] = nexusLayer;
+		overlays["Hydro Nodes"] = nexusLayer;
 		nexusLayer.addTo(map);
 
 		var wellsLayer = new L.layerJSON({
@@ -1512,8 +1512,8 @@
 
 		var dataMap = {
 			nexus: {
-				title: "Hydro Nexus",
-				titlePlural: "Hydro Nexuses",
+				title: "Hydro Node",
+				titlePlural: "Hydro Nodes",
 				cols: {
 					'id': 'ID',
 					'type': 'Type'
@@ -2173,7 +2173,7 @@
 			}
 			
 			if (layers.pc != null || layers.pcr != null){
-				var $div = $('<div/>').append($('<div>Partitioning implies that all inflows to a lower catchment flow through a single hydro nexus, and that the hydro nexus is upstream of all parts of the lower catchment.</div>'));				
+				var $div = $('<div/>').append($('<div>Partitioning implies that all inflows to a lower catchment flow through a single hydro node, and that the hydro node is upstream of all parts of the lower catchment.</div>'));				
 				layers.pc_tab.prepend($div);
 			}
 			
