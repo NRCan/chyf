@@ -4,6 +4,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import net.refractions.chyf.datatools.processor.ProgressMonitor;
 import net.refractions.chyf.datatools.processor.SEAProcessor;
 import net.refractions.chyf.datatools.processor.SEAResult;
 import net.refractions.chyf.datatools.readers.ChyfDataSource;
@@ -45,31 +46,51 @@ public class ChyfSEADataProcessor {
 			printUsage();
 			return;
 		}
+		try {
+			ProgressMonitor progressPrinter = new ProgressMonitor() {
+				public void worked(int amount) {
+					super.worked(amount);
+					if (amount % 10 == 0) System.out.println(getPercentage() + "%");
+				}
+			};
+			
+			(new ChyfSEADataProcessor()).compute(sinput, sdem, sout, progressPrinter);
+		}catch (Exception ex) {
+			ex.printStackTrace();
+			System.out.println(ex.getMessage());
+			printUsage();
+			return;
+		}
+	}
+	
+	/**
+	 * 
+	 * @param sinFile  Either a geopackage file or a directory containing dataset shapefiles
+	 * @param soutFile Either a geopackage file or a path to shapefile
+	 * @param srid
+	 * @throws Exception
+	 */
+	public void compute(String sinFile, String sDemFile, String soutFile, ProgressMonitor monitor) throws Exception{
+		Path input = Paths.get(sinFile);
+		Path outFile = Paths.get(soutFile);
+		Path demFile = Paths.get(sDemFile);
 		
-		Path input = Paths.get(sinput);
-		Path outFile = Paths.get(sout);
+		if (!Files.exists(demFile)) {
+			throw new Exception("DEM file not found.");
+		}
 		
 		if (Files.isDirectory(input)) {
 			//SHAPEFILE
 			try(ChyfDataSource dataSource = new ChyfShapeDataSource(input)){
 			
-				if (!Files.exists(outFile)) {
-					Files.createDirectories(outFile);
+				if (!outFile.toString().endsWith(".shp")) {
+					throw new Exception("Output must be shapefile for shapefile input.");
 				}
-				if (Files.exists(outFile) && !Files.isDirectory(outFile)) {
-					System.out.println("Output must be a directory for shapefile input.");
-					printUsage();
-					return;
-				}
-				
-				outFile = outFile.resolve(ChyfShapeDataSource.CATCHMENT_FILE);
 				if (Files.exists(outFile)) {
-					System.out.println("Output file exists - cannot overwrite.");
-					printUsage();
-					return;
+					throw new Exception("Output file exists - cannot overwrite.");
 				}
 				
-				SEAResult results = run(dataSource, dem);
+				SEAResult results = run(dataSource, demFile, monitor);
 				
 				if (results != null) {
 					ChyfShapeDataSourceSEAWriter writer = new ChyfShapeDataSourceSEAWriter(dataSource, outFile);
@@ -82,16 +103,12 @@ public class ChyfSEADataProcessor {
 			try(ChyfDataSource dataSource = new ChyfGeoPackageDataSource(input)){
 			
 				if (!outFile.toString().endsWith(".gpkg")) {
-					System.out.println("Output must be a geopackage (.gpkg) for geopackage input.");
-					printUsage();
-					return;
+					throw new Exception("Output must be a geopackage (.gpkg) for geopackage input.");
 				}
 				if (Files.exists(outFile)) {
-					System.out.println("Output file exists - cannot overwrite.");
-					printUsage();
-					return;
+					throw new Exception("Output file exists - cannot overwrite.");
 				}
-				SEAResult results = run(dataSource, dem);
+				SEAResult results = run(dataSource, demFile, monitor);
 				
 				if (results != null) {
 					ChyfGeoPackageDataSourceSEAWriter writer = new ChyfGeoPackageDataSourceSEAWriter((ChyfGeoPackageDataSource) dataSource, outFile);
@@ -99,17 +116,15 @@ public class ChyfSEADataProcessor {
 				}
 			}
 		}else {
-			System.out.println("Input data source: '" + sinput + "' not supported.  Must be geopackage file or a directory");
-			printUsage();
-			return;
+			throw new Exception("Input data source: '" + sinFile + "' not supported.  Must be geopackage file or a directory");
 		}
 	}
 	
-	private static SEAResult run(ChyfDataSource dataSource, Path dem) throws Exception{
+	private static SEAResult run(ChyfDataSource dataSource, Path dem,  ProgressMonitor monitor) throws Exception{
 		SEAResult results = null;
 		try(GeoTiffDemReader demReader = new GeoTiffDemReader(dem)){
 			SEAProcessor engine = new SEAProcessor(dataSource, demReader);
-			results = engine.doWork();
+			results = engine.doWork(monitor);
 			return results;
 		}
 	}

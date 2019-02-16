@@ -9,6 +9,7 @@ import org.opengis.referencing.crs.CoordinateReferenceSystem;
 
 import net.refractions.chyf.datatools.processor.Distance2DProcessor;
 import net.refractions.chyf.datatools.processor.Distance2DResult;
+import net.refractions.chyf.datatools.processor.ProgressMonitor;
 import net.refractions.chyf.datatools.readers.ChyfDataSource;
 import net.refractions.chyf.datatools.readers.ChyfGeoPackageDataSource;
 import net.refractions.chyf.datatools.readers.ChyfShapeDataSource;
@@ -34,47 +35,57 @@ public class ChyfDistance2DDataProcessor {
 			return;
 		}
 
-		Long now = System.nanoTime();
-		
-		
 		String sepsg = args[0];
 		String sinput = args[1];
 		String sout = args[2];
 		
-		Path input = Paths.get(sinput);
-		Path outFile = Paths.get(sout);
+		try {
+			ProgressMonitor progressPrinter = new ProgressMonitor() {
+				public void worked(int amount) {
+					super.worked(amount);
+					if (amount % 10 == 0) System.out.println(getPercentage() + "%");
+				}
+			};
+			
+			(new ChyfDistance2DDataProcessor()).compute(sinput, sout, sepsg, progressPrinter);
+		}catch (Exception ex) {
+			ex.printStackTrace();
+			System.out.println(ex.getMessage());
+			printUsage();
+		}
+	};
+	
+	/**
+	 * 
+	 * @param sinFile  Either a geopackage file or a directory containing dataset shapefiles
+	 * @param soutFile Either a geopackage file or a path to shapefile
+	 * @param srid
+	 * @throws Exception
+	 */
+	public void compute(String sinFile, String soutFile, String srid, ProgressMonitor monitor) throws Exception{
+		Path input = Paths.get(sinFile);
+		Path outFile = Paths.get(soutFile);
 		
 		CoordinateReferenceSystem workingCRS;
 		try{
-			workingCRS = CRS.decode(sepsg);
+			workingCRS = CRS.decode(srid);
 		}catch (Exception ex) {
-			ex.printStackTrace();
-			System.out.println("Could not parse epsg code: " + sepsg);
-			printUsage();
-			return;
+			throw new Exception("Could not parse epsg code :" + srid, ex);
+			
 		}
 		
 		if (Files.isDirectory(input)) {
 			//SHAPEFILE
 			try(ChyfDataSource dataSource = new ChyfShapeDataSource(input)){
 			
-				if (!Files.exists(outFile)) {
-					Files.createDirectories(outFile);
+				if (!outFile.toString().endsWith(".shp")) {
+					throw new Exception("Output must be a shapefile (.shp) for shpaefile input.");
 				}
-				if (Files.exists(outFile) && !Files.isDirectory(outFile)) {
-					System.out.println("Output must be a directory for shapefile input.");
-					printUsage();
-					return;
-				}
-				
-				outFile = outFile.resolve(ChyfShapeDataSource.CATCHMENT_FILE);
 				if (Files.exists(outFile)) {
-					System.out.println("Output file exists - cannot overwrite.");
-					printUsage();
-					return;
+					throw new Exception("Output file exists - cannot overwrite.");
 				}
 				
-				Distance2DResult results = run(dataSource, workingCRS);
+				Distance2DResult results = run(dataSource, workingCRS, monitor);
 				
 				if (results != null) {
 					ChyfShapeDataSourceDistance2DWriter writer = new ChyfShapeDataSourceDistance2DWriter(dataSource, outFile);
@@ -87,16 +98,12 @@ public class ChyfDistance2DDataProcessor {
 			try(ChyfDataSource dataSource = new ChyfGeoPackageDataSource(input)){
 			
 				if (!outFile.toString().endsWith(".gpkg")) {
-					System.out.println("Output must be a geopackage (.gpkg) for geopackage input.");
-					printUsage();
-					return;
+					throw new Exception("Output must be a geopackage (.gpkg) for geopackage input.");
 				}
 				if (Files.exists(outFile)) {
-					System.out.println("Output file exists - cannot overwrite.");
-					printUsage();
-					return;
+					throw new Exception("Output file exists - cannot overwrite.");
 				}
-				Distance2DResult results = run(dataSource, workingCRS);
+				Distance2DResult results = run(dataSource, workingCRS, monitor);
 				
 				if (results != null) {
 					ChyfGeoPackageDataSourceDistance2DWriter writer = new ChyfGeoPackageDataSourceDistance2DWriter((ChyfGeoPackageDataSource) dataSource, outFile);
@@ -104,19 +111,14 @@ public class ChyfDistance2DDataProcessor {
 				}
 			}
 		}else {
-			System.out.println("Input data source: '" + sinput + "' not supported.  Must be geopackage file or a directory");
-			printUsage();
-			return;
+			throw new Exception("Input data source: '" + sinFile + "' not supported.  Must be geopackage file or a directory");
 		}
-		
-		Long then = System.nanoTime();
-		System.out.println("TIME:" + (then - now));
 	}
 	
-	private static Distance2DResult run(ChyfDataSource dataSource, CoordinateReferenceSystem crs) throws Exception{
+	private static Distance2DResult run(ChyfDataSource dataSource, CoordinateReferenceSystem crs, ProgressMonitor monitor) throws Exception{
 		Distance2DProcessor engine = new Distance2DProcessor(dataSource, crs);
 //		engine.setCellSize(100);
-		engine.doWork();
+		engine.doWork(monitor);
 		return engine.getResults();		
 	}
 	
@@ -125,6 +127,6 @@ public class ChyfDistance2DDataProcessor {
 		System.out.println("ChyfDistance2DDataProcessor  [srid] [input] [output]");
 		System.out.println("[srid] - the equal area projection valid for the input dataset to compute distances in (eg EPSG:4326)");
 		System.out.println("[input] - the input dataset (either a directory containing shapefiles OR geopackage files)");
-		System.out.println("[output] - the output location (either a directory or a geopackage file)");
+		System.out.println("[output] - the output location (either a shapefile or a geopackage file)");
 	}
 }

@@ -45,15 +45,15 @@ public class SEAProcessor {
 	//This means that client code being able to depend on this value as a persistent entity is
 	//dependent on which storage medium or data source is being used.
 	
-	public SEAResult doWork() throws Exception {
+	public SEAResult doWork(ProgressMonitor monitor) throws Exception {
 		//process by tile
 		List<SEAResult> results = new ArrayList<>();
 		
-		int cnt = 0;
+		monitor.setTaskLength(tiles.size()+1);
+		
 		for (Tile tile : tiles) {
-			cnt ++;
-			System.out.println(cnt + "/" + tiles.size());
 			results.add( (new SEATileProcessor(dem, data)).doWork(tile) );
+			monitor.worked(1);
 		}
 		
 		//merge all results
@@ -72,7 +72,7 @@ public class SEAProcessor {
 				total.getStats().put(feature.getID(), s);
 			}
 		}
-		
+		monitor.worked(1);
 		return total;
 	}
 	

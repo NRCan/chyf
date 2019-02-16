@@ -12,6 +12,7 @@ import org.junit.Test;
 
 import net.refractions.chyf.datatools.processor.Distance2DProcessor;
 import net.refractions.chyf.datatools.processor.Distance2DResult;
+import net.refractions.chyf.datatools.processor.ProgressMonitor;
 import net.refractions.chyf.datatools.readers.ChyfShapeDataSource;
 
 public class TestDistance2DComputation {
@@ -34,7 +35,7 @@ public class TestDistance2DComputation {
 	public void testCatchmentComputations() throws Exception {
 		Distance2DProcessor processor = new Distance2DProcessor(chyfData, CRS.decode("EPSG:3978"));
 		processor.setCellSize(100);
-		processor.doWork();
+		processor.doWork(new ProgressMonitor());
 		Distance2DResult results = processor.getResults();
 		
 		Assert.assertEquals("Invalid 2d mean distance for catchment 1", 84.3136166269, results.getResult("Catchment.1").getMean(), 0.000000001);

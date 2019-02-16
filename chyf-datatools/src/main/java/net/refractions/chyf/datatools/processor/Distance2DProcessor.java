@@ -55,15 +55,20 @@ public class Distance2DProcessor {
 		this.cellSize = cellSize;
 	}
 	
-	public void doWork() throws Exception {
+	public void doWork(ProgressMonitor progressMonitor) throws Exception {
 		distanceToWater = new Distance2DResult();
 				
 		//lets make a 1m grid out of this
-		int cnt = 0;
+		int total = 0;
+		try(SimpleFeatureReader reader = dataSource.getECatchments(null)){
+			while(reader.hasNext()) { reader.next(); total++;}
+		}
+		progressMonitor.setTaskLength(total);
+		
 		try(SimpleFeatureReader reader = dataSource.getECatchments(null)){
 			while(reader.hasNext()) {
-				if (cnt % 10 == 0) System.out.println("Processing " + cnt);
-				cnt++;
+				
+				progressMonitor.worked(1);
 				
 				SimpleFeature sf = reader.next();
 				

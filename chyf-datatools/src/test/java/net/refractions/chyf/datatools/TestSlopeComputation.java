@@ -18,6 +18,7 @@ import org.junit.Test;
 import org.locationtech.jts.geom.Geometry;
 import org.opengis.feature.simple.SimpleFeature;
 
+import net.refractions.chyf.datatools.processor.ProgressMonitor;
 import net.refractions.chyf.datatools.processor.SEAProcessor;
 import net.refractions.chyf.datatools.processor.SEAResult;
 import net.refractions.chyf.datatools.processor.SEATileProcessor;
@@ -58,7 +59,7 @@ public class TestSlopeComputation {
 	@Test
 	public void testCatchmentComputations() throws Exception {
 		SEAProcessor processor = new SEAProcessor(chyfData, elevationData);
-		SEAResult r = processor.doWork();
+		SEAResult r = processor.doWork(new ProgressMonitor());
 		
 		List<Geometry> geoms = new ArrayList<>();
 		SimpleFeatureReader reader = chyfData.getECatchments(chyfData.getCatchmentBounds());
@@ -80,17 +81,17 @@ public class TestSlopeComputation {
 		fid = (String) geoms.get(1).getUserData();
 		stats = r.getStats().get(fid);
 		checkSummary(1, stats, 85.0, 17.0, 54.8333333333, 14.4340948309, 8.0773441454, 11.1185455434);
-		checkAspect(1, stats, 1/3.0, 0, 2/3.0, 0, 0);
 		
 		fid = (String) geoms.get(2).getUserData();
 		stats = r.getStats().get(fid);
 		checkSummary(2, stats, 86.0, 3.0, 39.0625, 11.1991490964, 2.840891507, 7.7906328685);
-		checkAspect(2, stats, 2/16.0, 4/16.0, 2/16.0, 5/16.0, 3.0 / 16);
+		checkAspect(2, stats, 2/16.0, 5/16.0, 3/16.0, 5/16.0, 1.0 / 16);
+		
 		
 		fid = (String) geoms.get(3).getUserData();
 		stats = r.getStats().get(fid);
 		checkSummary(3, stats, 86.0, 3.0, 41.8421052632, 15.959163665310195, 1.017800465088096, 7.171605831564775);
-		checkAspect(3, stats, 3/19.0, 6/19.0, 2/19.0, 1/19.0, 7.0 / 19);
+		checkAspect(3, stats, 4/19.0, 6/19.0, 5/19.0, 2/19.0, 2.0 / 19);
 	}
 	
 	private void checkSummary(int id, SEAResult.Statistics stats, double maxe, double mine, double avge, double maxs, double mins, double avgs) {
