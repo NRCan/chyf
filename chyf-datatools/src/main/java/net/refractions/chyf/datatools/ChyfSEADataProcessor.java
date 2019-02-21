@@ -46,6 +46,11 @@ public class ChyfSEADataProcessor {
 			printUsage();
 			return;
 		}
+		//for shapefiles we want the parent directory
+		Path infile = Paths.get(sinput);
+		if (infile.toString().endsWith(".shp")) {
+			infile = infile.getParent();
+		}
 		try {
 			ProgressMonitor progressPrinter = new ProgressMonitor() {
 				public void worked(int amount) {
@@ -54,7 +59,7 @@ public class ChyfSEADataProcessor {
 				}
 			};
 			
-			(new ChyfSEADataProcessor()).compute(sinput, sdem, sout, progressPrinter);
+			(new ChyfSEADataProcessor()).compute(infile.toString(), sdem, sout, progressPrinter);
 		}catch (Exception ex) {
 			ex.printStackTrace();
 			System.out.println(ex.getMessage());
@@ -132,8 +137,8 @@ public class ChyfSEADataProcessor {
 	private static void printUsage() {
 		System.out.println("Usage:");
 		System.out.println("ChyfSEADataProcessor [input] [dem] [output]");
-		System.out.println("[input] - the input dataset (either a directory containing shapefiles OR geopackage files)");
+		System.out.println("[input] - the input dataset (must be either the Catchment.shp shapefile OR a geopackage file)");
 		System.out.println("[dem] - the tiled DEM in geotiff format.  Must be in a projection that maintains area and aspect");
-		System.out.println("[output] - the output location (either a directory or a geopackage file)");
+		System.out.println("[output] - the output location (either a shapefile or a geopackage file)");
 	}
 }

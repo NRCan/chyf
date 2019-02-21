@@ -1,1 +1,1 @@
-start javaw -jar ${datatoolsjar}
+start javaw -jar lib/${project.artifactId}-${project.version}-${timestamp}.jar

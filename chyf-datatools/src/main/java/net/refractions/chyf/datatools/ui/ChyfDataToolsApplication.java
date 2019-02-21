@@ -175,7 +175,7 @@ public class ChyfDataToolsApplication extends Application {
 		ll = new Label("*Supported input datasets include shapefiles or geopackage. For shapefiles pick the Catchment.shp file.");
 		grid.add(ll, 1, 3);
 		nodes.add(ll);
-		ll = new Label("**Must be in an equal area projection that preserves angles.  All processing is done in this projection.");
+		ll = new Label("**The .tif file must be a GeoTIFF. A conformal projection is recommended. See the documentation for details.");
 		grid.add(ll, 1, 4);
 		nodes.add(ll);
 		ll = new Label("***For shapefile inputs the output must be a shapefile.  For geopackage inputs the output must be a geopackage file.");
@@ -291,7 +291,7 @@ public class ChyfDataToolsApplication extends Application {
 		nodes.add(ll);
 		grid.add(ll, 1, 3);
 		
-		ll = new Label("**Data is projected to this projection during processing for the purposes of computing length (this should be an equal area projection)");
+		ll = new Label("**Data is projected to this projection during processing. A conformal projection is recommended. The default is EPSG:3978. See the documentation for details.");
 		nodes.add(ll);
 		grid.add(ll, 1, 4);
 		
@@ -341,8 +341,9 @@ public class ChyfDataToolsApplication extends Application {
 			if (lastDir != null) {
 				fileChooser.setInitialDirectory(lastDir);
 			}else {
-				fileChooser.setInitialDirectory(new File(System.getProperty("user.home")));
-			}			}else {
+				fileChooser.setInitialDirectory(new File(System.getProperty("user.dir")));
+			}			
+		}else {
 			File f= new File(text.getText());
 			fileChooser.setInitialDirectory(f.getParentFile());
 		}

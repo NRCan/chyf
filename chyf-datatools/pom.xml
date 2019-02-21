@@ -21,30 +21,8 @@
 	<!-- for running the app on windows or linux -->
 	
 	<build>
-	  <finalName>${project.artifactId}-${project.version}-${timestamp}</finalName>
-	  
+	  <finalName>${project.artifactId}-${project.version}-${timestamp}</finalName>	  
 		<plugins>
-			
-			<plugin>
-    			<groupId>org.apache.maven.plugins</groupId>
-    			<artifactId>maven-dependency-plugin</artifactId>
-    			<executions>
-        			<execution>
-            			<id>copy-dependencies</id>
-            			<phase>prepare-package</phase>
-            			<goals>
-                			<goal>copy-dependencies</goal>
-            			</goals>
-            			<configuration>
-                			<outputDirectory>${project.build.directory}/lib</outputDirectory>
-                			<overWriteReleases>true</overWriteReleases>
-                			<overWriteSnapshots>true</overWriteSnapshots>
-                			<overWriteIfNewer>true</overWriteIfNewer>
-            			</configuration>
-        			</execution>
-    			</executions>
-			</plugin>
-
 			<plugin>
  			   <groupId>org.apache.maven.plugins</groupId>
   			  <artifactId>maven-jar-plugin</artifactId>
@@ -60,32 +38,23 @@
 			</plugin>
 			
 			<plugin>
-            	<groupId>org.apache.maven.plugins</groupId>
-            	<artifactId>maven-antrun-plugin</artifactId>
-            	<version>1.7</version>
-           	 	<executions>
-                	<execution>
-                		<id>createdisjar</id> 
-                    	<goals><goal>run</goal></goals> 
-                    	<phase>package</phase>
-                    	<configuration>
-                        	<target>
-                            	<echo message="${project.build.directory}"/>
-                            	<mkdir dir="${project.build.directory}"/>
-                            	<copy file="run.bat" toFile="${project.build.directory}/run.bat" overwrite="true" />
-                            	<copy file="run.sh" toFile="${project.build.directory}/run.sh" overwrite="true" />
-                            	<replace file="${project.build.directory}/run.bat" token="${datatoolsjar}" value="./lib/${project.build.finalName}.jar"/>
-                            	<replace file="${project.build.directory}/run.sh" token="${datatoolsjar}" value="./lib/${project.build.finalName}.jar"/>
-                            	<copy file="${project.build.directory}/${project.build.finalName}.jar" toFile="${project.build.directory}/lib/${project.build.finalName}.jar" overwrite="true" />
-                            	
-                            	<zip destfile="${project.build.directory}/${project.build.finalName}.zip"
-                                	basedir="target/" includes="lib/**,*.bat,*.sh">
-                            	</zip>
-                        	</target>
-                    	</configuration>
-                	</execution>
-            	</executions>
-        	</plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <appendAssemblyId>false</appendAssemblyId>
+                            <descriptors>
+                                <descriptor>mvn-assembly.xml</descriptor>
+                            </descriptors>
+                        </configuration>
+                    </execution>
+                </executions>
+			</plugin>
 
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

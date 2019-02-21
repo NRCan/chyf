@@ -39,6 +39,12 @@ public class ChyfDistance2DDataProcessor {
 		String sinput = args[1];
 		String sout = args[2];
 		
+		//for shapefiles we want the parent directory
+		Path infile = Paths.get(sinput);
+		if (infile.toString().endsWith(".shp")) {
+			infile = infile.getParent();
+		}
+				
 		try {
 			ProgressMonitor progressPrinter = new ProgressMonitor() {
 				public void worked(int amount) {
@@ -47,7 +53,7 @@ public class ChyfDistance2DDataProcessor {
 				}
 			};
 			
-			(new ChyfDistance2DDataProcessor()).compute(sinput, sout, sepsg, progressPrinter);
+			(new ChyfDistance2DDataProcessor()).compute(infile.toString(), sout, sepsg, progressPrinter);
 		}catch (Exception ex) {
 			ex.printStackTrace();
 			System.out.println(ex.getMessage());
@@ -125,8 +131,8 @@ public class ChyfDistance2DDataProcessor {
 	private static void printUsage() {
 		System.out.println("Usage:");
 		System.out.println("ChyfDistance2DDataProcessor  [srid] [input] [output]");
-		System.out.println("[srid] - the equal area projection valid for the input dataset to compute distances in (eg EPSG:4326)");
-		System.out.println("[input] - the input dataset (either a directory containing shapefiles OR geopackage files)");
+		System.out.println("[srid] - the equal area projection valid for the input dataset to compute distances in (eg EPSG:3978)");
+		System.out.println("[input] - the input dataset (must be either the Catchment.shp file OR a geopackage file).  If providing Catchment.shp file, the Waterbody.shp and Flowpath.shp files must exist in the same directory.");
 		System.out.println("[output] - the output location (either a shapefile or a geopackage file)");
 	}
 }

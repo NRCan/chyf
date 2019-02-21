@@ -1,2 +1,2 @@
 #!/bin/sh
-javaw -jar ${datatoolsjar}
+java -jar lib/${project.artifactId}-${project.version}-${timestamp}.jar
