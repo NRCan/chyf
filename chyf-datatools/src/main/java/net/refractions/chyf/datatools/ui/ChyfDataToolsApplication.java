@@ -47,6 +47,12 @@ public class ChyfDataToolsApplication extends Application {
 
 	public static final String HEADER_STYLE = "-fx-background-color: #444466;-fx-font-size: 1.1em; -fx-text-fill: white; -fx-font-weight:bold;";
 	
+	private FileChooser.ExtensionFilter FILTER_GEOPACKAGE = new FileChooser.ExtensionFilter("GeoPackage (*.gpkg)","*.gpkg");
+	private FileChooser.ExtensionFilter FILTER_SHP = new FileChooser.ExtensionFilter("Shapefile (*.shp)","*.shp");
+	private FileChooser.ExtensionFilter FILTER_TIFF = new FileChooser.ExtensionFilter("tif Files (*.tif, *.tiff, *.geotiff)","*.tif", "*.tiff", "*.geotiff");
+	private FileChooser.ExtensionFilter FILTER_SUPPORTED = new FileChooser.ExtensionFilter("Supported Formats (*.shp, *.gpkg)","*.gpkg", "*.shp");
+	private FileChooser.ExtensionFilter FILTER_ALL = new FileChooser.ExtensionFilter("All Files (*.*)","*.*");
+	
 	private File lastDir = null;
 	
 	private ProgressBar pbardistance;
@@ -119,15 +125,12 @@ public class ChyfDataToolsApplication extends Application {
 		grid.add(btnSelection, 2, 0);
 		nodes.add(btnSelection);
 		btnSelection.setOnAction(e->{
-			getFile("Select DEM File", txtInFile, true, 
-					new FileChooser.ExtensionFilter("Supported Formats (*.shp, *.gpkg)","*.gpkg", "*.shp"),
-					new FileChooser.ExtensionFilter("GeoPackage (*.gpkg)","*.gpkg"),
-					new FileChooser.ExtensionFilter("Shapefile (*.shp)","*.shp"),
-					new FileChooser.ExtensionFilter("All Files (*.*)","*.*"));
+			getFile("Select Input Dataset", txtInFile, true, null, 
+					FILTER_SUPPORTED, FILTER_GEOPACKAGE, FILTER_SHP, FILTER_ALL);
 		});
 		
 		
-		ll = new Label("DEM:");
+		ll = new Label("DEM**:");
 		ll.setMinWidth(Region.USE_PREF_SIZE);
 		nodes.add(ll);
 		grid.add(ll, 0, 1);
@@ -139,14 +142,13 @@ public class ChyfDataToolsApplication extends Application {
 		Button btnDemSelection = new Button("...");
 		btnDemSelection.setOnAction(e->{
 			getFile("Select DEM File", txtDemFile, 	true, 
-					new FileChooser.ExtensionFilter("tif Files (*.tif, *.tiff, *.geotiff)","*.tif", "*.tiff", "*.geotiff"),
-					new FileChooser.ExtensionFilter("All Files (*.*)","*.*"));
+					null, FILTER_TIFF, FILTER_ALL);
 		});
 		nodes.add(btnDemSelection);
 		grid.add(btnDemSelection, 2, 1);
 
 		
-		ll = new Label("Output Dataset**:");
+		ll = new Label("Output Dataset***:");
 		ll.setMinWidth(Region.USE_PREF_SIZE);
 		nodes.add(ll);
 		grid.add(ll, 0, 2);
@@ -159,17 +161,25 @@ public class ChyfDataToolsApplication extends Application {
 		grid.add(btnOutSelection, 2, 2);
 		nodes.add(btnOutSelection);
 		btnOutSelection.setOnAction(e->{
-			getFile("Select Output File", txtOutFile, false,	
-					new FileChooser.ExtensionFilter("GeoPackage (*.gpkg)","*.gpkg"),
-					new FileChooser.ExtensionFilter("Shapefile (*.shp)","*.shp"),
-					new FileChooser.ExtensionFilter("All Files (*.*)","*.*"));
+			FileChooser.ExtensionFilter  sel = null;
+			if (txtInFile.getText().endsWith("shp")) {
+				sel = FILTER_SHP;
+			}else if (txtInFile.getText().endsWith("gpkg")) {
+				sel = FILTER_GEOPACKAGE;
+			}
+			getFile("Select Output File", txtOutFile, false, sel,
+					FILTER_GEOPACKAGE, FILTER_SHP, FILTER_ALL);
+					
 		});
 		
 		ll = new Label("*Supported input datasets include shapefiles or geopackage. For shapefiles pick the Catchment.shp file.");
 		grid.add(ll, 1, 3);
 		nodes.add(ll);
-		ll = new Label("**For shapefile inputs the output must be a shapefile.  For geopackage inputs the output must be a geopackage file.");
+		ll = new Label("**Must be in an equal area projection that preserves angles.  All processing is done in this projection.");
 		grid.add(ll, 1, 4);
+		nodes.add(ll);
+		ll = new Label("***For shapefile inputs the output must be a shapefile.  For geopackage inputs the output must be a geopackage file.");
+		grid.add(ll, 1, 5);
 		nodes.add(ll);
 		
 		HBox box = new HBox();
@@ -186,7 +196,7 @@ public class ChyfDataToolsApplication extends Application {
 		HBox.setHgrow(pbarsea, Priority.ALWAYS);
 		box.getChildren().add(pbarsea);
 		
-		grid.add(box, 1, 5);
+		grid.add(box, 1, 6);
 		
 		Button btnDoIt = new Button("Compute Slope/Aspect/Elevation Statistics");
 		btnDoIt.setOnAction(e->{
@@ -239,14 +249,11 @@ public class ChyfDataToolsApplication extends Application {
 		nodes.add(btnSelection);
 		btnSelection.setOnAction(e->{
 			getFile("Select Input Dataset", txtInFile, true,
-					new FileChooser.ExtensionFilter("Supported Formats (*.shp, *.gpkg)","*.gpkg", "*.shp"),
-					new FileChooser.ExtensionFilter("GeoPackage (*.gpkg)","*.gpkg"),
-					new FileChooser.ExtensionFilter("Shapefile (*.shp)","*.shp"),
-					new FileChooser.ExtensionFilter("All Files (*.*)","*.*"));
+					null, FILTER_SUPPORTED, FILTER_GEOPACKAGE, FILTER_SHP, FILTER_ALL);
 		});
 		
 
-		ll = new Label("SRID:");
+		ll = new Label("Processing EPSG**:");
 		ll.setMinWidth(Region.USE_PREF_SIZE);
 		nodes.add(ll);
 		grid.add(ll, 0, 1);
@@ -256,7 +263,7 @@ public class ChyfDataToolsApplication extends Application {
 		grid.add(txtSrid, 1, 1);
 		
 				
-		ll = new Label("Output Dataset**:");
+		ll = new Label("Output Dataset***:");
 		ll.setMinWidth(Region.USE_PREF_SIZE);
 		nodes.add(ll);
 		grid.add(ll, 0, 2);
@@ -269,10 +276,14 @@ public class ChyfDataToolsApplication extends Application {
 		grid.add(btnOutSelection, 2, 2);
 		nodes.add(btnOutSelection);
 		btnOutSelection.setOnAction(e->{
-			getFile("Select Output File", txtOutFile, false,  	
-					new FileChooser.ExtensionFilter("GeoPackage (*.gpkg)","*.gpkg"),
-					new FileChooser.ExtensionFilter("Shapefile (*.shp)","*.shp"),
-					new FileChooser.ExtensionFilter("All Files (*.*)","*.*"));
+			FileChooser.ExtensionFilter  sel = null;
+			if (txtInFile.getText().endsWith("shp")) {
+				sel = FILTER_SHP;
+			}else if (txtInFile.getText().endsWith("gpkg")) {
+				sel = FILTER_GEOPACKAGE;
+			}
+			getFile("Select Output File", txtOutFile, false, sel,  	
+					FILTER_GEOPACKAGE,FILTER_SHP, FILTER_ALL);
 			
 		});
 		
@@ -280,9 +291,14 @@ public class ChyfDataToolsApplication extends Application {
 		nodes.add(ll);
 		grid.add(ll, 1, 3);
 		
-		ll = new Label("**For shapefile inputs the output must be a shapeilfe.  For geopackage inputs the output must be a geopackage file.");
+		ll = new Label("**Data is projected to this projection during processing for the purposes of computing length (this should be an equal area projection)");
 		nodes.add(ll);
 		grid.add(ll, 1, 4);
+		
+		
+		ll = new Label("***For shapefile inputs the output must be a shapeilfe.  For geopackage inputs the output must be a geopackage file.");
+		nodes.add(ll);
+		grid.add(ll, 1, 5);
 		
 		HBox box = new HBox();
 		box.setMaxWidth(Double.MAX_VALUE);
@@ -298,7 +314,7 @@ public class ChyfDataToolsApplication extends Application {
 		HBox.setHgrow(pbardistance, Priority.ALWAYS);
 		box.getChildren().add(pbardistance);
 		
-		grid.add(box, 1, 5);
+		grid.add(box, 1, 6);
 		
 		Button btnDoIt = new Button("Compute Distance to Water 2D Statistics");
 		nodes.add(btnDoIt);
@@ -319,7 +335,7 @@ public class ChyfDataToolsApplication extends Application {
 		for (Node n : nodes) n.setDisable(!enable);
 	}
 	
-	private void getFile(String name,  TextField text, boolean open, FileChooser.ExtensionFilter... items) {
+	private void getFile(String name,  TextField text, boolean open, FileChooser.ExtensionFilter selection, FileChooser.ExtensionFilter... items) {
 		FileChooser fileChooser = new FileChooser();
 		if (text.getText().trim().isEmpty()) {
 			if (lastDir != null) {
@@ -332,6 +348,7 @@ public class ChyfDataToolsApplication extends Application {
 		}
 		fileChooser.setTitle("Select Output File");
 		fileChooser.getExtensionFilters().addAll(items);
+		if (selection != null) fileChooser.setSelectedExtensionFilter(selection);
 		File selectedFile = null;
 		if (open) {
 			selectedFile = fileChooser.showOpenDialog(text.getScene().getWindow());
