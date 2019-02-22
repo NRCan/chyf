@@ -10,7 +10,7 @@
     <fileSets>
         <fileSet>
             <directory>src/test/resources/testdata/small</directory>
-            <outputDirectory>/testdata/slopeaspectelevation</outputDirectory>
+            <outputDirectory>/testdata/elevationslopeaspect</outputDirectory>
         </fileSet>
         <fileSet>
             <directory>src/test/resources/testdata/small_distance2d</directory>
@@ -31,18 +31,19 @@
         <file>
             <source>LICENSE</source>
             <outputDirectory>/</outputDirectory>
+            <destName>LICENSE.txt</destName>
         </file>
         <file>
             <source>run.bat</source>
             <outputDirectory>/</outputDirectory>
-            <destName>run.win.bat</destName>
+            <destName>run_win.bat</destName>
             <filtered>true</filtered>
         </file>
         
          <file>
             <source>run.sh</source>
             <outputDirectory>/</outputDirectory>
-            <destName>run.linux.sh</destName>
+            <destName>run_linux.sh</destName>
             <fileMode>755</fileMode>
             <filtered>true</filtered>
         </file>

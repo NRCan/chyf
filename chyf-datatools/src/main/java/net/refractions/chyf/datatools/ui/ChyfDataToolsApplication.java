@@ -69,10 +69,11 @@ public class ChyfDataToolsApplication extends Application {
 		StackPane root = new StackPane();
 		root.getChildren().add(buildUi());
 		
-		Scene scene = new Scene(root);
-		
+		Scene scene = new Scene(root, 1040,570);
 		stage.setTitle("CHyF Data Processing Tools");
+		
 		stage.setScene(scene);
+		
 		stage.show();
 	}
 	
@@ -80,13 +81,17 @@ public class ChyfDataToolsApplication extends Application {
 		
 		VBox outer = new VBox(10);
 		outer.setFillWidth(true);
-		outer.setStyle("-fx-background-color: #FFFFFF;");
+		outer.setStyle("-fx-background-color: #FFFFFF");
 
 		Pane sea = buildSEAPane();
 		outer.getChildren().add(sea);
 		
 		Pane distance = buildDistance2WaterPane();
 		outer.getChildren().add(distance);
+		
+		VBox spacer = new VBox();
+		outer.getChildren().add(spacer);
+		VBox.setVgrow(spacer, Priority.ALWAYS);
 		
 		Label warn = new Label("Warning: Depending on the data size these computations may take many hours to complete.");
 		outer.getChildren().add(warn);
@@ -98,7 +103,7 @@ public class ChyfDataToolsApplication extends Application {
 		VBox seaPane = new VBox(10);
 		seaPane.setFillWidth(true);
 		seaPane.setPadding(new Insets(0,0,10,0));
-		Label ll = new Label("Compute Slope/Elevation/Aspect Statistics");
+		Label ll = new Label("Compute Elevation/Slope/Aspect Statistics");
 		ll.setStyle(HEADER_STYLE);
 		ll.setPadding(new Insets(5,5,5,5));
 		ll.setMaxWidth(Double.MAX_VALUE);
@@ -172,13 +177,21 @@ public class ChyfDataToolsApplication extends Application {
 					
 		});
 		
-		ll = new Label("*Supported input datasets include shapefiles or geopackage. For shapefiles pick the Catchment.shp file.");
+		ll = new Label("*Supported input datasets include shapefile or geopackage. For shapefiles pick the Catchment.shp file. Geopackage files require an ElementaryCatchment layer.");
+		ll.setWrapText(true);
+		ll.prefWidthProperty().bind(grid.widthProperty());
 		grid.add(ll, 1, 3);
 		nodes.add(ll);
+		
 		ll = new Label("**The .tif file must be a GeoTIFF. A conformal projection is recommended. See the documentation for details.");
+		ll.setWrapText(true);
+		ll.prefWidthProperty().bind(grid.widthProperty());
 		grid.add(ll, 1, 4);
 		nodes.add(ll);
+		
 		ll = new Label("***For shapefile inputs the output must be a shapefile.  For geopackage inputs the output must be a geopackage file.");
+		ll.setWrapText(true);
+		ll.prefWidthProperty().bind(grid.widthProperty());
 		grid.add(ll, 1, 5);
 		nodes.add(ll);
 		
@@ -198,7 +211,7 @@ public class ChyfDataToolsApplication extends Application {
 		
 		grid.add(box, 1, 6);
 		
-		Button btnDoIt = new Button("Compute Slope/Aspect/Elevation Statistics");
+		Button btnDoIt = new Button("Compute Elevation/Slope/Aspect Statistics");
 		btnDoIt.setOnAction(e->{
 			String txtIn = txtInFile.getText();
 			String txtOut = txtOutFile.getText();
@@ -287,16 +300,22 @@ public class ChyfDataToolsApplication extends Application {
 			
 		});
 		
-		ll = new Label("*Supported input datasets include shapefiles or geopackage. For shapefiles pick the Catchment.shp file (other required files flowpaths and waterbodies must be in the same directory).");
+		ll = new Label("*Supported input datasets include shapefiles or geopackage. For shapefiles pick the Catchment.shp file (Flowpath.shp and Waterbody.shp must also exist in the same directory).  Geopackage files require ElementaryCatchment, Waterbody and Flowpath layers.");
+		ll.setWrapText(true);
+		ll.prefWidthProperty().bind(grid.widthProperty());
 		nodes.add(ll);
 		grid.add(ll, 1, 3);
 		
 		ll = new Label("**Data is projected to this projection during processing. A conformal projection is recommended. The default is EPSG:3978. See the documentation for details.");
+		ll.setWrapText(true);
+		ll.prefWidthProperty().bind(grid.widthProperty());
 		nodes.add(ll);
 		grid.add(ll, 1, 4);
 		
 		
 		ll = new Label("***For shapefile inputs the output must be a shapeilfe.  For geopackage inputs the output must be a geopackage file.");
+		ll.setWrapText(true);
+		ll.prefWidthProperty().bind(grid.widthProperty());
 		nodes.add(ll);
 		grid.add(ll, 1, 5);
 		

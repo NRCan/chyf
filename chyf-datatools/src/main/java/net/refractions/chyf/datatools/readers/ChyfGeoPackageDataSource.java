@@ -48,21 +48,22 @@ public class ChyfGeoPackageDataSource implements ChyfDataSource{
 	public Path getFile() {
 		return this.geopackageFile;
 	}
+
 	private void read() throws Exception {
 			
 		reader = new GeoPackage(geopackageFile.toFile());
-		
-	    logger.info("Reading waterbodies");
-	    waterbody = reader.feature(WATERBODY_LAYER);
-		if (waterbody == null) throw new Exception("No waterbody layer found in geopackage file");
 		
 		logger.info("Reading catchments");
 		catchments = reader.feature(CATCHMENT_LAYER);
 		if (catchments == null) throw new Exception("No Catchment layer found in geopackage file");
 		
+	    logger.info("Reading waterbodies");
+	    waterbody = reader.feature(WATERBODY_LAYER);
+		//if (waterbody == null) throw new Exception("No waterbody layer found in geopackage file");
+		
 		logger.info("Reading flowpaths");
 		flowpaths = reader.feature(FLOWPATH_LAYER);
-		if (flowpaths == null) throw new Exception("No Flowpath layer found in geopackage file");	
+		//if (flowpaths == null) throw new Exception("No Flowpath layer found in geopackage file");	
 	}
 	
 	public SimpleFeatureReader getECatchments(ReferencedEnvelope bounds) throws IOException{
@@ -78,6 +79,7 @@ public class ChyfGeoPackageDataSource implements ChyfDataSource{
 	}
 	
 	private SimpleFeatureReader query(ReferencedEnvelope bounds, FeatureEntry source) throws IOException {
+		if (source == null) throw new IOException("Required dataset not found.");
 		if (bounds == null) {
 			return reader.reader(source, null, null);
 		}
