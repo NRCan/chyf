@@ -33,8 +33,8 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-import net.refractions.chyf.datatools.ChyfDistance2DDataProcessor;
-import net.refractions.chyf.datatools.ChyfSEADataProcessor;
+import net.refractions.chyf.datatools.ChyfDistance2Water2DProcessor;
+import net.refractions.chyf.datatools.ChyfSEAProcessor;
 import net.refractions.chyf.datatools.processor.ProgressMonitor;
 
 /**
@@ -98,7 +98,7 @@ public class ChyfDataToolsApplication extends Application {
 		VBox seaPane = new VBox(10);
 		seaPane.setFillWidth(true);
 		seaPane.setPadding(new Insets(0,0,10,0));
-		Label ll = new Label("Compute Slope/Aspect/Elevation Statistics");
+		Label ll = new Label("Compute Slope/Elevation/Aspect Statistics");
 		ll.setStyle(HEADER_STYLE);
 		ll.setPadding(new Insets(5,5,5,5));
 		ll.setMaxWidth(Double.MAX_VALUE);
@@ -424,7 +424,7 @@ public class ChyfDataToolsApplication extends Application {
 
 			@Override
 			protected Void call() throws Exception {
-				(new ChyfDistance2DDataProcessor()).compute(inputString, outputString, sridString, monitor);
+				(new ChyfDistance2Water2DProcessor()).compute(inputString, outputString, sridString, monitor);
 				return null;
 			}
 		};
@@ -525,7 +525,7 @@ public class ChyfDataToolsApplication extends Application {
 
 			@Override
 			protected Void call() throws Exception {
-				(new ChyfSEADataProcessor()).compute(inputString, demString, outputString, monitor);
+				(new ChyfSEAProcessor()).compute(inputString, demString, outputString, monitor);
 				return null;
 			}
 		};

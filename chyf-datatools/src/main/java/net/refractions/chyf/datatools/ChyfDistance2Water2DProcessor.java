@@ -4,22 +4,24 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import org.geotools.referencing.CRS;
+import org.opengis.referencing.crs.CoordinateReferenceSystem;
+
+import net.refractions.chyf.datatools.processor.Distance2DProcessor;
+import net.refractions.chyf.datatools.processor.Distance2DResult;
 import net.refractions.chyf.datatools.processor.ProgressMonitor;
-import net.refractions.chyf.datatools.processor.SEAProcessor;
-import net.refractions.chyf.datatools.processor.SEAResult;
 import net.refractions.chyf.datatools.readers.ChyfDataSource;
 import net.refractions.chyf.datatools.readers.ChyfGeoPackageDataSource;
 import net.refractions.chyf.datatools.readers.ChyfShapeDataSource;
-import net.refractions.chyf.datatools.readers.GeoTiffDemReader;
-import net.refractions.chyf.datatools.writer.ChyfGeoPackageDataSourceSEAWriter;
-import net.refractions.chyf.datatools.writer.ChyfShapeDataSourceSEAWriter;
+import net.refractions.chyf.datatools.writer.ChyfGeoPackageDataSourceDistance2DWriter;
+import net.refractions.chyf.datatools.writer.ChyfShapeDataSourceDistance2DWriter;
 
-public class ChyfSEADataProcessor {
+public class ChyfDistance2Water2DProcessor {
 
 	/**
 	 * Takes three parameters
 	 * 1 - input dataset
-	 * 2 - input dem
+	 * 2 - Working EPSG Code
 	 * 3 - output dataset file name
 	 * 
 	 * Supports either geopackage or shapefile input datasets 
@@ -28,29 +30,21 @@ public class ChyfSEADataProcessor {
 	 * @throws Exception
 	 */
 	public static void main(String[] args) throws Exception{
-		//Path dem = Paths.get("C:\\data\\CHyF\\data\\Richelieu_DEM_3978.tiled.tif");
-		//String datasource ="C:\\data\\CHyF\\github\\chyf-pilot\\data\\quebec\\";
-		
 		if (args.length != 3) {
 			printUsage();
 			return;
 		}
-		
-		String sinput = args[0];
-		String sdem = args[1];
+
+		String sepsg = args[0];
+		String sinput = args[1];
 		String sout = args[2];
 		
-		Path dem = Paths.get(sdem);
-		if (!Files.exists(dem)) {
-			System.out.println("DEM file not found.");
-			printUsage();
-			return;
-		}
 		//for shapefiles we want the parent directory
 		Path infile = Paths.get(sinput);
 		if (infile.toString().endsWith(".shp")) {
 			infile = infile.getParent();
 		}
+				
 		try {
 			ProgressMonitor progressPrinter = new ProgressMonitor() {
 				public void worked(int amount) {
@@ -59,14 +53,13 @@ public class ChyfSEADataProcessor {
 				}
 			};
 			
-			(new ChyfSEADataProcessor()).compute(infile.toString(), sdem, sout, progressPrinter);
+			(new ChyfDistance2Water2DProcessor()).compute(infile.toString(), sout, sepsg, progressPrinter);
 		}catch (Exception ex) {
 			ex.printStackTrace();
 			System.out.println(ex.getMessage());
 			printUsage();
-			return;
 		}
-	}
+	};
 	
 	/**
 	 * 
@@ -75,13 +68,16 @@ public class ChyfSEADataProcessor {
 	 * @param srid
 	 * @throws Exception
 	 */
-	public void compute(String sinFile, String sDemFile, String soutFile, ProgressMonitor monitor) throws Exception{
+	public void compute(String sinFile, String soutFile, String srid, ProgressMonitor monitor) throws Exception{
 		Path input = Paths.get(sinFile);
 		Path outFile = Paths.get(soutFile);
-		Path demFile = Paths.get(sDemFile);
 		
-		if (!Files.exists(demFile)) {
-			throw new Exception("DEM file not found.");
+		CoordinateReferenceSystem workingCRS;
+		try{
+			workingCRS = CRS.decode(srid);
+		}catch (Exception ex) {
+			throw new Exception("Could not parse epsg code :" + srid, ex);
+			
 		}
 		
 		if (Files.isDirectory(input)) {
@@ -89,16 +85,16 @@ public class ChyfSEADataProcessor {
 			try(ChyfDataSource dataSource = new ChyfShapeDataSource(input)){
 			
 				if (!outFile.toString().endsWith(".shp")) {
-					throw new Exception("Output must be shapefile for shapefile input.");
+					throw new Exception("Output must be a shapefile (.shp) for shpaefile input.");
 				}
 				if (Files.exists(outFile)) {
 					throw new Exception("Output file exists - cannot overwrite.");
 				}
 				
-				SEAResult results = run(dataSource, demFile, monitor);
+				Distance2DResult results = run(dataSource, workingCRS, monitor);
 				
 				if (results != null) {
-					ChyfShapeDataSourceSEAWriter writer = new ChyfShapeDataSourceSEAWriter(dataSource, outFile);
+					ChyfShapeDataSourceDistance2DWriter writer = new ChyfShapeDataSourceDistance2DWriter(dataSource, outFile);
 					writer.write(results);
 				}
 			}
@@ -113,10 +109,10 @@ public class ChyfSEADataProcessor {
 				if (Files.exists(outFile)) {
 					throw new Exception("Output file exists - cannot overwrite.");
 				}
-				SEAResult results = run(dataSource, demFile, monitor);
+				Distance2DResult results = run(dataSource, workingCRS, monitor);
 				
 				if (results != null) {
-					ChyfGeoPackageDataSourceSEAWriter writer = new ChyfGeoPackageDataSourceSEAWriter((ChyfGeoPackageDataSource) dataSource, outFile);
+					ChyfGeoPackageDataSourceDistance2DWriter writer = new ChyfGeoPackageDataSourceDistance2DWriter((ChyfGeoPackageDataSource) dataSource, outFile);
 					writer.write(results);
 				}
 			}
@@ -125,20 +121,18 @@ public class ChyfSEADataProcessor {
 		}
 	}
 	
-	private static SEAResult run(ChyfDataSource dataSource, Path dem,  ProgressMonitor monitor) throws Exception{
-		SEAResult results = null;
-		try(GeoTiffDemReader demReader = new GeoTiffDemReader(dem)){
-			SEAProcessor engine = new SEAProcessor(dataSource, demReader);
-			results = engine.doWork(monitor);
-			return results;
-		}
+	private static Distance2DResult run(ChyfDataSource dataSource, CoordinateReferenceSystem crs, ProgressMonitor monitor) throws Exception{
+		Distance2DProcessor engine = new Distance2DProcessor(dataSource, crs);
+//		engine.setCellSize(100);
+		engine.doWork(monitor);
+		return engine.getResults();		
 	}
 	
 	private static void printUsage() {
 		System.out.println("Usage:");
-		System.out.println("ChyfSEADataProcessor [input] [dem] [output]");
-		System.out.println("[input] - the input dataset (must be either the Catchment.shp shapefile OR a geopackage file)");
-		System.out.println("[dem] - the tiled DEM in geotiff format.  Must be in a projection that maintains area and aspect");
+		System.out.println("ChyfDistance2DDataProcessor  [srid] [input] [output]");
+		System.out.println("[srid] - the equal area projection valid for the input dataset to compute distances in (eg EPSG:3978)");
+		System.out.println("[input] - the input dataset (must be either the Catchment.shp file OR a geopackage file).  If providing Catchment.shp file, the Waterbody.shp and Flowpath.shp files must exist in the same directory.");
 		System.out.println("[output] - the output location (either a shapefile or a geopackage file)");
 	}
 }
