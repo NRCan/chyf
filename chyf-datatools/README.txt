@@ -19,12 +19,12 @@ may see 1.<VERSION> or just <VERSION>. (1.8 OR 8.0).
 ---------------------------------------
 --- Running on Windows ---
 ---------------------------------------
-To run on windows double click the run.win.bat file.
+To run on windows double click the run_win.bat file.
 
 ---------------------------------------
 --- Running on Linux ---
 ---------------------------------------
-To run on linux, run the run.linux.sh script.
+To run on linux, run the run_linux.sh script.
 
 
 ---------------------------------------
