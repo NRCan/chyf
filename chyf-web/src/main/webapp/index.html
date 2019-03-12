@@ -327,7 +327,7 @@
 					<div class="buttonGroup input-group-sm input-group"style="width:100%; margin-top:4px">
 						<div style="display:flex;">
 						<select id="flowpathPropSel" class="form-control input-sm">
-							<option value="name">Name</option>
+							<option value="name">Name (Richelieu Only)</option>
 							<option value="type">Type</option>
 							<option value="rank">Rank</option>
 							<option value="strahleror">Strahler Order</option>
@@ -1732,7 +1732,7 @@
 				query += "\n";
 			}
 			$(this).attr({
-				"href": 'data:application/csv;charset=utf-8,' + encodeURIComponent(query),
+				"href": 'data:text/csv;charset=utf-8,' + encodeURIComponent(query),
 				"download":"pourpointdata.csv",
 				"target": "_blank"
 			});
