@@ -1,0 +1,194 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>net.refractions</groupId>
+	<artifactId>chyf-datatools</artifactId>
+	<version>1.1.0</version>
+	<packaging>jar</packaging>
+	<name>CHyF Datatools</name>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<geotools.version>21-RC</geotools.version>
+		
+		<timestamp>${maven.build.timestamp}</timestamp>
+        <maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
+	</properties>
+
+	<!-- to build: mvn clean package -->
+	<!-- this will create a zip package that has the jar, all dependency jar files and .bat & .sh files -->
+	<!-- for running the app on windows or linux -->
+	
+	<build>
+	  <finalName>${project.artifactId}-${project.version}-${timestamp}</finalName>	  
+		<plugins>
+			<plugin>
+ 			   <groupId>org.apache.maven.plugins</groupId>
+  			  <artifactId>maven-jar-plugin</artifactId>
+  			  <configuration>
+     			   <archive>
+         			   <manifest>
+            			    <addClasspath>true</addClasspath>
+              			  <mainClass>net.refractions.chyf.datatools.ui.ChyfDataToolsApplication</mainClass> 
+        			   </manifest>
+         			  
+      			  </archive>
+    			</configuration>
+			</plugin>
+			
+			<plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <appendAssemblyId>false</appendAssemblyId>
+                            <descriptors>
+                                <descriptor>mvn-assembly.xml</descriptor>
+                            </descriptors>
+                        </configuration>
+                    </execution>
+                </executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.1</version>
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+				</configuration>
+			</plugin>
+			 <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-eclipse-plugin</artifactId>
+                <configuration>
+                    <downloadSources>true</downloadSources>
+                    <downloadJavadocs>true</downloadJavadocs>
+                </configuration>
+            </plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>license-maven-plugin</artifactId>
+				<version>1.8</version>
+				<executions>
+					<execution>
+						<id>aggregate-add-third-party</id>
+						<inherited>true</inherited>
+						<configuration>
+							<force>true</force>
+							<outputDirectory>src/license/</outputDirectory>
+							<useMissingFile>true</useMissingFile>
+							<licenseMerges>
+								<licenseMerge>apache_2_0|apache_v2</licenseMerge>
+								<licenseMerge>apache_2_0|The Apache Software License, Version
+									2.0</licenseMerge>
+								<licenseMerge>apache_2_0|Apache License, Version 2.0</licenseMerge>
+								<licenseMerge>apache_2_0|Apache License 2.0</licenseMerge>
+								<licenseMerge>apache_2_0|Apache License</licenseMerge>
+								<licenseMerge>apache_2_0|Apache 2.0 License</licenseMerge>
+								<licenseMerge>apache_2_0|Apache 2</licenseMerge>
+								<licenseMerge>apache_2_0|ASF 2.0</licenseMerge>
+								<licenseMerge>bsd_2|The BSD License</licenseMerge>
+								<licenseMerge>bsd_2|BSD License</licenseMerge>
+								<licenseMerge>cddl_1_0|Common Development and Distribution
+									License (CDDL) v1.0</licenseMerge>
+								<licenseMerge>cddl_1_0|COMMON DEVELOPMENT AND DISTRIBUTION
+									LICENSE (CDDL) Version 1.0</licenseMerge>
+								<licenseMerge>epl_1|Eclipse Public License - v 1.0</licenseMerge>
+								<licenseMerge>lgpl_2_1|LGPL 2.1</licenseMerge>
+								<licenseMerge>lgpl_2_1|GNU Lesser General Public License</licenseMerge>
+								<licenseMerge>lgpl_2_1|Lesser General Public License (LGPL)</licenseMerge>
+								<licenseMerge>mit|MIT License</licenseMerge>
+								<licenseMerge>mpl_1_1|MPL 1.1</licenseMerge>
+							</licenseMerges>
+						</configuration>
+						<goals>
+							<goal>aggregate-add-third-party</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
+	<dependencies>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>1.7.25</version>
+		</dependency>
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<version>1.1.7</version>
+		</dependency>
+	
+		<dependency>
+			<groupId>org.geotools</groupId>
+			<artifactId>gt-shapefile</artifactId>
+			<version>${geotools.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.geotools</groupId>
+			<artifactId>gt-epsg-hsql</artifactId>
+			<version>${geotools.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.geotools</groupId>
+			<artifactId>gt-geopkg</artifactId>
+			<version>${geotools.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.geotools</groupId>
+			<artifactId>gt-coverage</artifactId>
+			<version>${geotools.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.geotools</groupId>
+			<artifactId>gt-geotiff</artifactId>
+			<version>${geotools.version}</version>
+		</dependency>
+		 
+		<dependency>
+			<groupId>net.sf.trove4j</groupId>
+			<artifactId>trove4j</artifactId>
+			<version>3.0.3</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+			<version>2.7</version>
+		</dependency>
+	</dependencies>
+
+	<repositories>
+		<repository>
+			<id>maven2-repository.dev.java.net</id>
+			<name>Java.net repository</name>
+			<url>http://download.java.net/maven/2</url>
+		</repository>
+		<repository>
+			<id>osgeo</id>
+			<name>Open Source Geospatial Foundation Repository</name>
+			<url>http://download.osgeo.org/webdav/geotools/</url>
+		</repository>
+	</repositories>
+
+
+	<profiles>
+	
+	</profiles>
+</project>

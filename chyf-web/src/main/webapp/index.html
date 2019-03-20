@@ -1,0 +1,2501 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<title>CHyF Pilot Demo</title>
+	<meta charset="utf-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<link rel="shortcut icon" type="image/x-icon" href="chyf.png" />
+	<!--link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+		integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous" /-->
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.0/dist/leaflet.css" />
+	
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+	<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/themes/smoothness/jquery-ui.css">
+	  
+	<style>
+		/* make the map fullscreen */
+		html, body {
+            height: 100%;
+            width: 100%;
+        }
+		body {
+            padding: 0;
+            margin: 0;
+			font-family: Verdana, Arial, Helvetica, sans-serif;
+			font-size: 13px;
+		}
+		
+		.input-sm { padding: 5px 8px}
+		
+		#container {
+			height: 100%;
+            width: 100%;
+			overflow: hidden;
+			display: flex;
+			flex-direction: row;
+			flex-wrap: nowrap;
+			align-items: stretch;
+		}
+		/*#container2 {
+            height: 100%;
+			flex: 1 0 auto;
+			display: flex;
+			flex-direction: column;
+			flex-wrap: nowrap;
+			align-items: stretch;
+			overflow: hidden;
+		}*/
+
+		#map {
+			flex: 1 0 auto;
+			overflow: hidden;
+        }
+		#mapCover {
+			width: 100%;
+			height: 100%;
+  			position: absolute;
+			top: 0;
+			left: 0;
+			z-index: 0;
+        }
+		#title {
+			position: absolute;
+			z-index: 999;
+			top: 0px;
+			left: 50%;
+    		transform: translate(-50%,0);
+			border: 1px solid lightSlateGrey;
+			border-top: none;
+			background-color: white;
+			border-radius: 0 0 4px 4px;
+			padding: 4px 8px 4px 8px;
+			font-size: 1.2em;
+			font-weight: bold;
+			color: #444466;
+		}
+		#dataBarWrapper {
+			position: absolute;
+			z-index: 999;
+			background-color: white;
+			bottom: 0;
+			left: 300px;
+			height: 200px;
+			width: 750px;
+			border: 1px solid lightSlateGrey;
+			display:none;
+		}
+		#dataBar{
+			width:100%;
+			height: 100%;
+			display:flex;
+			flex-direction: column;
+		}
+		#dataTitle {
+			font-size: 1em;
+			font-weight: bold;
+			color: #444466;
+			margin: 2px;
+			border: 1px solid lightSlateGrey;
+			padding: 2px;
+			background-color: #cce0ff;
+		}
+		#map.progress {
+			cursor: progress;
+		}
+		.about {
+		}
+		.toolCat {
+			font-size: 1em;
+			font-weight: bold;
+			color: #444466;
+			margin: 12px 0px 5px 0px;
+			border: 1px solid lightSlateGrey;
+			padding: 2px;
+			background-color: #cce0ff;
+		}
+		.buttonGroup {
+			border: 1px solid #aaaaaa;
+			padding: 2px;
+			border-radius: 4px
+		}
+		.idInput {
+			width: 60px;
+		}
+		.btn-sm{
+			padding-top:4px;
+			padding-bottom:4px;
+			background-color:#F0F0F0;
+		}
+		.input-sm{
+			height: 27px;
+		}
+		
+		.go-button{
+			background-color:#15893A;
+			width: 100%;
+			color: white;
+		}
+		.go-button:hover{
+        	color:white;
+        	background-color:#117330;
+        	border: 1px solid #0C4C20;
+        }
+		.activeTool {
+			border-color: lightBlue;
+			box-shadow: 2px 2px 5px rgba(0,0,0,.25) inset, -2px -2px 5px white inset;
+		}
+
+		#dataBar table {
+			/*display: block;*/
+			max-height: 190px;
+			border: 1px solid grey;
+			border-collapse: collapse;
+			overflow-y: scroll;
+			margin: 2px;
+		}
+		#dataBar table th, #dataBar table td  {
+			border: 1px solid grey;
+			padding: 1px 8px;
+			text-align: center;
+		}
+		#dataBar table thead {
+		/*	display: inline-block;*/
+			background-color: #cce0ff;
+		}
+		.pourpointFeatureTable td{
+			padding: 5px;
+		}
+		.pourpointFeatureTable tr:hover{
+ 		   	font-weight: bold;
+ 		   	color: red;
+		}
+		
+		#dataBar table tbody tr:nth-last-child(even) {
+			background-color:  #e5e5e5;
+		}
+
+		.featureTitle {
+			font-weight: bold;
+		}
+		.featureTable {
+			border-collapse: collapse;
+			/*border: 1px solid grey;*/
+			
+			max-height:400px;
+			overflow-y: auto;
+			display:block;
+		}
+		.featureTable td {
+			border: 1px solid grey;
+			padding: 4px;
+		}
+		.featureTable td:first-child {
+			background-color: #cce0ff;
+		}
+		.featureTable td:first-child::first-letter {
+    		text-transform:capitalize;
+		}
+		
+		.nav-tabs {
+			flex: 0 0 auto;
+			display: flex;
+			flex-wrap: wrap-reverse;
+			list-style:none;
+			padding:0px;
+		}
+		.nav-tabs > li {
+			border-radius: 0px;
+		}
+		
+		.nav-tabs > li > a {
+			border-radius: 0px;
+			border: 0px;
+			padding: 6px 8px 5px 8px;
+			background-color: #444466;
+			color: white;
+		}
+
+		
+		.nav-tabs > li.active > a,
+		.nav-tabs > li.active > a:hover,
+		.nav-tabs > li.active > a:focus {
+			cursor: default;
+		}
+		.nav-tabs > li > a:hover {
+			color: white ;
+			background-color: #7F7FA9;
+			border: 0px;
+		}
+		.tab-content {
+			background-color: white;
+			flex: 1 1 1px;
+			overflow: hidden;
+		}
+		.tab-pane {
+			padding: 10px;
+			height: 100%;
+			overflow: auto;
+		}
+		
+		#tabs{
+			background-color: #444466;
+			display: flex;
+			flex-direction: column;
+			flex-wrap: nowrap;
+			flex: 0 0 auto;
+            width: 300px;
+			overflow: auto;
+			padding: 0px;
+			border-right: 1px solid #AAAAAA
+        }
+        
+        #pourpointAdd .form-group{
+        	margin-bottom:5px;
+        }
+        
+        #pourpointList{
+        	margin-bottom:5px;
+        	padding-top: 5px;
+        }
+        #pourpointList > .form-group{
+        	margin-bottom:2px;
+        }
+        #pourpointOut label{
+        	font-weight: normal;
+        }
+        
+       
+       .leaflet-tooltip.pourpointPointStyle{
+		   background-color: transparent;
+       		border:transparent;
+       		box-shadow:none;
+       		font-size: 10px;
+       }
+       
+       .cellheader{
+       		font-weight: bold;
+       		background-color: #CCE0FF;
+       }
+       .ppinputlbl{
+    	   padding-top: 5px;
+       }
+       .pplink-sm{
+    	   font-size: 0.8em;
+       }
+       
+       .ui-dialog { z-index: 1000 !important ;}
+	</style>
+</head>
+
+<body>
+	<div id="container">
+		<div id="title">CHyF Pilot Demo</div>
+		<div id="tabs">
+			<ul class="nav nav-tabs">
+    			<li id="main_tab"  class="active"><a href="#main_body" data-toggle="tab">Main</a></li>
+    			<li id="pourpoint_tab"><a  href="#pourpoint_body" data-toggle="tab">Pourpoint</a></li>
+  			</ul>
+			<div class="tab-content">
+			<div class="tab-pane active" id="main_body" >
+				<div class="about"><a href="https://github.com/NRCan/chyf-pilot/wiki">About the CHyF Pilot...</a></div>
+				<div class="toolCat">Hydro Nodes</div>
+				
+				<div class="form-group" style="display:flex;">
+					
+					<div style="margin-right:10px">
+					<input id="nexusId" class="form-control input-sm" type="text"/>
+					</div>
+					<button id="nexusById" type="button" class="btn btn-default btn-sm">Find by ID</button>
+				</div>
+			 	
+			 	<div class="toolCat">Elementary Flowpaths</div>
+				
+				<div class="form-group">
+					<div style="display:flex;">
+						<div style="margin-right:10px">
+						<input id="flowpathId" class="form-control input-sm" type="text"/>
+						</div>
+						<button id="flowpathById" type="button" class="btn btn-default btn-sm">Find by ID</button>
+					</div>
+					<button id="flowpathFlowsFrom" type="button" class="btn btn-default btn-sm tool" style="width:100%;margin-top:5px">Flows From Point</button>
+					<button id="flowpathsUpstreamOf" type="button" class="btn btn-default btn-sm tool" style="width:100%;margin-top:5px">Upstream Of Point</button>
+					<button id="flowpathsDownstreamOf" type="button" class="btn btn-default btn-sm tool" style="width:100%;margin-top:5px">Downstream Of Point</button>
+				
+				
+					<div class="buttonGroup input-group-sm input-group"style="width:100%; margin-top:4px">
+						<div style="display:flex;">
+						<select id="flowpathPropSel" class="form-control input-sm">
+							<option value="name">Name (Richelieu Only)</option>
+							<option value="type">Type</option>
+							<option value="rank">Rank</option>
+							<option value="strahleror">Strahler Order</option>
+							<option value="hortonor">Horton Order</option>
+							<option value="hackor">Hack Order</option>
+							<option value="length">Length</option>
+						</select>
+						<select id="flowpathPredSel" class="form-control input-sm" style="width:100px">
+							<option value="equals">=</option>
+							<option value="lessThan">&lt;</option>
+							<option value="greaterThan">&gt;</option>
+						</select>
+						</div>
+						<select id="flowpathValSel" class="form-control input-sm" style="margin-top:3px"></select><br/>
+						<button id="flowpathFilter" type="button" class="btn btn-default btn-sm tool" style="width:100%;margin-top:3px">Find by Filter</button>
+					</div>
+				</div>
+				
+				
+				<div class="toolCat">Elementary Catchments</div>
+				
+				<div class="form-group" >
+					<div style="display:flex;">
+						<div style="margin-right:10px">
+						<input id="catchmentId" class="form-control input-sm" type="text"/>
+						</div>
+						<button id="catchmentById" type="button" class="btn btn-default btn-sm">Find by ID</button>
+					</div>
+					<button id="catchmentContaining" type="button" class="btn btn-default btn-sm tool" style="width:100%;margin-top:5px">Containing Point</button>
+					<button id="catchmentsUpstreamOf" type="button" class="btn btn-default btn-sm tool" style="width:100%;margin-top:5px">Upstream Of Point</button>
+					<button id="catchmentsDownstreamOf" type="button" class="btn btn-default btn-sm tool" style="width:100%;margin-top:5px">Downstream Of Point</button>
+				</div>
+				
+
+				<div class="toolCat">Waterbody Flows</div>
+				<div class="form-group">
+					<button id="multiDimensionalUpstreamOf" type="button" class="btn btn-default btn-sm tool" style="width:100%;margin-top:5px">Upstream Of Point</button>
+					<button id="multiDimensionalDownstreamOf" type="button" class="btn btn-default btn-sm tool" style="width:100%;margin-top:5px">Downstream Of Point</button>
+				</div>
+				<div class="toolCat">Catchment (Drainage Area)</div>
+				<div>
+					<input class="form-check-input" type="checkbox" value="" id="removeHoles" checked>
+					<label class="form-check-label" for="removeHoles" style="font-weight:normal">Remove Holes</label><br>
+				</div>
+				<div class="form-group">
+					<button id="drainageAreaUpstreamOf" type="button" class="btn btn-default btn-sm tool" style="width:100%;margin-top:5px">Upstream Of Point</button>
+					<button id="drainageAreaDownstreamOf" type="button" class="btn btn-default btn-sm tool" style="width:100%;margin-top:5px">Downstream Of Point</button>
+				</div>
+				
+				
+				
+				<button id="clearSelection" type="button" class="go-button btn btn-sm tool" style="margin-bottom:20px">Clear Selection</button>
+			</div> <!-- maintab body -->
+			
+			<div class="tab-pane" id="pourpoint_body" >
+			<div class="toolCat">Add Pourpoint</div>
+			
+			<div id="pourpointAdd">
+				<div class="form-group">
+					<div style="display:flex; flex-direction:row; width:100%">
+						<span class="ppinputlbl">ID:</span>
+						<input type="text" id="add_pourpointId" class="form-control input-sm" value="P1" style="width: 120px" />
+						<span class="ppinputlbl" style="margin-left: 5px">C-Code:</span>
+						<select id="add_pourpointCode" class="form-control input-sm" style="width: 55px">
+						<option value="-2" selected>-2</option>
+						<!-- ccode of -1 not supported at this time -->
+						<!--<option value="-1">-1</option>-->
+						<option value="0">0</option>
+						<option value="1">1</option>
+						<option value="2">2</option>
+						<option value="3">3</option>
+						</select>
+					</div>
+					<input type="text" id="add_pourpointLocation" class="form-control input-sm" style="width:100%; margin-top:5px" placeholder="click here then select on map"/>
+					<button id="addPourpointBtn" class="btn btn-default btn-sm" style="width:100%; margin-top:5px" type="button" title="Add Pourpoint">Add Point</button>
+				</div>
+			</div>
+			<div class="toolCat">Input Pourpoints<span style="float: right;"><a id="ppImport" class="pplink-sm" href="">import</a>|<a id="ppOutput" class="pplink-sm" href="">export</a></span></div>
+			<div id="pourpointList"></div>
+			<button id="clearPPList" class="btn btn-default btn-sm" style="margin-top:5px; width:100%" type="button" title="Remove All" >Remove All</button>
+			<div class="toolCat">Output Layers</div>
+			<div id="pourpointOut">
+			<div class="form-check">
+  				<input class="form-check-input" type="checkbox" value="" id="outputpourpoints" checked>
+  				<label class="form-check-label" for="outputpourpoints">Pourpoints</label>
+			</div>
+			<div class="form-check">
+  				<input class="form-check-input" type="checkbox" value="" id="pourpointdistance" checked>
+  				<label class="form-check-label" for="pourpointdistance">Output Pourpoint Distances</label>
+			</div>
+			<div class="form-check">
+  				<input class="form-check-input" type="checkbox" value="" id="associatedcatchments" checked>
+  				<label class="form-check-label" for="associatedcatchments">Associated Catchments</label>
+			</div>
+			<div class="form-check">
+  				<input class="form-check-input" type="checkbox" value="" id="subcatchments" checked>
+  				<label class="form-check-label" for="subcatchments">Subcatchments</label>
+			</div>
+			<div class="form-check">
+				<input class="form-check-input" type="checkbox" value="" id="subcatchmentrelations" checked>
+				<label class="form-check-label" for="subcatchmentrelations">Subcatchment Relations</label>
+				</div>
+			<div class="form-check" style="white-space:nowrap">
+  				<input class="form-check-input" type="checkbox" value="" id="partitionedcatchments" checked>
+  				<label class="form-check-label" for="partitionedcatchments">Partitioned Catchments</label>
+			</div>
+			<div class="form-check" style="white-space:nowrap">
+  				<input class="form-check-input" type="checkbox" value="" id="partitionedcatchmentrelations" checked>
+  				<label class="form-check-label" for="partitionedcatchmentrelations">Partitioned Catchments Relations</label>
+			</div>
+			<div class="form-check">
+				<input class="form-check-input" type="checkbox" value="" id="interiorcatchments" checked>
+				<label class="form-check-label" for="interiorcatchments">Interior Catchments</label>
+		</div>
+			<a id="ppall" href="">All</a>|<a id="ppnone" href="">None</a>
+			</div> <!-- pourpoint output -->
+			
+			<div class="toolCat">Options</div>
+			<div class="form-check">
+				<div>
+					<input class="form-check-input" type="checkbox" value="" id="ppholes" checked>
+					<label class="form-check-label" for="ppholes" style="font-weight:normal">Remove Holes</label><br>
+				</div>
+				<div>
+					<input class="form-check-input" type="checkbox" value="" id="includestats">
+					<label class="form-check-label" for="includestats" style="font-weight:normal; display:inline">Include Catchment Slope, Elevation, Aspect, & Distance to Water Statistics</label>
+				</div>
+			</div>
+			<div class="toolCat">Actions</div>
+			<button id="doPPCalc" class="btn btn-default btn-sm go-button" type="button" title="DoIt!" >Do It!</button>
+			<button id="clearPPMapLayers" class="btn btn-default btn-sm" style="margin-top:10px; width:100%" type="button" title="Clear Map" >Clear Map</button>
+			
+			<button id="ppUrlButtonJson" class="btn btn-default btn-sm" style="margin-top:10px; width:100%" type="button" title="Copy the json url to the clipboard" disabled=true>Copy URL (JSON)</button>
+			<button id="ppUrlButtonGeoPkg" class="btn btn-default btn-sm" style="margin-top:10px; width:100%" type="button" title="Copy the geopackage url to the clipboard" disabled=true>Copy URL (GeoPackage*)</button>
+
+			<div style="font-size: .8em">*GeoPackage output only includes spatial datasets, not relationship or matrix data</div>
+			</div> <!-- pourpoint tab body -->
+			</div><!-- tabContent -->
+		</div> <!-- tabs -->
+		<div id="map"><div id="mapCover"></div></div>
+		<div id="dataBarWrapper"><div id="dataBar"></div></div><!-- dataBar -->
+	</div> <!-- container -->
+
+	<!-- dialog -->
+	<div id="pp_import_dialog" title="Import Pourpoints" style="display:none">
+		<p>The import file must be a comma seperated file, with a header line continaing the fields, 'ID', 'C-Code', 'X','Y'.  There must also be no commas inside quoted strings.</p>
+	</div>
+
+	<script src="https://unpkg.com/clipboard@1.7.1/dist/clipboard.min.js"></script>
+	<script src="https://unpkg.com/leaflet@1.3.0/dist/leaflet.js"></script>
+	<!--<script src = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.4/leaflet.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.0/clipboard.min.js"></script>-->
+	
+	<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCO2a43ItOYdAuRFcbCSLLn8AQwnMlf6sI"></script>
+	<script src='https://unpkg.com/leaflet.gridlayer.googlemutant@latest/Leaflet.GoogleMutant.js'></script>
+	<script src="leaflet-layerjson.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/jquery-ui.min.js"></script> 
+	<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+	<script>
+		$('#dataBarWrapper').resizable({
+			handles: "n, e, ne",
+			stop: function(event, ui){
+				$('#dataBarWrapper').css("bottom", "0px");
+				$('#dataBarWrapper').css("top", "");
+				
+			}
+		});
+		// parse query params
+		var queryParams = {};
+		location.search.substr(1).split("&").forEach(function(item) {
+			var s = item.split("="), k = s[0], v = s[1] && decodeURIComponent(s[1]);
+			queryParams[k] = v;
+		});
+
+		// API URLs
+// 		var chyfApi = "http://chyf.ca/chyf/";
+		var chyfApi = window.location.href;
+		if(queryParams['env'] == 'local') {
+ 			chyfApi = "http://localhost:8080/chyf-pilot/";
+		} else if(queryParams['env'] == 'nfis') {
+			chyfApi = "https://demo.nfis.org/chyf/";
+		}
+
+		var selectColor = '#FF0000';
+		var currentPourpointMarker = null;
+		
+		// Leaflet Map setup
+		var map = L.map('map', {
+			minZoom: 4,
+			maxZoom: 21,
+			zoomControl: false
+		}).setView([45.44, -73.27], 9);
+		L.control.scale({position:'bottomright'}).addTo(map);
+		map.createPane('catchment');
+		map.createPane('flowpath');
+		map.createPane('nexus');
+		map.createPane('selection');
+		map.createPane('pourpointpane');
+		map.createPane('pourpointcatchmentpane');
+		map.createPane('highlightpane');
+		var xindex = 300;
+		map.getPane('catchment').style.zIndex = xindex;
+		map.getPane('flowpath').style.zIndex = xindex;
+		map.getPane('nexus').style.zIndex = xindex;
+		map.getPane('selection').style.zIndex = xindex;
+		
+		map.getPane('pourpointpane').style.zIndex = xindex + 5;
+		map.getPane('pourpointcatchmentpane').style.zIndex = xindex + 4;
+		map.getPane('highlightpane').style.zIndex = xindex * 2;
+		
+		
+		var baseLayers = {};
+		var overlays = {};
+
+		var baseErrorMsg = "An unexpected server error occurred; No response from server.\n";
+
+		var cbmtLayer = L.tileLayer('http://geoappext.nrcan.gc.ca/arcgis/rest/services/BaseMaps/CBMT_CBCT_GEOM_3857/MapServer/tile/{z}/{y}/{x}', {
+			maxZoom: 15
+		});
+		baseLayers['NRCan CBMT/CBCT'] = cbmtLayer;
+		cbmtLayer.addTo(map);
+
+		var mapboxStreetsLayer = L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoiY2hvZGdzb24iLCJhIjoiY2oxM3JibHM4MDF3dTJxcDhlcnd1enF5aSJ9.Z_z0AGjZf6P9oh8NWY1JqQ', {
+			maxZoom: 18,
+			attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ' +
+				'<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
+				'Imagery © <a href="http://mapbox.com">Mapbox</a>',
+			id: 'mapbox.streets'
+		});
+		baseLayers['MapBox Streets'] = mapboxStreetsLayer;
+
+		// var esriStreetsLayer = L.esri.basemapLayer('Streets');
+		// baseLayers['ESRI Streets'] = esriStreetsLayer;
+
+		var googleRoads = L.gridLayer.googleMutant({
+			type: 'roadmap' // valid values are 'roadmap', 'satellite', 'terrain' and 'hybrid'
+		});
+		baseLayers['Google Roads'] = googleRoads;
+
+		var mapboxSatlayer = L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoiY2hvZGdzb24iLCJhIjoiY2oxM3JibHM4MDF3dTJxcDhlcnd1enF5aSJ9.Z_z0AGjZf6P9oh8NWY1JqQ', {
+			maxZoom: 18,
+			attribution: 'Imagery © <a href="http://mapbox.com">Mapbox</a>',
+			id: 'mapbox.satellite'
+		});
+		baseLayers['MapBox Satellite'] = mapboxSatlayer;
+
+		// var esriStreetsLayer = L.esri.basemapLayer('Imagery');
+		// baseLayers['ESRI Imagery'] = esriStreetsLayer;
+
+		var googleSatellite = L.gridLayer.googleMutant({
+			type: 'satellite' // valid values are 'roadmap', 'satellite', 'terrain' and 'hybrid'
+		});
+		baseLayers['Google Satellite'] = googleSatellite;
+
+		// var esriStreetsLayer = L.esri.basemapLayer('Topographic');
+		// baseLayers['ESRI Topographic'] = esriStreetsLayer;
+
+		var demLayer = L.tileLayer.wms('http://cartes.geogratis.gc.ca/wms/elevation_fr', {
+			layers: 'cdem.color-shaded-relief'
+		});
+		baseLayers['Canada DEM'] = demLayer;
+		
+		var noneLayer = L.tileLayer('');
+		baseLayers['None'] = noneLayer;
+
+		var catchmentLayer = new L.layerJSON({
+			url: chyfApi + "ecatchment/within.json?bbox={lon1},{lat1},{lon2},{lat2}",
+			minZoom: 13,
+			caching: false,
+			propertyItems: "features",
+			propertyId: "ID",
+			propertyTitle: "ID",
+			locAsGeoJSON: true,
+			propertyLoc: "geometry.coordinates",
+			dataToMarker: function(data) {
+				var polygon = L.GeoJSON.geometryToLayer(data.geometry, {pane: 'catchment'});
+				var style = {
+        			color: "#a7110a",
+					weight: 1,
+					fill: true,
+					fillOpacity: 0
+				}
+				if(data.properties.type == 'Water') {
+					style.fillOpacity = 0.5;
+					switch(data.properties.subtype) {
+						case "Lake":
+							style.fillColor = "DarkBlue";
+							break;
+						case "River":
+							style.fillColor = "Blue";
+							break;
+						case "Pond":
+							style.fillColor = "SteelBlue";
+							break;
+						case "Canal":
+							style.fillColor = "Cyan";
+							break;
+					}
+				}
+				polygon.setStyle(style);
+				polygon.bindPopup(makeFeatureTable('eCatchment', data), {autoPan: false});
+				return polygon;
+			}
+		});
+		overlays["Elementary Catchments"] = catchmentLayer;
+		catchmentLayer.addTo(map);
+
+		var flowpathLayer = new L.layerJSON({
+			url: chyfApi + "eflowpath/within.json?bbox={lon1},{lat1},{lon2},{lat2}&scale={scale}",
+			minZoom: 12,
+			pane: 'flowpath',
+			caching: false,
+			propertyItems: "features",
+			propertyId: "ID",
+			propertyTitle: "ID",
+			locAsGeoJSON: true,
+			propertyLoc: "geometry.coordinates",
+			dataToMarker: function(data) {
+				var path = L.GeoJSON.geometryToLayer(data.geometry, {pane: 'flowpath'});
+				var color = "#ff0000";
+				var dasharray = "";
+				var weight = 3;
+				
+				if (data.properties.rank == 'Secondary'){
+					weight = 2;
+					dasharray = "20 3";
+				}
+				
+				switch(data.properties.type) {
+					case "Observed":
+						color = "#2536ed";
+						break;
+					case "Constructed":
+						color = "#b9e85b";
+						break;
+					case "Inferred":
+						color = "#000000";
+						weight = 2;
+						break;
+					case "Bank":
+						color = "#faf020";
+						break;
+				}
+				
+				path.setStyle({
+        			color: color,
+        			weight: weight,
+        			dashArray: dasharray
+				});
+				path.bindPopup(makeFeatureTable('eFlowpath', data), {autoPan: false});
+				return path;
+			}/*,
+			onEachMarker: function(data, marker) {
+				var arrowHead = L.polylineDecorator(marker, {
+			           patterns: [{
+						  offset: '100%', repeat: 0, symbol: L.Symbol.arrowHead({
+							   pixelSize: 12,
+							   headAngle: 30,
+							   minZoom: flowpathLayer.options.minZoom,
+							   pathOptions: {stroke: true, color: marker.options.color}
+						   })
+					   }]
+			       }).addTo(map);
+			}*/
+		});
+		overlays["Elementary Flowpaths"] = flowpathLayer;
+		flowpathLayer.addTo(map);
+
+		var nexusLayer = new L.layerJSON({
+			url: chyfApi + "nexus/within.json?bbox={lon1},{lat1},{lon2},{lat2}",
+			minZoom: 13,
+			pane: 'nexus',
+			caching: false,
+			propertyItems: "features",
+			propertyId: false,
+			//propertyTitle: "ID",
+			locAsGeoJSON: true,
+			propertyLoc: "geometry.coordinates",
+			dataToMarker: function(data) {
+				var latLng = L.latLng(data.geometry.coordinates[1], data.geometry.coordinates[0]);
+				var options = {
+					weight: 1,
+					radius: 5,
+					color: "#000000",
+					fillColor: "#ffaa00",
+					fillOpacity: 0.5,
+					pane: 'nexus'
+				};
+				switch(data.properties.type) {
+					case "Headwater":
+						options.fillColor = "#FFFFFF";
+						break;
+					case "Terminal":
+						options.fillColor = "#888888";
+						break;
+					case "Flowpath":
+						options.fillColor = "#FF0000";
+						break;
+					case "Water":
+						options.fillColor = "#0000FF";
+						break;
+					case "Bank":
+						options.fillColor = "DarkGreen";
+						break;
+					case "Inferred":
+						options.color = "#FFFFFF";
+						options.fillColor = "#000000";
+						break;
+				}
+				var marker = L.circleMarker(latLng, options);
+				marker.bindPopup(makeFeatureTable('nexus', data), {autoPan: false});
+				return marker;
+			}
+		});
+		overlays["Hydro Nodes"] = nexusLayer;
+		nexusLayer.addTo(map);
+
+		var wellsLayer = new L.layerJSON({
+			url: "http://gin.gw-info.net/service/ngwds/en/data/geojson/wells?BBOX={lon1},{lat1},{lon2},{lat2}",
+			minZoom: 13,
+			pane: 'nexus',
+			caching: false,
+			propertyItems: "features",
+			propertyId: "properties.@id",
+			//propertyTitle: "ID",
+			locAsGeoJSON: true,
+			propertyLoc: "geometry.coordinates",
+			buildPopup: function(data, marker) {
+				return makeFeatureTable('Well', data);
+			}
+		});
+		overlays["Wells"] = wellsLayer;
+
+		var nhnLayer = L.tileLayer.wms('http://maps.geogratis.gc.ca/wms/hydro_network_en', {
+			layers: 'nhn:nhn',
+			transparent: 'true',
+    		format: 'image/png'
+		});
+		overlays['Canada NHN'] = nhnLayer;
+
+		
+		new Clipboard('#ppUrlButtonJson');
+		new Clipboard('#ppUrlButtonGeoPkg');
+		
+		var layerControl = L.control.layers(baseLayers, overlays).addTo(map);
+
+		// selection layer shows items returned from selectionRequest
+		var selectionLayer;
+		var selectionRequest;
+
+		function clearSelectionLayer() {
+			if(selectionLayer) {
+				map.removeLayer(selectionLayer);
+				selectionLayer = null;
+			}
+		}
+
+		function clearSelection() {
+			clearSelectionLayer();
+			if(selectionRequest != null) {
+				selectionRequest.abort();
+			}
+			
+			clearPourpointLayers();
+		}
+
+		function switchTool(newTool) {
+			if(tool) {
+				// toggling off the active tool
+				$('#' + tool).removeClass('activeTool');
+			}
+			if(!newTool || tool == newTool) {
+				// there is no new tool
+				tool = null;
+				$('#mapCover').css('z-index', 0);
+				$("#map").removeClass('leaflet-crosshair');
+			} else {
+				// toggling on the new tool
+				tool = newTool;
+				$('#mapCover').css('z-index', 800);
+				$('#' + newTool).addClass('activeTool');
+				$("#map").addClass('leaflet-crosshair');
+			}
+		}
+
+		
+		// tool picker
+		var tool;
+		$('.tool').on("click", function() {
+			switchTool($(this).attr('id'));
+		});
+		$('#pourpointAdd #add_pourpointLocation').on("focus", function(){
+			switchTool('pourpoint');
+		});
+		$('#mapCover').on('click', toolHandler);
+
+		
+		// tool click handler
+		function toolHandler(e) {
+			if(!tool) {
+				return true;
+			}
+			
+			if ($('#pourpoint_tab').hasClass('active') && tool == 'pourpoint'){
+				var latlng = map.containerPointToLatLng([e.offsetX, e.offsetY]);
+				var vv = latlng.lng.toFixed(5) + ", " + latlng.lat.toFixed(5);
+				$('#pourpointAdd #add_pourpointLocation').val(vv);
+				
+				if (currentPourpointMarker == null){
+					currentPourpointMarker = new L.marker([latlng.lat,latlng.lng]);
+					map.addLayer(currentPourpointMarker);
+				}else{
+					currentPourpointMarker.setLatLng(latlng);
+				}
+				
+				return;
+			}
+			
+			var latlng = map.containerPointToLatLng([e.offsetX, e.offsetY]);
+			var theTool = tool;
+			switchTool(false);
+    		switch(theTool) {
+				case 'flowpathFlowsFrom':
+					selectFlowpaths("eflowpath/flowsFrom.json?point=" + latlng.lng + "," + latlng.lat);
+					break;
+				case 'flowpathsUpstreamOf':
+					selectFlowpaths("eflowpath/upstreamOf.json?point=" + latlng.lng + "," + latlng.lat);
+					break;
+				case 'flowpathsDownstreamOf':
+					selectFlowpaths("eflowpath/downstreamOf.json?point=" + latlng.lng + "," + latlng.lat);
+					break;
+				case 'multiDimensionalDownstreamOf':
+					selectFlowpathsCatchments("waterbodyFlow/multiDimensionalDownstreamOf.json?point=" + latlng.lng + "," + latlng.lat);
+					break;
+				case 'multiDimensionalUpstreamOf':
+					selectFlowpathsCatchments("waterbodyFlow/multiDimensionalUpstreamOf.json?point=" + latlng.lng + "," + latlng.lat);
+					break;
+				case 'catchmentContaining':
+					selectCatchments("ecatchment/containing.json?point=" + latlng.lng + "," + latlng.lat);
+					break;
+				case 'catchmentsUpstreamOf':
+					selectCatchments("ecatchment/upstreamOf.json?point=" + latlng.lng + "," + latlng.lat);
+					break;
+				case 'catchmentsDownstreamOf':
+					selectCatchments("ecatchment/downstreamOf.json?point=" + latlng.lng + "," + latlng.lat);
+					break;
+				case 'drainageAreaUpstreamOf':
+					selectDrainageArea("drainageArea/upstreamOf.json?point=" + latlng.lng + "," + latlng.lat
+										+ "&removeHoles=" + $('#removeHoles').is(":checked"));
+					break;
+				case 'drainageAreaDownstreamOf':
+					selectDrainageArea("drainageArea/downstreamOf.json?point=" + latlng.lng + "," + latlng.lat
+										+ "&removeHoles=" + $('#removeHoles').is(":checked"));
+					break;
+			}
+		};
+
+		function selectNexuses(path, center = 0) {
+			clearSelection();
+			$('#mapCover').css('z-index', 800);
+			$("#map").addClass('progress');
+			var selectionRequest = $.ajax({
+				url: chyfApi + path,
+				xhrFields: {
+   					withCredentials: true
+				},
+				success: function(data) {
+					fillDataTable(data, "nexus", chyfApi + path);
+					clearSelectionLayer();
+					selectionLayer = L.geoJson(data, {
+						pointToLayer: function(geoJsonPoint, latLng) {
+							return L.circleMarker(latLng, {
+								interactive: false,
+								pane: 'selection',
+								color: selectColor,
+								radius: 7,
+								weight: 3,
+								fillOpacity: 0.5
+							});
+						}
+					}).addTo(map);
+					if(center > 0) {
+						var bounds = selectionLayer.getBounds();
+						if(data.type == 'FeatureCollection' && data.features[0] && center == 1) {
+							bounds = L.GeoJSON.geometryToLayer(data.features[0]).getBounds();
+						}
+						centerMap(bounds);
+					}
+				},
+				complete: function() {
+					$('#mapCover').css('z-index', 0);
+					$("#map").removeClass('progress');
+				}
+			});
+		}
+
+		function selectFlowpaths(path, center = 0) {
+			clearSelection();
+			$('#mapCover').css('z-index', 800);
+			$('#map').addClass('progress');
+			var selectionRequest = $.ajax({
+				url: chyfApi + path,
+				xhrFields: {
+   					withCredentials: true
+				},
+				success: function(data) {
+					fillDataTable(data, "eFlowpath", chyfApi + path);
+					clearSelectionLayer();
+					selectionLayer = L.geoJson(data, {
+						interactive: false,
+						pane: 'selection',
+						style: function(feature) {
+							return {color:selectColor, weight:4};
+						}
+					}).addTo(map);
+					if(center > 0) {
+						var bounds = selectionLayer.getBounds();
+						if(data.type == 'FeatureCollection' && data.features[0] && center == 1) {
+							bounds = L.GeoJSON.geometryToLayer(data.features[0]).getBounds();
+						}
+						centerMap(bounds);
+					}
+				},
+				complete: function() {
+					$('#mapCover').css('z-index', 0);
+					$("#map").removeClass('progress');
+				}
+			});
+		}
+
+		function selectCatchments(path, center = 0) {
+			clearSelection();
+			$('#mapCover').css('z-index', 800);
+			$("#map").addClass('progress');
+			var selectionRequest = $.ajax({
+				url: chyfApi + path,
+				xhrFields: {
+   					withCredentials: true
+				},
+				success: function(data) {
+					fillDataTable(data, "eCatchment", chyfApi + path);
+					clearSelectionLayer();
+					selectionLayer = L.geoJson(data, {
+						interactive: false,
+						pane: 'selection',
+						style: function(feature) {
+							return {color:selectColor, weight:4};
+						}
+					}).addTo(map);
+					if(center > 0) {
+						var bounds = selectionLayer.getBounds();
+						if(data.type == 'FeatureCollection' && data.features[0] && center == 1) {
+							bounds = L.GeoJSON.geometryToLayer(data.features[0]).getBounds();
+						}
+						centerMap(bounds);
+					}
+				},
+				complete: function() {
+					$('#mapCover').css('z-index', 0);
+					$("#map").removeClass('progress');
+				}
+			});
+		}
+
+		function selectFlowpathsCatchments(path, center = 0) {
+			clearSelection();
+			$('#mapCover').css('z-index', 800);
+			$("#map").addClass('progress');
+			var selectionRequest = $.ajax({
+				url: chyfApi + path,
+				xhrFields: {
+   					withCredentials: true
+				},
+				success: function(data) {
+					fillDataTable(data, "eMulti", chyfApi + path);
+					clearSelectionLayer();
+					
+					selectionLayer = L.geoJson(data, {
+						interactive: false,
+						pane: 'selection',
+						style: function(feature) {
+							return {color:selectColor, weight:4};
+						}
+					}).addTo(map);
+					if(center > 0) {
+						var bounds = selectionLayer.getBounds();
+						if(data.type == 'FeatureCollection' && data.features[0] && center == 1) {
+							bounds = L.GeoJSON.geometryToLayer(data.features[0]).getBounds();
+						}
+						centerMap(bounds);
+					}
+				},
+				complete: function() {
+					$('#mapCover').css('z-index', 0);
+					$("#map").removeClass('progress');
+				}
+			});
+		}
+		
+		function selectDrainageArea(path, center = 0) {
+			clearSelection();
+			$('#mapCover').css('z-index', 800);
+			$("#map").addClass('progress');
+			var selectionRequest = $.ajax({
+				url: chyfApi + path,
+				xhrFields: {
+   					withCredentials: true
+				},
+				success: function(data) {
+					fillDataTable(data, "drainageArea", chyfApi + path);
+					clearSelectionLayer();
+					selectionLayer = L.geoJson(data, {
+						interactive: false,
+						pane: 'selection',
+						style: function(feature) {
+							return {color:selectColor, weight:4};
+						}
+					}).addTo(map);
+					if(center > 0) {
+						centerMap(selectionLayer.getBounds());
+					}
+				},
+				complete: function() {
+					$('#mapCover').css('z-index', 0);
+					$("#map").removeClass('progress');
+				}
+			});
+		}
+
+		$('#nexusById').on("click", function() {
+			selectNexuses("nexus/" + $('#nexusId').val() + ".json", 2);
+		});
+
+		$('#flowpathById').on("click", function() {
+			selectFlowpaths("eflowpath/" + $('#flowpathId').val() + ".json", 2);
+		});
+
+		$('#flowpathsUpstreamOfId').on("click", function() {
+			selectFlowpaths("eflowpath/" + $('#flowpathId').val() + "/upstream.json", 1);
+		});
+
+		$('#flowpathsDownstreamOfId').on("click", function() {
+			selectFlowpaths("eflowpath/" + $('#flowpathId').val() + "/downstream.json", 1);
+		});
+
+		$('#flowpathFilter').on("click", function() {
+			selectFlowpaths("eflowpath/filter.json?property=" + $('#flowpathPropSel').val()
+					+ "&predicate=" + $('#flowpathPredSel').val() + "&value=" + $('#flowpathValSel').val(), 2);
+		});
+
+		$('#catchmentById').on("click", function() {
+			selectCatchments("ecatchment/" + $('#catchmentId').val() + ".json", 2);
+		});
+
+		$('#catchmentsUpstreamOfId').on("click", function() {
+			selectCatchments("ecatchment/" + $('#catchmentId').val() + "/upstream.json", 1);
+		});
+
+		$('#catchmentsDownstreamOfId').on("click", function() {
+			selectCatchments("ecatchment/" + $('#catchmentId').val() + "/downstream.json", 1);
+		});
+
+		$('#clearSelection').on("click", function() {
+			clearSelection();
+			$('#dataBar').empty();
+			$('#dataBarWrapper').css("display", "none");
+			// deselect the tool
+			switchTool(false);
+		});
+		
+		
+
+		var filterDataMap = {
+			'name': [
+				"Branche Est du Ruisseau Hébert",
+				"Branche Henshaw",
+				"Branche Lacroix-Messier",
+				"Branche Martin",
+				"Branche Ouest du Ruisseau Hébert",
+				"Branche Saint-Jacques",
+				"Branche de la Savane",
+				"Branche des Quinze Arpents",
+				"Branche des Trente",
+				"Branche du Grand Tronc",
+				"Branche du Milieu",
+				"Bras Sainte-Julie",
+				"Canal Saint-Bruno",
+				"Coulée d'en Bas",
+				"Coulée d'en Haut",
+				"Cours d'eau Barrière",
+				"Cours d'eau Benoît",
+				"Cours d'eau Bonneau",
+				"Cours d'eau Boyce-Gervais",
+				"Cours d'eau Chicoine",
+				"Cours d'eau Cresta",
+				"Cours d'eau Ferguson",
+				"Cours d'eau Galipeau-Ménard",
+				"Cours d'eau Guertin",
+				"Cours d'eau Lemieux",
+				"Cours d'eau Lécuyer",
+				"Cours d'eau Martel-Bessette",
+				"Cours d'eau Molleur-Leduc",
+				"Cours d'eau Poulette Nord",
+				"Cours d'eau Robert",
+				"Cours d'eau Rémillard",
+				"Cours d'eau Saint-Louis?Sainte-Marguerite",
+				"Cours d'eau Smith",
+				"Cours d'eau Smith-Wallace",
+				"Cours d'eau Sorel",
+				"Cours d'eau Trahan",
+				"Décharge Alix",
+				"Décharge Crevier",
+				"Décharge Lacroix",
+				"Décharge Neuve",
+				"Décharge Saint-Pierre",
+				"Décharge Toupin",
+				"Décharge Tétrault-Blanchet",
+				"Décharge de la Côte Double",
+				"Décharge de la Fabrique",
+				"Décharge de la Pointe de Chemise",
+				"Décharge des Cinq",
+				"Décharge des Dix-Huit",
+				"Décharge des Douze",
+				"Décharge des Onze",
+				"Décharge des Quatorze",
+				"Décharge des Quinze",
+				"Décharge des Quinze Saint-Simon Côté Nord",
+				"Décharge des Quinze Saint-Simon Côté Sud",
+				"Décharge des Quinze d'Argenteuil Côté Nord",
+				"Décharge des Six",
+				"Décharge des Soixante",
+				"Décharge des Swell",
+				"Décharge des Trente",
+				"Décharge des Trente Saint-Simon Côté Sud",
+				"Décharge des Trente d'Argenteuil",
+				"Décharge des Trois",
+				"Décharge des Vingt",
+				"Décharge des Vingt de la Rivière Chambly",
+				"Décharge des Vingt-Quatre",
+				"Décharge du Bas des Vingt",
+				"Décharge du Cordon",
+				"Décharge du Derrière du Troisième Rang",
+				"Décharge du Devant du Troisième Rang",
+				"Décharge du Haut des Quarante",
+				"Décharge du Haut des Vingt",
+				"Décharge du Nord de la Côte Double",
+				"Décharge du Rang des Vingt",
+				"Décharge du Trait Carré",
+				"Décharge du Vieux Chemin",
+				"Embranchement Boston",
+				"Embranchement Fréchette",
+				"Embranchement Maurier",
+				"Embranchement McKee",
+				"Embranchement Ostiguy",
+				"Embranchement de la Deuxième Concession Foucault",
+				"Grand ruisseau des Trente",
+				"Grande décharge Mailloux",
+				"Grande décharge O'Connor",
+				"Grande décharge de la Terre Noire",
+				"Grande décharge des Terres Noires",
+				"La Décharge",
+				"La Grande Décharge",
+				"La Petite Décharge",
+				"Le Grand Ruisseau",
+				"Le Ruisseau",
+				"Petit ruisseau Leboeuf",
+				"Petite décharge Noire",
+				"Petite décharge des Quinze",
+				"Petite décharge des Trente",
+				"Richelieu River",
+				"Rivière Amyot",
+				"Rivière Bernier",
+				"Rivière Bleury",
+				"Rivière L'Acadie",
+				"Rivière Lacolle",
+				"Rivière Richelieu",
+				"Rivière des Hurons",
+				"Rivière des Iroquois",
+				"Rivière du Sud",
+				"Ruisseau Adams",
+				"Ruisseau Albert-Tourigny",
+				"Ruisseau Allaire",
+				"Ruisseau André-Bernard",
+				"Ruisseau Antoine-Lacombe",
+				"Ruisseau Arcand",
+				"Ruisseau Archambault",
+				"Ruisseau Archambeault-Lussier",
+				"Ruisseau Archille-Hébert",
+				"Ruisseau Arès",
+				"Ruisseau Babeu",
+				"Ruisseau Barrière",
+				"Ruisseau Barré",
+				"Ruisseau Barsalou",
+				"Ruisseau Beauchemin",
+				"Ruisseau Beaudin-Dumouchel",
+				"Ruisseau Beaudoin",
+				"Ruisseau Beauregard",
+				"Ruisseau Beauvais-Davignon",
+				"Ruisseau Beaver Meadow",
+				"Ruisseau Beloeil",
+				"Ruisseau Benoît-Richer",
+				"Ruisseau Bergeron",
+				"Ruisseau Bernard",
+				"Ruisseau Bernard Est",
+				"Ruisseau Bernard Ouest",
+				"Ruisseau Bessette",
+				"Ruisseau Bessette-Charbonneau",
+				"Ruisseau Bisaillon",
+				"Ruisseau Bissonnette",
+				"Ruisseau Blanc",
+				"Ruisseau Blanchette",
+				"Ruisseau Bleury",
+				"Ruisseau Blueberry",
+				"Ruisseau Boire-Fortin",
+				"Ruisseau Bombardier",
+				"Ruisseau Boulais",
+				"Ruisseau Boulerice",
+				"Ruisseau Bourassa",
+				"Ruisseau Brais-Davignon",
+				"Ruisseau Brault-Gagnon",
+				"Ruisseau Breault",
+				"Ruisseau Breton",
+				"Ruisseau Brière-Lafrance",
+				"Ruisseau Brodeur",
+				"Ruisseau Brosseau",
+				"Ruisseau Brunet",
+				"Ruisseau Bédard",
+				"Ruisseau Caille",
+				"Ruisseau Campbell",
+				"Ruisseau Cardinal",
+				"Ruisseau Carreau",
+				"Ruisseau Carreau-Gosselin",
+				"Ruisseau Chagnon",
+				"Ruisseau Charbonneau",
+				"Ruisseau Charbonneau-Mailloux-Guidotti",
+				"Ruisseau Chartier",
+				"Ruisseau Chaume-Charron",
+				"Ruisseau Choquette",
+				"Ruisseau Cloutier",
+				"Ruisseau Cloutier-Perrier",
+				"Ruisseau Clouâtre",
+				"Ruisseau Cochon",
+				"Ruisseau Coderre",
+				"Ruisseau Comeau-Lecompte",
+				"Ruisseau Cordon Savane",
+				"Ruisseau Courtemanche",
+				"Ruisseau Cusson",
+				"Ruisseau Cyr",
+				"Ruisseau Daigneault-Breton",
+				"Ruisseau Dalpé",
+				"Ruisseau Darsi-Auclair",
+				"Ruisseau Denault-Granger",
+				"Ruisseau Deneault-Béland",
+				"Ruisseau Derick",
+				"Ruisseau Derick-Dupont",
+				"Ruisseau Desgranges",
+				"Ruisseau Deslauriers",
+				"Ruisseau Desnoyers",
+				"Ruisseau Desrosiers",
+				"Ruisseau Didace-Nadeau",
+				"Ruisseau Ducharme",
+				"Ruisseau Ducharme-Noël",
+				"Ruisseau Ducharme-Piché",
+				"Ruisseau Ducharme-Vary",
+				"Ruisseau Duclos-Casavant",
+				"Ruisseau Dupont",
+				"Ruisseau Duquette",
+				"Ruisseau Faddentown",
+				"Ruisseau Faddentown Ouest",
+				"Ruisseau Fairbanks",
+				"Ruisseau Fidèle-Giroux",
+				"Ruisseau Fontaine",
+				"Ruisseau Fournier",
+				"Ruisseau François-Morin",
+				"Ruisseau Fryer",
+				"Ruisseau Gadbois",
+				"Ruisseau Gagné",
+				"Ruisseau Gamache",
+				"Ruisseau Gariépy",
+				"Ruisseau Gauthier-Blain",
+				"Ruisseau Gemme",
+				"Ruisseau Gingras-Lebeau",
+				"Ruisseau Godin-Desranleau",
+				"Ruisseau Goyette",
+				"Ruisseau Grand Tronc",
+				"Ruisseau Grégoire",
+				"Ruisseau Guay",
+				"Ruisseau Guillet",
+				"Ruisseau Hamel",
+				"Ruisseau Hauver-Métivier",
+				"Ruisseau Henri-Bessette",
+				"Ruisseau Honoré-Martin",
+				"Ruisseau Hood",
+				"Ruisseau Hébert",
+				"Ruisseau Inconnu",
+				"Ruisseau Jackson",
+				"Ruisseau Jodoin",
+				"Ruisseau Joseph-Lebeau",
+				"Ruisseau Kyle",
+				"Ruisseau L'Écuyer",
+				"Ruisseau L'Écuyer-Taubel",
+				"Ruisseau Lahaise",
+				"Ruisseau Lalanne",
+				"Ruisseau Lamarre",
+				"Ruisseau Lamoureux",
+				"Ruisseau Langlois-Palardy",
+				"Ruisseau Laplante",
+				"Ruisseau Laporte",
+				"Ruisseau Larivière",
+				"Ruisseau Larochelle",
+				"Ruisseau Larue",
+				"Ruisseau Laurent-Noiseux",
+				"Ruisseau Lavigne",
+				"Ruisseau Lavoie",
+				"Ruisseau Lebeau-Benjamin",
+				"Ruisseau Leblanc-Béchard",
+				"Ruisseau Lecours",
+				"Ruisseau Lefebvre",
+				"Ruisseau Lemieux",
+				"Ruisseau Little",
+				"Ruisseau Longeant",
+				"Ruisseau Lord-Oligny",
+				"Ruisseau Lussier",
+				"Ruisseau Léonard",
+				"Ruisseau Léonide-Tétreault",
+				"Ruisseau Mailloux",
+				"Ruisseau Maillé",
+				"Ruisseau Marcil",
+				"Ruisseau Marcoux",
+				"Ruisseau Martel",
+				"Ruisseau Massé",
+				"Ruisseau McDuff",
+				"Ruisseau Menier-Borduas",
+				"Ruisseau Mercier",
+				"Ruisseau Meunier",
+				"Ruisseau Moreau",
+				"Ruisseau Morin",
+				"Ruisseau Morissey",
+				"Ruisseau Morneau",
+				"Ruisseau Mosher-Daignault",
+				"Ruisseau Ménard",
+				"Ruisseau Méthé",
+				"Ruisseau Méthé-Fournier",
+				"Ruisseau Narbonne",
+				"Ruisseau Noiseux",
+				"Ruisseau Normandin",
+				"Ruisseau Normandin-Desranleau",
+				"Ruisseau Odell",
+				"Ruisseau Paquette",
+				"Ruisseau Paradis",
+				"Ruisseau Parent",
+				"Ruisseau Patenaude",
+				"Ruisseau Pelletier",
+				"Ruisseau Petite Bagnole",
+				"Ruisseau Philias-Bissonette",
+				"Ruisseau Pierre-Dextraze",
+				"Ruisseau Pierre-Lalanne",
+				"Ruisseau Pir-Vir",
+				"Ruisseau Poirier",
+				"Ruisseau Poulin",
+				"Ruisseau Principal",
+				"Ruisseau Provost",
+				"Ruisseau Prud'homme",
+				"Ruisseau Préfontaine",
+				"Ruisseau Pétrimoulx",
+				"Ruisseau Quintin",
+				"Ruisseau Quintin-Pelletier",
+				"Ruisseau Raimbault",
+				"Ruisseau Richard-Gervais",
+				"Ruisseau Richer",
+				"Ruisseau Riendeau-Savaria",
+				"Ruisseau Robert",
+				"Ruisseau Roman-Moreau",
+				"Ruisseau Rondeau-Larivière",
+				"Ruisseau Rondeau-Marcoux",
+				"Ruisseau Rouillé",
+				"Ruisseau Roy",
+				"Ruisseau Roy-Lamarre",
+				"Ruisseau Rémi-Lusignant",
+				"Ruisseau Rémillard",
+				"Ruisseau Saint-Denis?Saint-Bernard",
+				"Ruisseau Saint-Louis",
+				"Ruisseau Saint-Pierre",
+				"Ruisseau Samoisette",
+				"Ruisseau Samson",
+				"Ruisseau Sarasteau",
+				"Ruisseau Sauvage",
+				"Ruisseau Savage",
+				"Ruisseau Simioni",
+				"Ruisseau Smith-Bonneville",
+				"Ruisseau Standish",
+				"Ruisseau Struthers",
+				"Ruisseau Séguin",
+				"Ruisseau Séraphin-Choquette",
+				"Ruisseau Tessier",
+				"Ruisseau Théberge",
+				"Ruisseau Théodore",
+				"Ruisseau Touchette",
+				"Ruisseau Tougas",
+				"Ruisseau Tremblay",
+				"Ruisseau Tétreault",
+				"Ruisseau Vary-Jodoin",
+				"Ruisseau Viens-Lussier",
+				"Ruisseau Viens-Riendeau",
+				"Ruisseau Voghel",
+				"Ruisseau Voghel-Blanchard",
+				"Ruisseau Voghel-Lusignan",
+				"Ruisseau Williams",
+				"Ruisseau Wilson",
+				"Ruisseau Young-Walte",
+				"Ruisseau d'en Haut",
+				"Ruisseau de Misère",
+				"Ruisseau de l'Église",
+				"Ruisseau de la Barbotte",
+				"Ruisseau de la Boue",
+				"Ruisseau de la Branche du Rapide",
+				"Ruisseau de la Loutre",
+				"Ruisseau de la Première Concession Foucault",
+				"Ruisseau de la Rouchière",
+				"Ruisseau de la Tempête",
+				"Ruisseau de la Troisième Concession",
+				"Ruisseau des Atocas",
+				"Ruisseau des Chênes",
+				"Ruisseau des Dix Terres",
+				"Ruisseau des Douze",
+				"Ruisseau des Frères",
+				"Ruisseau des Noyers",
+				"Ruisseau des Ormes",
+				"Ruisseau des Prairies",
+				"Ruisseau des Quarante",
+				"Ruisseau des Quinze",
+				"Ruisseau des Sept Arpents",
+				"Ruisseau des Soeurs Grises",
+				"Ruisseau des Soixante Nord",
+				"Ruisseau des Terres Noires",
+				"Ruisseau des Trente",
+				"Ruisseau des Vingt",
+				"Ruisseau des Étangs",
+				"Ruisseau du Bas des Quarante",
+				"Ruisseau du Bord de l'Eau",
+				"Ruisseau du Coteau",
+				"Ruisseau du Deuxième Rang",
+				"Ruisseau du Haut des Terres",
+				"Ruisseau du Milieu",
+				"Ruisseau du Milieu et du Trait Carré",
+				"Ruisseau du Moulin",
+				"Ruisseau du Nord",
+				"Ruisseau du Pin Rouge",
+				"Ruisseau du Trait Carré",
+				"Ruisseau la Petite France",
+				"Ruisseau la Savane",
+				"Ruisseau Éphrem-Chaput",
+				"Ruisseau Éthier-Fortin",
+				"Ruisseau à l'Ours",
+				"Second Ruisseau",
+				"Troisième Ruisseau"
+			],
+			'type': ['Observed','Constructed','Inferred','Bank','Unknown'],
+			'rank': ['Primary','Secondary', 'Unknown'],
+			'strahleror': [1,2,3,4,5,6,7],
+			'hortonor': [1,2,3,4,5,6,7],
+			'hackor': [1,2,3,4,5,6,7,8,9,10,1001,1002,1003],
+			'length': [10, 100, 250, 500, 1000, 2500, 5000]
+		};
+
+		function flowpathPropSelChange() {
+			var selected = $('#flowpathPropSel').val();
+			var $valSel = $('#flowpathValSel');
+			oldVal = $valSel.val();
+			$valSel.empty();
+			$.each(filterDataMap[selected], function(index, item) {
+				$valSel.append($("<option></option>").text(item));
+			});
+			if($valSel.find('option:contains(' + oldVal + ')').size() > 0) {
+				$valSel.val(oldVal);
+			}
+		}
+		// call to initialize values
+		flowpathPropSelChange();
+		$('#flowpathPropSel').on('change', flowpathPropSelChange);
+
+		var dataMap = {
+			nexus: {
+				title: "Hydro Node",
+				titlePlural: "Hydro Nodes",
+				cols: {
+					'id': 'ID',
+					'type': 'Type'
+				}
+			},
+			eFlowpath: {
+				title: "Elementary Flowpath",
+				titlePlural: "Elementary Flowpaths",
+				cols: {
+					'id': 'ID',
+					'name': 'Primary Name',
+					'type': 'Type',
+					'rank': 'Rank',
+					'strahleror': 'Strahler Order',
+					'hortonor': 'Horton Order',
+					'hackor': 'Hack Order',
+					'length': 'Length*'
+				}
+			},
+			eCatchment: {
+				title: "Elementary Catchment",
+				titlePlural: "Elementary Catchments",
+				cols: {
+					'id': 'ID',
+					'name': 'Primary Name',
+					'type': 'Type',
+					'subtype': 'SubType',
+					'rank': 'Rank',
+					'strahleror': 'Strahler Order',
+					'hortonor': 'Horton Order',
+					'hackor': 'Hack Order',
+					'area': 'Area*',
+					'd2w2d_mean': '2D Distance to Water Mean*',
+					'd2w2d_max': '2D Distance to Water Max*',
+					'elv_min': 'Elevation Min*',
+					'elv_max': 'Elevation Max*',
+					'elv_mean': 'Elevation Mean*',
+					'slope_min': 'Slope Min*',
+					'slope_max': 'Slope Max*',
+					'slope_mean': 'Slope Mean*',
+					'north_pct': 'Aspect % North',
+					'south_pct': 'Aspect % South',
+					'east_pct': 'Aspect % East',
+					'west_pct': 'Aspect % West',
+					'flat_pct': 'Aspect % Flat**',
+				}
+			},
+			eMulti:{
+				title: "Elementary Flowpath and Catchment",
+				titlePlural: "Elementary Flowpaths and Catchments",
+				cols: {
+					'id': 'ID',
+					'name': 'Primary Name',
+					'type': 'Type',
+					'subtype': 'SubType',
+					'rank': 'Rank',
+					'strahleror': 'Strahler Order',
+					'hortonor': 'Horton Order',
+					'hackor': 'Hack Order',
+					'area': 'Area*',
+					'length': 'Length*'
+				}
+			},
+			drainageArea: {
+				title: "Drainage Area",
+				titlePlural: "Drainage Areas",
+				cols: {
+					'area': 'Area*',
+					'elv_min': 'Elevation Min*',
+					'elv_max': 'Elevation Max*',
+					'elv_mean': 'Elevation Mean*',
+					'slope_min': 'Slope Min*',
+					'slope_max': 'Slope Max*',
+					'slope_mean': 'Slope Mean*',
+					'north_pct': 'Aspect % North',
+					'south_pct': 'Aspect % South',
+					'east_pct': 'Aspect % East',
+					'west_pct': 'Aspect % West',
+					'flat_pct': 'Aspect % Flat**',
+					'd2w2d_mean': '2D Distance to Water Mean*',
+					'd2w2d_max': '2D Distance to Water Max*',
+				}
+			}
+		};
+
+		function fillDataTable(data, type, url) {
+			if(!data) {
+				return;
+			}
+			var $div = $('<div style="overflow:auto;"/>');
+			var $table = $('<table/>');
+			$div.append($table);
+			var features;
+			if(data.type == 'Feature') {
+				features = [data];
+			} else if(data.type == 'FeatureCollection') {
+				if(!data.features || data.features.length == 0) {
+					return;
+				}
+				features = data.features;
+			} else {
+				return;
+			}
+			var cols = dataMap[type].cols;
+			var $thead = $('<thead/>');
+			for(var i in cols) {
+				$thead.append('<th>' + cols[i] + '</th>');
+			}
+			$table.append($thead);
+			var $tbody = $('<tbody/>');
+			for(var f in features) {
+				var $row = $('<tr/>');
+				for(var c in cols) {
+					if(c == 'id') {
+						$row.append('<td>' + features[f].ID + '</td>');
+					} else {
+						$row.append('<td>' + (features[f].properties[c] == null ? "" : features[f].properties[c]) + '</td>');
+					}
+				}
+				$tbody.append($row);
+			}
+			$table.append($tbody);
+			$div.append($('<div style=\'font-size: 0.8em\'>*Areas are provided in hectares (ha), Distances in meters (m), Elevation in meters (m), Slope in degrees (<sup>o</sup>)<br>**Flat in the context of Aspect means that the slope is <3<sup>o</sup></div>'));
+			var geopkgurl = url.replace(/\.json/, ".gpkg");
+			$('#dataBar').empty();
+			$('#dataBar').append('<div id="dataTitle" title="' + url + '">' + dataMap[type].titlePlural + ' (' + features.length + ')'
+					+ ' <button class="btn btn-default btn-sm" id="urlButtonJson" type="button" data-clipboard-text="' + url + '">Copy Url (JSON)</button>'
+					+ ' <button class="btn btn-default btn-sm" id="urlButtonGeoPkg" type="button" data-clipboard-text="' + geopkgurl + '">Copy Url (GeoPkg)</button></div>');
+			//$('#dataBar').append('<div id="dataUrl">' + url + '</div>');
+			$('#dataBar').append($div);
+			new Clipboard('#urlButtonJson');
+			new Clipboard('#urlButtonGeoPkg');
+			$('#dataBarWrapper').css("display", "block");
+		}
+
+		function makeFeatureTable(type, feature) {
+			var title = type;
+			var props = feature.properties;
+			var cols = props;
+			if(dataMap[type]) {
+				title = dataMap[type].title;
+				var cols = dataMap[type].cols;
+			}
+			var str = '<span class="featureTitle">' + title + '</span><table class="featureTable">';
+			for(var c in cols) {
+				var name = c;
+				if(dataMap[type]) {
+					name = cols[c];
+				}
+				if(c == 'id') {
+					str += '<tr><td>' + name + '</td><td>' + feature.ID + '</td></tr>';
+				} else {
+					str += '<tr><td>' + name + '</td><td>';
+					if(/^https?:\/\//.test(props[c])) {
+						var val = props[c].split('/').pop().split('#')[0].split('?')[0];
+			 			str += '<a target="_blank" href="' + props[c] + '">' + val + '</a>';
+					} else {
+						str += (props[c]==null) ? "&nbsp;" : props[c];
+						
+					}
+					str += "</td></tr>";
+				}
+			}
+			str += "</table>";
+			str += '<div style="font-size:.8em">*Areas are provided in hectares (ha), Distances in meters (m), Elevation in meters (m), Slope in degrees (<sup>o</sup>)<br>**Flat in the context of Aspect means that the slope is <3<sup>o</sup></div>';
+
+			return str;
+		}
+
+		function centerMap(bounds, center = true) {
+			if(!bounds || !bounds.isValid()) {
+				return;
+			}
+			var options = {
+				maxZoom: 16
+			};
+			if(center) {
+				map.fitBounds(bounds.pad(0.25), options);
+			} else if(!map.getBounds().contains(bounds.pad(0.25))) {
+				// if the bounds aren't within the current map bounds
+				// zoom out to include the bounds
+				map.fitBounds(bounds.extend(map.getBounds()).pad(0.25), options);
+			}
+		}
+
+		//----------- POUROINT FUNCTIONS ----------------------
+		
+		//select all outputs
+		$('#ppall').on('click', function(){
+			var items = $('#pourpointOut input');
+			for (var i = 0; i < items.length; i ++){
+				$(items[i]).prop('checked', true);
+			}
+			return false;
+		});
+		//select no output
+		$('#ppnone').on('click', function(){
+			var items = $('#pourpointOut input');
+			for (var i = 0; i < items.length; i ++){
+				$(items[i]).prop('checked', false);
+			}
+			return false;
+		});
+		
+		//export pourpoints to csv
+		$('#ppOutput').on('click', function(){
+			var items = $('#pourpointList .input-group');
+			var query = "";
+			query += "ID,CCode,X,Y\n";
+			for (var i = 0; i < items.length; i ++){
+				query += $(items[i]).find("#add_pourpointId").val();
+				query += ",";
+				query += $(items[i]).find("#add_pourpointCode").val();
+				query += ",";
+				query += $(items[i]).find("#add_pourpointLocation").val();
+				query += "\n";
+			}
+			$(this).attr({
+				"href": 'data:text/csv;charset=utf-8,' + encodeURIComponent(query),
+				"download":"pourpointdata.csv",
+				"target": "_blank"
+			});
+			
+		});
+		
+		//import pourpoints
+		var fileSelector = $('<input type="file">');
+		fileSelector.on("change", function(evt){
+			var file = evt.target.files[0];
+			if (file == null) return false;
+			var freader = new FileReader();
+			freader.onload = function(e){
+				var text = e.target.result;
+				var lines = text.split("\n");
+				var line1 = lines[0].split(",");
+				//assume line1 is a header and skip processing
+				var idCol = -1;
+				var ccodeCol = -1;
+				var xCol = -1;
+				var yCol = -1;
+				for (var i = 0; i < line1.length; i ++){
+					if (line1[i].trim().toUpperCase() == "ID"){
+						idCol = i;
+					}else if (line1[i].trim().toUpperCase() == "CCODE"){
+						ccodeCol = i;
+					}else if (line1[i].trim().toUpperCase() == "X"){
+						xCol = i;
+					}else if (line1[i].trim().toUpperCase() == "Y"){
+						yCol = i;
+					}
+				}
+				if (idCol == -1){
+					alert("No 'ID' column found in file.");
+					return;
+				}
+				if (ccodeCol == -1){
+					alert("No 'CCode' column found in file.");
+					return;
+				}
+				if (xCol == -1){
+					alert("No 'X' column found in file.");
+					return;
+				}
+				if (yCol == -1){
+					alert("No 'Y' column found in file.");
+					return;
+				}
+				for (var i = 1; i < lines.length; i ++) {
+					if(lines[i].trim() != "") {
+						var parts = lines[i].split(",");
+						addPourpointRow(parts[idCol].replace(/^"|"$/g, ""),parts[ccodeCol],parts[xCol],parts[yCol]);
+					}
+				}
+			}
+			freader.readAsText(file);
+			
+		});
+		$('#ppImport').on('click', function(){
+			$("#pp_import_dialog").dialog({
+				modal: true,
+			    height: "auto",
+			    width: 400,
+			    buttons: {
+			          "OK": function() {
+			            $( this ).dialog( "close" );
+			            fileSelector.click();
+			          }}
+			});
+			
+			return false;
+		});
+		
+		//add pourpoint
+		$('#addPourpointBtn').on('click', function() {
+			addPourpoint();
+			
+			var nextId = "P" + ($('#pourpointList').children().length + 1);
+			$('#add_pourpointId').val(nextId);
+			$('#add_pourpointLocation').val('');
+			$('#add_pourpointCode').val('-2');
+			if (currentPourpointMarker != null){
+				map.removeLayer(currentPourpointMarker);
+				currentPourpointMarker = null;
+			}
+		});
+		
+		$('#doPPCalc').on('click', runPourpoint);
+		
+		$('#clearPPMapLayers').on('click', function(){
+			clearSelection();
+			$('#dataBar').empty();
+			$('#dataBarWrapper').css("display", "none");
+			// deselect the tool
+			switchTool(false);
+		});
+		
+		$('#clearPPList').on('click', function(){
+			$('#pourpointList > .form-group').each(function(){
+				deletePourpoint(this);
+			});
+			$('#add_pourpointId').val("P1");
+		});
+		
+		
+		function addPourpoint() {
+			var $inputGroup = $('#pourpointAdd');
+			var id = $inputGroup.find('#add_pourpointId').val();
+			var ccode = $inputGroup.find('#add_pourpointCode').val();
+			var loc = $inputGroup.find('#add_pourpointLocation').val();
+			addPourpointRow(id, ccode, loc.split(",")[0], loc.split(",")[1]);
+		}
+		
+		function addPourpointRow(id, ccode, x, y) {
+			var div = document.createElement('div');
+			div.className="form-group";
+			
+			var div2 = document.createElement('div');
+			div2.className="input-group"
+			div.appendChild(div2);
+			
+			var idInput = document.createElement('input');
+			idInput.id = "add_pourpointId";
+			idInput.className="form-control input-sm";
+			idInput.style="width:50px; padding: 5px;";
+			idInput.value = id;
+			div2.appendChild(idInput)
+			
+			var codeInput = document.createElement('input');
+			codeInput.id = "add_pourpointCode";
+			codeInput.className="form-control input-sm";
+			codeInput.style="width:30px; padding: 5px;";
+			codeInput.value = ccode;
+			div2.appendChild(codeInput)
+			
+			var locInput = document.createElement('input');
+			locInput.id = "add_pourpointLocation";
+			locInput.className="form-control input-sm";
+			locInput.style="width:115px; padding:5px; font-size:10px";
+			locInput.value = x + "," + y;
+			locInput.readOnly = "readonly";
+			div2.appendChild(locInput)
+			
+			//delete and zoom to buttons
+			var buttonGrp = document.createElement('div');
+			buttonGrp.className = "input-group-btn";
+			div2.appendChild(buttonGrp);
+			
+			var zoomBtn = document.createElement('button');
+			zoomBtn.id="zoomPourpointButton";
+			zoomBtn.className="btn btn-default btn-sm";
+			zoomBtn.title="Zoom To";
+			$(zoomBtn).on("click", function(){zoomPourpoint(div);});
+			var zoomBtnSpan = document.createElement('span');
+			zoomBtnSpan.className = "glyphicon glyphicon-zoom-in";
+			zoomBtnSpan.style = "color:blue";
+			zoomBtn.appendChild(zoomBtnSpan);
+			buttonGrp.appendChild(zoomBtn);
+			
+			var deleteBtn = document.createElement('button');
+			deleteBtn.id="deletePourpointBtn";
+			deleteBtn.className="btn btn-default btn-sm";
+			deleteBtn.title="Delete";
+			$(deleteBtn).on("click", function(){deletePourpoint(div);});
+			
+			var deleteBtnSpan = document.createElement('span');
+			deleteBtnSpan.className = "glyphicon glyphicon-remove";
+			deleteBtnSpan.style = "color:red";
+			deleteBtn.appendChild(deleteBtnSpan);
+			buttonGrp.appendChild(deleteBtn);  
+			
+			$("#pourpointList").append(div);
+			
+			switchTool(false);
+			
+			var latlng = locInput.value;
+			//parse out x,y
+			var x= latlng.split(",")[0];
+			var y = latlng.split(",")[1];
+			var marker = L.marker([y,x]);
+			map.addLayer(marker);
+			//div.data.marker = marker;
+			$(div).data("marker", marker);
+			
+			//map.removeLayer($(div).data("marker"));
+		}
+		
+		function deletePourpoint(div){
+			var element = div;
+			var layer = $(element).data("marker");
+			if (layer != null) map.removeLayer(layer);
+			$(element).remove();
+		}
+		function zoomPourpoint(div){
+			var element = div;
+			var layer = $(element).data("marker");
+			if (layer != null) centerMap(layer.getLatLng().toBounds(10), true);
+			
+		}
+		
+		
+		var outputPpLayer;
+		var catchmentPpLayer;
+		var subCatchmentPpLayer;
+		var partitionedCatchmentPpLayer;
+		var interiorCatchmentPpLayer;
+		var pPLayer;
+		var highlightLayer;
+		var ppRequest;
+		
+		function clearPourpointLayers(){
+			//clear current results
+			if (highlightLayer != null){
+				map.removeLayer(highlightLayer);
+				highlightLayer = null;
+			}
+			if (outputPpLayer != null){
+				map.removeLayer(outputPpLayer);
+				projectedPpLayer = null;
+			}
+			if (pPLayer != null){
+				map.removeLayer(pPLayer);
+				pPLayer = null;
+			}
+			if (catchmentPpLayer != null){
+				map.removeLayer(catchmentPpLayer);
+				catchmentPpLayer = null;
+			}
+			if (subCatchmentPpLayer != null){
+				map.removeLayer(subCatchmentPpLayer);
+				subCatchmentPpLayer = null;
+			}
+			if (partitionedCatchmentPpLayer != null){
+				map.removeLayer(partitionedCatchmentPpLayer);
+				partitionedCatchmentPpLayer = null;
+			}
+			if (interiorCatchmentPpLayer != null){
+				map.removeLayer(interiorCatchmentPpLayer);
+				interiorCatchmentPpLayer = null;
+			}
+		}
+		
+		
+		function runPourpoint(){
+			var items = $('#pourpointList .input-group');
+			if (items.length == 0){
+				alert('Nothing to do.  Please add at least one Pourpoint');
+				return;
+			}
+			
+			if (ppRequest != null){
+				ppRequest.abort();
+			}
+			
+			//clear map layers/data bar
+			clearPourpointLayers();
+			$('#dataBar').empty();
+			$('#ppUrlButtonJson').prop('disabled', true);
+			$('#ppUrlButtonGeoPkg').prop('disabled', true);
+			
+			var tabs = document.createElement('div');
+			$(tabs).append($('<label style="padding:10px">Processing...</label><button id="btnCancelPp" class="btn btn-default btn-sm" type="button" title="Cancel" >Cancel</button>'));
+			$('#dataBar').append($(tabs));
+			$(tabs).css("height", "100%");
+			$(tabs).css("width", "100%");
+			$('#dataBarWrapper').css("display", "block");
+			$('#btnCancelPp').on('click', function(){
+				ppRequest.abort();
+				$('#dataBar').empty();
+				$('#dataBar').append($('<p>Cancelled</p>'));
+			});
+			//determine inputs
+			var query = "points=";
+			for (var i = 0; i < items.length; i ++){
+				query += $(items[i]).find("#add_pourpointId").val();
+				query += ",";
+				query += $(items[i]).find("#add_pourpointLocation").val();
+				query += ",";
+				query += $(items[i]).find("#add_pourpointCode").val();
+				query += ",";
+			}
+			query +="&output=";
+			if ($("#outputpourpoints").is(':checked')) query +="op,prt,";
+ 			if ($("#pourpointdistance").is(':checked')) query +="opdmin,opdmax,opdprimary,";
+			if ($("#associatedcatchments").is(':checked')) query +="c,ccr,";
+			if ($("#subcatchments").is(':checked')) query +="sc,";
+			if ($("#subcatchmentrelations").is(':checked')) query +="scr,";
+			if ($("#partitionedcatchments").is(':checked')) query +="pc,";
+ 			if ($("#partitionedcatchmentrelations").is(':checked')) query +="pcr,";		
+ 			if ($("#interiorcatchments").is(':checked')) query +="ic,";
+ 			
+ 			//holes
+ 			query +="&removeHoles=";
+ 			if ($("#ppholes").is(':checked')){
+ 				query +="true";
+ 			}else{
+ 				query +="false";
+ 			}
+ 			//stats
+ 			query +="&includeStats=";
+ 			var stats = false;
+ 			if ($("#includestats").is(':checked')){
+ 				query +="true";
+ 				stats = true;
+ 			}else{
+ 				query +="false";
+ 			}
+ 			 			
+ 			//send request
+			var path = "pourpoint/compute.json?" + query;
+			ppRequest = $.ajax({
+				url: chyfApi + path,
+				xhrFields: {
+   					withCredentials: true
+				},
+				success: function(data) {
+					displayPourpointResults(data, chyfApi + path, stats);
+				},
+				error: function(xhr, text, error){
+					try{
+						var json = JSON.parse(xhr.responseText);
+						alert('PROCESSING ERROR\n' + json.error);
+					}catch (err){
+						alert('Unknown error occurred processing Pourpoints.');
+					}
+				}
+			});
+		}
+		
+		
+		
+		function displayPourpointResults(data, path, includestats){
+			
+			var tabs = document.createElement('div');
+			$(tabs).attr("id", "tabs");
+			$(tabs).css("height", "100%");
+			$(tabs).css("width", "100%");
+			var ul = document.createElement('ul');
+			$(ul).addClass("nav").addClass("nav nav-tabs");
+			$(ul).appendTo($(tabs));
+			
+			var tabbody = document.createElement('div');
+			$(tabbody).addClass("tab-content");
+			$(tabbody).appendTo($(tabs));
+			
+			//create all tabs and map layers
+			var layers = {};
+			for (var i = 0; i < data.length; i ++){
+				var item = data[i];
+				if (item.key=="op"){
+					addOutputPourpointLayer(item);
+					layers.op = item;
+					
+				}else if (item.key=="c"){
+					addPourpointCatchmentLayer(item);
+					layers.c = item;
+				}else if (item.key =="sc"){
+					addPourpointSubcatchmentLayer(item);
+					layers.sc = item;
+				}else if (item.key =="pc"){
+					addPourpointPartitionedCatchmentLayer(item);
+					layers.pc = item;
+				}else if (item.key =="ic"){
+					addInteriorCatchmentLayer(item);
+					layers.ic = item;
+				}else if (item.key == "scr"){
+					layers.scr = item;
+				}else if (item.key == "opdmin"){
+					layers.opdmin = item;
+				}else if (item.key == "opdmax"){
+					layers.opdmax = item;
+				}else if (item.key == "opdprimary"){
+					layers.opdprimary = item;
+				}else if (item.key == "pcr"){
+					layers.pcr = item;
+				}else if (item.key == "ccr"){
+					layers.ccr = item;
+				}else if (item.key = "prt"){
+					layers.prt = item;
+				}
+			}
+			var isActive = true;
+			
+			if (layers.c != null){
+				layers.c_tab = createTab("c", layers.c, layers.c.name, $(ul), $(tabbody), isActive, catchmentPpLayer, includestats);
+				isActive = false;
+			}else if (layers.ccr != null){
+				layers.c_tab = createTab("c", null, layers.ccr.name, $(ul), $(tabbody), isActive, null, includestats);
+				isActive = false;
+			}
+			if (layers.sc != null){
+				layers.sc_tab = createTab("sc", layers.sc, layers.sc.name, $(ul), $(tabbody), isActive, subCatchmentPpLayer, includestats);
+				isActive = false;
+			}else if (layers.scr != null ){
+				layers.sc_tab = createTab("sc", null, layers.scr.name, $(ul), $(tabbody), isActive, null, includestats);
+				isActive = false;
+			}
+			if (layers.pc != null){
+				layers.pc_tab = createTab("pc", layers.pc, layers.pc.name, $(ul), $(tabbody), isActive, partitionedCatchmentPpLayer, includestats);
+				isActive = false;
+			}else if (layers.pcr != null){
+				layers.pc_tab = createTab("pc", null, layers.pcr.name, $(ul), $(tabbody), isActive, null, includestats);
+				isActive = false;
+			}
+			
+			if (layers.ic != null){
+				layers.ic_tab = createTab("ic", layers.ic, layers.ic.name, $(ul), $(tabbody), isActive, interiorCatchmentPpLayer, includestats);
+				isActive = false;
+			}
+			
+			if (layers.op != null){
+				layers.op_tab = createTab("op", layers.op, layers.op.name, $(ul), $(tabbody), isActive, outputPpLayer, includestats);
+				isActive = false;
+			} else if ( layers.opdmin != null || layers.opdmax != null || layers.opdprimary != null || layers.prt != null){
+				layers.op_tab = createTab("op", null, "Pourpoints", $(ul), $(tabbody), isActive, null, includestats);
+				isActive = false;
+			}
+			
+			if (layers.op_tab != null){
+				var $div = $('<div/>');
+				$div.html("Raw x/y is the input data and Projected x/y is the output data.");
+				layers.op_tab.append($div);
+			}
+			
+			
+			if (layers.scr != null){
+				var $table = createMatrixTable(layers.scr.headers, layers.scr.values, 0);
+				var $div = $('<div/>').append($('<div class="toolCat">' + layers.scr.name + '</div>'));
+				$div.append($table);
+				$div.append( $('<div>[i,j]<br>1 = i upstream* of j;<br>-1 = i downstream* of j</div>' ));
+				$div.append( $('<div>*Upstream and downstream (as defined on the Flow Relationships table below) may be only partly true, as the definition of the subcatchments involves a subtractive process that does not guarantee a partitioned result. As well, in some situations where secondary flows exist, the areas associated with different pourpoints may overlap. Details are provided elsewhere. For some purposes, partitioned catchments are preferred.</div>' ));				
+				layers.sc_tab.append($div);
+			}
+			if (layers.sc != null || layers.scr != null){
+				var $div = $('<div/>');
+				$div.append( $('<div>Subcatchments are useful as a means of understanding general relationships, however they have limitations in the context of some hydrologic applications as their upstream/downstream relationships may be only partly true.</div>'));
+				layers.sc_tab.prepend($div);
+			}
+			
+			if (layers.pc != null || layers.pcr != null){
+				var $div = $('<div/>').append($('<div>Partitioning implies that all inflows to a lower catchment flow through a single hydro node, and that the hydro node is upstream of all parts of the lower catchment.</div>'));				
+				layers.pc_tab.prepend($div);
+			}
+			
+			if (layers.prt != null){
+				var $div = $('<div/>').append($('<div class="toolCat">Pourpoint Relationship Tree (through Primary Flowpaths)</div>'));
+				$div.append(layers.prt.tree);				
+				layers.op_tab.append($div);
+			}
+			
+			if (layers.opdprimary != null){
+				var $table = createMatrixTable(layers.opdprimary.headers, layers.opdprimary.values, 2);
+				var $div = $('<div/>').append($('<div class="toolCat">Output Pourpoint Primary Flowpath Distances</div>'));
+				$div.append($table);
+				$div.append( $('<div>[i,j]<br>distance from i to j<br>> 0 if i is upstream of j<br>< 0 if i is downstream of j<br></div>' ));
+				layers.op_tab.append($div);
+			}
+			
+			if (layers.opdmin != null || layers.opdmax != null){
+				
+				var data = [[]];
+				//combine results into a single matrix and output that
+				for (var i = 0; i < layers.opdmin.values.length; i ++){
+					data[i] = [];
+					for (var j = 0; j < layers.opdmin.values.length; j ++){
+						if (layers.opdmin.values[i][j] == layers.opdmax.values[i][j]){
+							if (layers.opdmin.values[i][j]==null){
+								data[i][j] = null;
+							}else{
+								data[i][j] = layers.opdmin.values[i][j].toFixed(2);
+							}
+						}else{
+							data[i][j] = "(" + layers.opdmin.values[i][j].toFixed(2) + ", " + layers.opdmax.values[i][j].toFixed(2) + ")";
+						}
+					}
+				}
+				var $table = createMatrixTable(layers.opdmin.headers, data, -1);
+				var $div = $('<div/>').append($('<div class="toolCat">Output Pourpoint Distances</div>'));
+				$div.append($table);
+				$div.append( $('<div>[i,j]<br>distance from i to j<br>> 0 if i is upstream of j<br>< 0 if i is downstream of j<br>Distances are single valued if only one path between i and j exists.<br>Distances are of the form (min, max) if more than one such path exists.</div>' ));
+				layers.op_tab.append($div);
+			}
+			
+			if (layers.pcr != null){
+				var $table = createMatrixTable(layers.pcr.headers, layers.pcr.values, 0);
+				var $div = $('<div/>').append($('<div class="toolCat">' + layers.pcr.name + '</div>'));
+				$div.append($table);
+				$div.append( $('<div>[i,j]<br>1 = i upstream of j;<br>-1 = i downstream of j</div>' ));
+				layers.pc_tab.append($div);
+			}
+			
+			if (layers.ccr != null){
+				var $table = createMatrixTable(layers.ccr.headers, layers.ccr.values, 0);
+				var $div = $('<div/>').append($('<div class="toolCat">' + layers.ccr.name + '</div>'));
+				$div.append($table);
+				$div.append( $('<div>[i,j]<br>1 = i contains j;<br>-1 = i contained by j</div>' ));
+				layers.c_tab.append($div);
+			}
+			
+
+			
+			//add any matrix to existing tabs
+			$('#ppUrlButtonJson').attr("data-clipboard-text", path);
+			$('#ppUrlButtonJson').prop('disabled', false);
+			
+			var geopkgurl = path.replace(/\.json/, ".gpkg");
+			$('#ppUrlButtonGeoPkg').attr("data-clipboard-text", geopkgurl);
+			$('#ppUrlButtonGeoPkg').prop('disabled', false);
+			
+			$('#dataBar').empty();
+			$('#dataBar').append($(tabs));
+			$('#dataBarWrapper').css("display", "block");
+		}
+		
+		function createTab(id, data, tabname, tabheaders, tabbody, active, maplayer, includeStat){
+			
+			
+
+			var tab = document.createElement('li');
+			$(tab).attr("id", id + "_tab").appendTo(tabheaders);
+			if (active) $(tab).addClass("active");
+			var link = document.createElement('a');
+			$(link).attr("href", "#" + id + "_body").attr("data-toggle", "tab").html("<span style='padding-left:5px'>" + tabname + "</span>").appendTo($(tab));
+			
+			
+			var optabBody = document.createElement("div");
+			$(optabBody).addClass("tab-pane").attr("id", id + "_body").appendTo(tabbody);
+			$(optabBody).css("padding", "2px");
+			
+			if (active) $(optabBody).addClass("active");
+			
+			var $headerdiv = $('<div/>').append($('<div class="toolCat">' + data.name + '</div>'));
+			$headerdiv.appendTo($(optabBody));
+			
+			if (maplayer != null){
+				var $ctrl = $('<input/>', 
+						{type: 'checkbox', id: id + "_showhide"});
+				$ctrl.prop('checked', true);
+				$ctrl.prependTo($(link));
+				//https://stackoverflow.com/questions/8094483/checkbox-inside-an-anchor-click-behavior
+				$ctrl.click(function(e) {
+				    setTimeout(function() { $ctrl.prop('checked', !$ctrl.prop('checked')); }, 10);       
+				    return false;
+				});
+				
+				$ctrl.click(function(){
+		 			if ($ctrl.is(':checked')){
+						map.addLayer(maplayer);
+					}else{
+						map.removeLayer(maplayer);
+					}
+				});
+			}
+			
+			if(data != null && data.type == 'FeatureCollection') {
+				if(!data.features || data.features.length == 0) {
+					return $(optabBody);
+				}
+			
+				var features = data.features;
+				
+				var cols = {};
+				if (data.key == "op"){
+					cols = {'id': 'ID', 'ccode': 'C-Code', 'raw_x': 'Raw-X', 'raw_y': 'Raw-Y', 'projected_x': 'Projected-X', 'projected_y': 'Projected-Y'};
+				}else{
+					if (includeStat){
+						cols = {'id': 'ID','area': 'Area*', 
+							'elv_min': 'Elevation Min*', 
+							'elv_max': 'Elevation Max*',
+							'elv_mean': 'Elevation Mean*',
+							'slope_min': 'Slope Min*', 
+							'slope_max': 'Slope Max*',
+							'slope_mean': 'Slope Mean*',
+							'north_pct': 'Aspect % North',
+							'south_pct': 'Aspect % South',
+							'east_pct': 'Aspect % East',
+							'west_pct': 'Aspect % West',
+							'flat_pct': 'Aspect % Flat**',
+							'd2w2d_mean': '2D Distance to Water Mean*',
+							'd2w2d_max': '2D Distance to Water Max*',
+						};
+					}else{
+						cols = {'id': 'ID','area': 'Area*'};
+					}	
+				}
+
+				var $table = $('<table class="pourpointFeatureTable"/>');
+				var $thead = $('<thead/>');
+				for(var i in cols) {
+					$thead.append('<th>' + cols[i] + '</th>');
+				}
+				$table.append($thead);
+				var $tbody = $('<tbody/>');
+				
+				for(var f in features) {
+					var $row = $('<tr/>');
+					$row.data("geometry", features[f].geometry);
+					for(var c in cols) {
+						var value = features[f].properties[c];
+						
+						if (data.key == "op"){
+							if (c == 'projected_y'){
+								value = features[f].geometry.coordinates[1];
+							}else if (c == 'projected_x'){
+								value = features[f].geometry.coordinates[0];
+							}else if (c == 'raw_x' || c =='raw_y'){
+								value = value.toFixed(5);
+							}
+						} 
+						
+						$row.append('<td>' + (value == null ? "" : value) + '</td>');
+						
+					}
+					$tbody.append($row);
+					
+					if (data.key == "op"){
+						$row.hover(
+								function(){
+									
+									highlightLayer = L.geoJSON($(this).data("geometry"),{
+										pointToLayer: function(feature, latlng){
+											return L.circleMarker(latlng, {color: "#FFFF00", fillColor: "#FFFF00", radius: 15, fillOpacity: .9, weight:1, opactiy:1  });
+										},
+										pane: 'highlightpane'
+									}).addTo(map);
+								}, function(){
+									map.removeLayer(highlightLayer);
+								}
+							);
+					}else{
+						$row.hover(
+								function(){
+									
+									highlightLayer = L.geoJSON($(this).data("geometry"),{
+										style: function(feature){
+											return {color: "#FFFF00"};
+										},
+										pane: 'highlightpane'
+									}).addTo(map);
+								}, function(){
+									map.removeLayer(highlightLayer);
+								}
+						);
+					}
+				}
+				$table.append($tbody);
+				$table.appendTo($(optabBody));
+				if (data.key != "op"){
+					var msg = '<div style=\'font-size: 0.8em\'>*Areas are provided in hectares (ha), Distances in meters (m), Elevation in meters (m), Slope in degrees (<sup>o</sup>)';
+					if (includeStat){
+						msg = msg + '<br>**Flat in the context of Aspect means that the slope is <3<sup>o</sup>';
+					}
+					msg = msg + "</div>"
+					$(optabBody).append($(msg));
+				}
+
+			}
+			return $(optabBody);
+		}
+		
+		function createMatrixTable(headers, data, percision){
+			
+			var $table = $('<table/>');
+			var $tbody = $('<tbody/>');
+			$table.append($tbody);
+			
+			var $row = $('<tr/>');
+			$row.append('<td/>');
+			$tbody.append($row);
+			for (var i = 0; i < headers.length; i ++){
+				$row.append('<td class="cellheader">' + headers[i] + '</td>');	
+			}
+			
+			for (var i = 0; i < data.length; i ++){
+				var $row = $('<tr/>');
+				$tbody.append($row);
+				$row.append('<td class="cellheader">' + headers[i] + '</td>');
+				for (var j = 0; j < data.length; j ++){
+					$row.append('<td>' + (data[i][j] == null ? "--" : (percision < 0 ? data[i][j] : data[i][j].toFixed(percision))) + '</td>');
+				}
+			}
+			return $table;
+			
+		}
+		
+		function addOutputPourpointLayer(layerdata){
+			var myStyle = {
+					"fill": true,
+					"radius": 10,
+					"fillColor": "#08EE08",
+					"color": "#036B03",
+					"weight": 1,
+					"opacity": 1,
+					"fillOpacity": 1
+				};
+			
+			outputPpLayer = L.geoJson(layerdata, {
+				  pointToLayer: function (feature, latlng) {
+					  label = String(feature.properties.id) + "*" // Must convert to string, .bindTooltip can't use straight 'feature.properties.attribute'
+				        return L.circleMarker(latlng, myStyle).bindTooltip(label,{
+				        	permanent:true,
+				        	direction:"center",
+				        	className:"pourpointPointStyle"}).openTooltip();
+				    },
+			  		pane: 'pourpointpane'
+			}).addTo(map);
+			
+			
+			var rawStyle = {
+					"fill": true,
+					"radius": 10,
+					"fillColor": "#B3FDB3",
+					"color": "#06CE06",
+					"weight": 1,
+					"opacity": 1,
+					"fillOpacity": 1
+				};
+			
+			pPLayer = L.geoJson(layerdata, {
+				  pointToLayer: function (feature, latlng) {
+					  label = String(feature.properties.id)
+				        return L.circleMarker(L.latLng(feature.properties['raw_y'], feature.properties['raw_x']), rawStyle).bindTooltip(label,{
+				        	permanent:true,
+				        	direction:"center",
+				        	className:"pourpointPointStyle"}).openTooltip();
+				    },
+			  		pane: 'pourpointpane'
+			}).addTo(map);
+		}
+		
+		function addPourpointCatchmentLayer(layerdata){
+			catchmentPpLayer = L.geoJson(layerdata, {
+				  pane: 'pourpointpane',
+				  style: function(feature){
+						return {color: "#82461C"};
+					},
+			}).addTo(map);
+		}
+		function addPourpointSubcatchmentLayer(layerdata){
+			subCatchmentPpLayer = L.geoJson(layerdata, {
+				  pane: 'pourpointpane',
+				  style: function(feature){
+						return {color: "#82461C"};
+					},
+			}).addTo(map);
+		}
+		function addPourpointPartitionedCatchmentLayer(layerdata){
+				partitionedCatchmentPpLayer = L.geoJson(layerdata, {
+					  pane: 'pourpointpane',
+					  style: function(feature){
+							return {color: "#82461C"};
+						},
+				}).addTo(map);
+		}
+		function addInteriorCatchmentLayer(layerdata){
+			interiorCatchmentPpLayer = L.geoJson(layerdata, {
+				  pane: 'pourpointpane',
+				  style: function(feature){
+						return {color: "#82461C"};
+					},
+			}).addTo(map);
+	}
+		
+	</script>
+</body>
+</html>

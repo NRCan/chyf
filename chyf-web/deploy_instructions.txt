@@ -1,0 +1,17 @@
+
+1) All the missing tomcat details in the your maven .m2/settings.xml file
+<profile>
+	<id>chyf</id>
+	<properties>
+		<tomcatManagerUrl>MANAGER URL</tomcatManagerUrl>
+		<tomcatManagerUsername>USERNAME</tomcatManagerUsername>
+		<tomcatManagerPassword>PASSWORD</tomcatManagerPassword>
+	</properties>
+</profile>
+
+
+2) Ensure the jar file version is correct in the pom.xml
+
+3) Ensure the target web application path is correct in the webapp/META-INF/context.xml file
+
+4) run:  "mvn install -PtomcatDeploy,chyf" 
