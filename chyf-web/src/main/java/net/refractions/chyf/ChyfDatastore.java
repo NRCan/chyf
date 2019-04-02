@@ -42,7 +42,7 @@ public class ChyfDatastore {
 
 	static final Logger logger = LoggerFactory.getLogger(ChyfDatastore.class.getCanonicalName());
 	
-	public static final int BASE_SRS = 4326; //6624;//4617;//6624; // Quebec Albers
+	public static final int BASE_SRS = 4326; //6624;//4617; // Quebec Albers
 	
 	public static CoordinateReferenceSystem BASE_CRS = null;
 	static {
@@ -54,7 +54,8 @@ public class ChyfDatastore {
 	}
 	
 	public static GeometryFactory GEOMETRY_FACTORY = new GeometryFactory(new PrecisionModel(), BASE_SRS);
-	public static PrecisionModel PRECISION_MODEL = new PrecisionModel(100_000_000_000_000.0);
+	//public static PrecisionModel PRECISION_MODEL = new PrecisionModel(100_000_000_000_000.0);
+	public static PrecisionModel PRECISION_MODEL = new PrecisionModel(100_000_00.0);
 	
 	public static final int MAX_RESULTS = 50000;
 	

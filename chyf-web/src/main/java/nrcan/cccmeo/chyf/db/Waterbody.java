@@ -2,14 +2,16 @@ package nrcan.cccmeo.chyf.db;
 
 public class Waterbody {
 	private int definition;
+	private double area = Double.NaN;
 	private String linestring;
 
 	Waterbody() {
 		
 	}
 	
-	Waterbody(int definition, String linestring) {
+	Waterbody(int definition, double area, String linestring) {
 		this.setDefinition(definition);
+		this.setArea(area);
 		this.setLinestring(linestring);
 	}
 
@@ -19,6 +21,14 @@ public class Waterbody {
 
 	public void setDefinition(int definition) {
 		this.definition = definition;
+	}
+
+	public double getArea() {
+		return area;
+	}
+
+	public void setArea(double area) {
+		this.area = area;
 	}
 
 	public String getLinestring() {

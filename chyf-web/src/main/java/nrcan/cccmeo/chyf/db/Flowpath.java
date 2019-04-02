@@ -6,6 +6,7 @@ public class Flowpath {
 	private String rank;
 	private String nameId;
 	private String name;
+	private double length;
 	private String linestring;
 	
 	public Flowpath() {
@@ -50,6 +51,14 @@ public class Flowpath {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	public double getLength() {
+		return length;
+	}
+
+	public void setLength(double length) {
+		this.length = length;
 	}
 
 	public String getLinestring() {

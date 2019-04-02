@@ -11,6 +11,7 @@ public class WaterbodyMapper implements RowMapper<Waterbody> {
 	public Waterbody mapRow(ResultSet resultSet, int i) throws SQLException {
 		Waterbody waterbody = new Waterbody();
 		waterbody.setDefinition(resultSet.getInt("definition"));
+		waterbody.setArea(resultSet.getDouble("area"));
 		waterbody.setLinestring(resultSet.getString("Linestring"));
 		return waterbody;
 	}
