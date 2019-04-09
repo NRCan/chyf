@@ -55,7 +55,7 @@ public class ChyfDatastore {
 	
 	public static GeometryFactory GEOMETRY_FACTORY = new GeometryFactory(new PrecisionModel(), BASE_SRS);
 	//public static PrecisionModel PRECISION_MODEL = new PrecisionModel(100_000_000_000_000.0);
-	public static PrecisionModel PRECISION_MODEL = new PrecisionModel(100_000_00.0);
+	public static PrecisionModel PRECISION_MODEL = new PrecisionModel(100_000_000.0);
 	
 	public static final int MAX_RESULTS = 50000;
 	

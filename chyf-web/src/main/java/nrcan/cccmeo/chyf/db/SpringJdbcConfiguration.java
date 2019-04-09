@@ -69,4 +69,12 @@ public class SpringJdbcConfiguration {
 		waterDAO.setSqlQuery(env.getProperty("sql.select.waterbody"));
 		return waterDAO;
 	}
+	
+	@Bean
+	public BoundaryDAO boundaryDAO() {
+		BoundaryDAOImpl boundaryDAO = new BoundaryDAOImpl();
+		boundaryDAO.setJdbcTemplate(jdbcTemplate());
+		boundaryDAO.setSqlQuery(env.getProperty("sql.select.boundary"));
+		return boundaryDAO;
+	}
 }

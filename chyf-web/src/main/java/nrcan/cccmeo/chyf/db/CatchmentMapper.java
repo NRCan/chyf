@@ -30,7 +30,7 @@ public class CatchmentMapper implements RowMapper<Catchment> {
 			}
 			
 			// Set attributes of type double
-			// Area attribute is of type double
+			// Area attribute is of type numeric (double)
 			ResultSetMetaData rsm = resultSet.getMetaData();
 			for (int i = 0; i < rsm.getColumnCount(); i++) {
 				String label = rsm.getColumnLabel(i+1);

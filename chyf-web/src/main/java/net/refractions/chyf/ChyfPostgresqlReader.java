@@ -15,9 +15,11 @@
  */
 package net.refractions.chyf;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import org.geotools.data.FeatureReader;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.LineString;
@@ -27,6 +29,8 @@ import org.locationtech.jts.geom.Polygon;
 import org.locationtech.jts.geom.PrecisionModel;
 import org.locationtech.jts.io.WKTReader;
 import org.locationtech.jts.precision.GeometryPrecisionReducer;
+import org.opengis.feature.simple.SimpleFeature;
+import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
@@ -37,6 +41,8 @@ import net.refractions.chyf.hygraph.ECatchment;
 import net.refractions.chyf.hygraph.HyGraphBuilder;
 import net.refractions.chyf.rest.GeotoolsGeometryReprojector;
 import net.refractions.util.UuidUtil;
+import nrcan.cccmeo.chyf.db.Boundary;
+import nrcan.cccmeo.chyf.db.BoundaryDAO;
 import nrcan.cccmeo.chyf.db.Catchment;
 import nrcan.cccmeo.chyf.db.CatchmentDAO;
 import nrcan.cccmeo.chyf.db.Flowpath;
@@ -60,19 +66,27 @@ public class ChyfPostgresqlReader extends ChyfDataReader{
 		
 	}
 	
+	protected List<Geometry> boundaries = new ArrayList<>();
+	
+	public List<Geometry> getBoundaries(){
+		return this.boundaries;
+	}
+	
 	public void read(HyGraphBuilder gb ) throws Exception{
 	
 		try {
 			// SRID should be the same as the database's data
-			//GeometryFactory GEOMETRY_FACTORY = new GeometryFactory(new PrecisionModel(1000), 3978);
-			GeometryFactory GEOMETRY_FACTORY = new GeometryFactory(new PrecisionModel(100_000_00.0), 4617);
+			int srid = 3978;
+			//int srid = 4617;
+			PrecisionModel pm = new PrecisionModel();
+			GeometryFactory GEOMETRY_FACTORY = new GeometryFactory(pm, srid);
 			
 			@SuppressWarnings("resource")
-			AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(SpringJdbcConfiguration.class); //ML
+			AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(SpringJdbcConfiguration.class);
 			WKTReader wktreader = new WKTReader();
 
 			// read and add Waterbodies
-			logger.info("Reading waterbodies");
+			logger.info("Reading postgresql waterbodies");
 		    WaterbodyDAO waterbodyDAO = (WaterbodyDAO) context.getBean(WaterbodyDAO.class);
 			    
 		    for(Waterbody wb : waterbodyDAO.getWaterbodies()) {
@@ -114,7 +128,7 @@ public class ChyfPostgresqlReader extends ChyfDataReader{
 			    }
 
 			// read and add Catchments
-			logger.info("Reading catchments");
+			logger.info("Reading postgresql catchments");
 			CatchmentDAO catchmentDAO = (CatchmentDAO) context.getBean(CatchmentDAO.class);
 			
 			boolean[] hasAttribute = new boolean[ECatchment.ECatchmentStat.values().length];
@@ -148,7 +162,7 @@ public class ChyfPostgresqlReader extends ChyfDataReader{
 			}
 
 			// read and add Flowpaths
-			logger.info("Reading flowpaths");
+			logger.info("Reading postgresql flowpaths");
 			FlowpathDAO flow = (FlowpathDAO) context.getBean(FlowpathDAO.class);
 			
 			List<Flowpath> flowpaths = flow.getFlowpaths();
@@ -173,25 +187,32 @@ public class ChyfPostgresqlReader extends ChyfDataReader{
 			    } catch(IllegalArgumentException iae) {
 			    	logger.warn("Exception reading UUID: " + iae.getMessage());
 			    }
-			    CoordinateReferenceSystem flowpathCRS = GeotoolsGeometryReprojector.srsCodeToCRS(flowPath.getSRID());
 			    flowP = (LineString) GeometryPrecisionReducer.reduce(flowP, ChyfDatastore.PRECISION_MODEL);
 			    gb.addEFlowpath(type, rank, name, nameId, length, (LineString)flowP);
 				
 			}
 			
-			//TODO: the boundaries arraylist here should be updated to read the
-			//boundary information from the database.  This is necessary to 
-			//correctly assign hack order to the stream edges.  Without this
-			//the hack order will be incorrect.  This array list
-			//should be a list of geometries representing the boundary
-			//of the dataset.  The assumption is that the boundary geometries
-			//have exact same coordinate as the flowline where
-			//the boundary meets the flowline
+			// read and add Boundaries
+			logger.info("Reading postgresql boundary");
+			BoundaryDAO bound = (BoundaryDAO) context.getBean(BoundaryDAO.class);
 			
-			//example: this.boundaries.add(e)
+			List<Boundary> bounds = bound.getBoundary();
+			for (Boundary b : bounds){
+				Geometry gbound = GEOMETRY_FACTORY.createGeometry(wktreader.read(b.getLinestring()));
+				LineString boundary = null;
+				if (gbound instanceof LineString) {
+					boundary = (LineString)gbound;
+				}else if (gbound instanceof MultiLineString) {
+					boundary = (LineString) ((MultiLineString)gbound).getGeometryN(0);
+				}
+				CoordinateReferenceSystem boundaryCRS = GeotoolsGeometryReprojector.srsCodeToCRS(gbound.getSRID());
+				boundary = GeotoolsGeometryReprojector.reproject(boundary, boundaryCRS, ChyfDatastore.BASE_CRS);
+			    boundary = (LineString) GeometryPrecisionReducer.reduce(boundary, ChyfDatastore.PRECISION_MODEL);
+			    boundaries.add(boundary);
+			}
 			
 		} catch(Exception e) {
 			e.printStackTrace();
 		}
-	}
+	}	
 }
