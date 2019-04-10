@@ -76,8 +76,8 @@ public class ChyfPostgresqlReader extends ChyfDataReader{
 	
 		try {
 			// SRID should be the same as the database's data
-			int srid = 3978;
-			//int srid = 4617;
+			//int srid = 3978;
+			int srid = 4617;
 			PrecisionModel pm = new PrecisionModel();
 			GeometryFactory GEOMETRY_FACTORY = new GeometryFactory(pm, srid);
 			
@@ -199,15 +199,15 @@ public class ChyfPostgresqlReader extends ChyfDataReader{
 			List<Boundary> bounds = bound.getBoundary();
 			for (Boundary b : bounds){
 				Geometry gbound = GEOMETRY_FACTORY.createGeometry(wktreader.read(b.getLinestring()));
-				LineString boundary = null;
-				if (gbound instanceof LineString) {
-					boundary = (LineString)gbound;
-				}else if (gbound instanceof MultiLineString) {
-					boundary = (LineString) ((MultiLineString)gbound).getGeometryN(0);
+				Polygon boundary = null;
+				if (gbound instanceof Polygon) {
+					boundary = (Polygon)gbound;
+				}else if (gbound instanceof MultiPolygon) {
+					boundary = (Polygon) ((MultiPolygon)gbound).getGeometryN(0);
 				}
 				CoordinateReferenceSystem boundaryCRS = GeotoolsGeometryReprojector.srsCodeToCRS(gbound.getSRID());
 				boundary = GeotoolsGeometryReprojector.reproject(boundary, boundaryCRS, ChyfDatastore.BASE_CRS);
-			    boundary = (LineString) GeometryPrecisionReducer.reduce(boundary, ChyfDatastore.PRECISION_MODEL);
+			    boundary = (Polygon) GeometryPrecisionReducer.reduce(boundary, ChyfDatastore.PRECISION_MODEL);
 			    boundaries.add(boundary);
 			}
 			
