@@ -378,16 +378,47 @@ public class HyGraph {
 		return results;
 	}
 
+	
 	public DrainageArea getUpstreamDrainageArea(ECatchment eCatchment, boolean removeHoles) {
 		return buildDrainageArea(getUpstreamECatchments(eCatchment, Integer.MAX_VALUE), removeHoles);
+	}
+	
+	//Utiliser avec pour avoir les coverage
+	public DrainageArea getUpstreamDrainageAreaWithCoverage(ECatchment eCatchment, boolean removeHoles, ArrayList<Coverage> coverageList) {
+		
+		return buildDrainageAreaWithCoverage(getUpstreamECatchments(eCatchment, Integer.MAX_VALUE), removeHoles, coverageList);
 	}
 
 	public DrainageArea getDownstreamDrainageArea(ECatchment eCatchment, boolean removeHoles) {
 		return buildDrainageArea(getDownstreamECatchments(eCatchment, Integer.MAX_VALUE), removeHoles);
 	}
 
-	
 	public DrainageArea buildDrainageArea(Collection<ECatchment> catchments, boolean removeHoles) {
+		List<Geometry> geoms = new ArrayList<Geometry>(catchments.size());
+		double area = 0;
+		
+		StatisticMerger statMerger = new StatisticMerger();
+		for(ECatchment c : catchments) {			
+			geoms.add(c.getPolygon());
+			area += c.getArea();
+			statMerger.addCatchment(c);
+		}
+
+		Geometry g = UnaryUnionOp.union(geoms);
+		DrainageArea da = new DrainageArea(g, area);
+		if(removeHoles) {
+			da = removeHoles(da, statMerger);	
+		}
+		
+		//assign stats
+		HashMap<ECatchment.ECatchmentStat, Double> stats = statMerger.getMergedStats();
+		for (ECatchmentStat s : ECatchmentStat.values()) {
+			if (stats.containsKey(s)) da.setStat(s, stats.get(s));
+		}		    
+		return da;
+	}
+	
+	public DrainageArea buildDrainageAreaWithCoverage(Collection<ECatchment> catchments, boolean removeHoles,ArrayList<Coverage> coverage) {
 		List<Geometry> geoms = new ArrayList<Geometry>(catchments.size());
 		double area = 0;
 		
@@ -403,7 +434,8 @@ public class HyGraph {
 		if(removeHoles) {
 			da = removeHoles(da, statMerger);		
 		}
-		
+		//Assing landCover
+		da.setCoverage(coverage);
 		//assign stats
 		HashMap<ECatchment.ECatchmentStat, Double> stats = statMerger.getMergedStats();
 		for (ECatchmentStat s : ECatchmentStat.values()) {

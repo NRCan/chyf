@@ -373,7 +373,7 @@
 					<label class="form-check-label" for="removeHoles" style="font-weight:normal">Remove Holes</label><br>
 				</div>
 				<div class="form-group">
-					<button id="drainageAreaUpstreamOf" type="button" class="btn btn-default btn-sm tool" style="width:100%;margin-top:5px">Upstream Of Point</button>
+					<button id="drainageAreaUpstreamOf" type="button" class="btn btn-default btn-sm tool" style="width:100%;margin-top:5px;color:darkgoldenrod">Upstream Of Point</button>
 					<button id="drainageAreaDownstreamOf" type="button" class="btn btn-default btn-sm tool" style="width:100%;margin-top:5px">Downstream Of Point</button>
 				</div>
 				
@@ -486,7 +486,7 @@
 	<script src="leaflet-layerjson.js"></script>
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 	<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.1/jquery-ui.min.js"></script> 
-	<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 	<script>
 		$('#dataBarWrapper').resizable({
 			handles: "n, e, ne",
@@ -876,8 +876,11 @@
 					selectCatchments("ecatchment/downstreamOf.json?point=" + latlng.lng + "," + latlng.lat);
 					break;
 				case 'drainageAreaUpstreamOf':
+					
 					selectDrainageArea("drainageArea/upstreamOf.json?point=" + latlng.lng + "," + latlng.lat
 										+ "&removeHoles=" + $('#removeHoles').is(":checked"));
+
+					
 					break;
 				case 'drainageAreaDownstreamOf':
 					selectDrainageArea("drainageArea/downstreamOf.json?point=" + latlng.lng + "," + latlng.lat
@@ -1057,7 +1060,7 @@
 				}
 			});
 		}
-
+		
 		$('#nexusById').on("click", function() {
 			selectNexuses("nexus/" + $('#nexusId').val() + ".json", 2);
 		});
@@ -1582,6 +1585,7 @@
 				titlePlural: "Drainage Areas",
 				cols: {
 					'area': 'Area*',
+					'total': 'total',
 					'elv_min': 'Elevation Min*',
 					'elv_max': 'Elevation Max*',
 					'elv_mean': 'Elevation Mean*',
@@ -1595,6 +1599,25 @@
 					'flat_pct': 'Aspect % Flat**',
 					'd2w2d_mean': '2D Distance to Water Mean*',
 					'd2w2d_max': '2D Distance to Water Max*',
+					'class1': 'Temperate or sub-polar needleleaf forest %',
+					'class2': 'Sub-polar taiga needleleaf forest %',
+					'class3': 'Tropical or sub-tropical broadleaf evergreen forest %',
+					'class4': 'Tropical or sub-tropical broadleaf deciduous forest %',
+					'class5': 'Temperate or sub-polar broadleaf deciduous forest %',
+					'class6': 'Mixed forest %',
+					'class7': 'Tropical or sub-tropical shrubland %',
+					'class8': 'Temperate or sub-polar shrubland',
+					'class9': 'Tropical or sub-tropical grassland %',
+					'class10': 'Temperate or sub-polar shrubland %',
+					'class11': 'Sub-polar or polar shrubland–lichen–moss %',
+					'class12': 'Sub-polar or polar grassland–lichen–moss %',
+					'class13': 'Sub-polar or polar barren–lichen–moss %',
+					'class14': 'Wetland %',
+					'class15': 'Cropland %',
+					'class16': 'Barren land %',
+					'class17': 'Urban and built-up %',
+					'class18': 'Water %',
+					'class19': 'Snow and ice %'
 				}
 			}
 		};
@@ -2249,8 +2272,6 @@
 		
 		function createTab(id, data, tabname, tabheaders, tabbody, active, maplayer, includeStat){
 			
-			
-
 			var tab = document.createElement('li');
 			$(tab).attr("id", id + "_tab").appendTo(tabheaders);
 			if (active) $(tab).addClass("active");
@@ -2299,20 +2320,21 @@
 					cols = {'id': 'ID', 'ccode': 'C-Code', 'raw_x': 'Raw-X', 'raw_y': 'Raw-Y', 'projected_x': 'Projected-X', 'projected_y': 'Projected-Y'};
 				}else{
 					if (includeStat){
-						cols = {'id': 'ID','area': 'Area*', 
-							'elv_min': 'Elevation Min*', 
-							'elv_max': 'Elevation Max*',
-							'elv_mean': 'Elevation Mean*',
-							'slope_min': 'Slope Min*', 
-							'slope_max': 'Slope Max*',
-							'slope_mean': 'Slope Mean*',
-							'north_pct': 'Aspect % North',
-							'south_pct': 'Aspect % South',
-							'east_pct': 'Aspect % East',
-							'west_pct': 'Aspect % West',
-							'flat_pct': 'Aspect % Flat**',
-							'd2w2d_mean': '2D Distance to Water Mean*',
-							'd2w2d_max': '2D Distance to Water Max*',
+						cols = {'id': 'ID',
+								'area': 'Area*', 
+								'elv_min': 'Elevation Min*', 
+								'elv_max': 'Elevation Max*',
+								'elv_mean': 'Elevation Mean*',
+								'slope_min': 'Slope Min*', 
+								'slope_max': 'Slope Max*',
+								'slope_mean': 'Slope Mean*',
+								'north_pct': 'Aspect % North',
+								'south_pct': 'Aspect % South',
+								'east_pct': 'Aspect % East',
+								'west_pct': 'Aspect % West',
+								'flat_pct': 'Aspect % Flat**',
+								'd2w2d_mean': '2D Distance to Water Mean*',
+								'd2w2d_max': '2D Distance to Water Max*',
 						};
 					}else{
 						cols = {'id': 'ID','area': 'Area*'};

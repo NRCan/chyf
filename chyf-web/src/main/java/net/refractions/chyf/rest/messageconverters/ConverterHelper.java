@@ -54,6 +54,67 @@ public abstract class ConverterHelper {
 			return "";
 		}
 	};
+	
+	public static enum DrainageCoverField{
+		//COVERAGE("coverage", Double.class),
+		COVERAGECLASS1("class1", Double.class),
+		COVERAGECLASS2("class2", Double.class),
+		COVERAGECLASS3("class3", Double.class),
+		COVERAGECLASS4("class4", Double.class),
+		COVERAGECLASS5("class5", Double.class),
+		COVERAGECLASS6("class6", Double.class),
+		COVERAGECLASS7("class7", Double.class),
+		COVERAGECLASS8("class8", Double.class),
+		COVERAGECLASS9("class9", Double.class),
+		COVERAGECLASS10("class10", Double.class),
+		COVERAGECLASS11("class11", Double.class),
+		COVERAGECLASS12("class12", Double.class),
+		COVERAGECLASS13("class13", Double.class),
+		COVERAGECLASS14("class14", Double.class),
+		COVERAGECLASS15("class15", Double.class),
+		COVERAGECLASS16("class16", Double.class),
+		COVERAGECLASS17("class17", Double.class),
+		COVERAGECLASS18("class18", Double.class),
+		COVERAGECLASS19("class19", Double.class);
+		
+		String fieldName;
+		Class<?> type;
+		
+		DrainageCoverField(String fieldName, Class<?> type){
+			this.fieldName = fieldName;
+			this.type = type;
+		}
+		
+		public Object getValue(DrainageArea item) {
+			
+			switch(this)
+			{
+				case COVERAGECLASS1: return item.getClass1() * 100;
+				case COVERAGECLASS2: return item.getClass2() * 100;
+				case COVERAGECLASS3: return item.getClass3() * 100;
+				case COVERAGECLASS4: return item.getClass4() * 100;
+				case COVERAGECLASS5: return item.getClass5() * 100;
+				case COVERAGECLASS6: return item.getClass6() * 100;
+				case COVERAGECLASS7: return item.getClass7() * 100;
+				case COVERAGECLASS8: return item.getClass8() * 100;
+				case COVERAGECLASS9: return item.getClass9() * 100;
+				case COVERAGECLASS10: return item.getClass10() * 100;
+				case COVERAGECLASS11: return item.getClass11() * 100;
+				case COVERAGECLASS12: return item.getClass12() * 100;
+				case COVERAGECLASS13: return item.getClass13() * 100;
+				case COVERAGECLASS14: return item.getClass14() * 100;
+				case COVERAGECLASS15: return item.getClass15() * 100;
+				case COVERAGECLASS16: return item.getClass16() * 100;
+				case COVERAGECLASS17: return item.getClass17() * 100;
+				case COVERAGECLASS18: return item.getClass18() * 100;
+				case COVERAGECLASS19: return item.getClass19() * 100;
+				
+			}
+			
+			return "";
+		}
+	};
+	
 
 	
 	public static enum NexusField{
@@ -223,6 +284,11 @@ public abstract class ConverterHelper {
 				Double v = drainageArea.getStat(s);
 				if (v != null) nfield(s.getFieldName().toLowerCase(), v);
 			}
+		}
+		
+		//remplir le coverage
+		for (DrainageCoverField f : DrainageCoverField.values()) {
+			nfield(f.fieldName, f.getValue(drainageArea));
 		}
 		featureFooter();
 	}

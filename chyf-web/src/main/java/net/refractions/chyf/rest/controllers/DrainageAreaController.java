@@ -15,12 +15,16 @@
  */
 package net.refractions.chyf.rest.controllers;
 
+import net.refractions.chyf.hygraph.Coverage;
+import net.refractions.chyf.hygraph.DrainageArea;
 import net.refractions.chyf.hygraph.HyGraph;
+
 import net.refractions.chyf.rest.HygraphParameters;
 import net.refractions.chyf.rest.exceptions.InvalidParameterException;
 import net.refractions.chyf.rest.messageconverters.ApiResponse;
 import net.refractions.util.StopWatch;
 
+import org.json.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -29,118 +33,164 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletRequest;
+
+import java.net.HttpURLConnection;
+import java.net.URL;
+
+
+//encoder l'URL
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
+import net.refractions.chyf.rest.controllers.CubeController;
+
+
 @RestController
 @RequestMapping("/drainageArea")
-@CrossOrigin(allowCredentials="true",allowedHeaders="Autorization")
+@CrossOrigin(allowCredentials = "true", allowedHeaders = "Autorization")
 public class DrainageAreaController {
+	
 
 	@Autowired
 	private HyGraph hyGraph;
 	
-	@RequestMapping(value = "/upstreamOf/ecatchment/{id}", method = {RequestMethod.GET,RequestMethod.POST})
-	public ApiResponse getDrainageAreaUpstreamOfCatchment(@PathVariable("id") int id, 
-			HygraphParameters params, BindingResult bindingResult) {
-		if(bindingResult.hasErrors()) {
+	//permet de faire les requetes get ou post vers le cube
+	private CubeController cubeController = new CubeController();
+
+
+	@RequestMapping(value = "/upstreamOf/ecatchment/{id}", method = { RequestMethod.GET, RequestMethod.POST })
+	public ApiResponse getDrainageAreaUpstreamOfCatchment(@PathVariable("id") int id, HygraphParameters params,
+			BindingResult bindingResult) {
+		if (bindingResult.hasErrors()) {
 			throw new InvalidParameterException(bindingResult);
 		}
 		params.resolveAndValidate();
-		
+
 		StopWatch sw = new StopWatch();
 		sw.start();
-		ApiResponse resp = new ApiResponse(hyGraph.getUpstreamDrainageArea(hyGraph.getECatchment(id), params.getRemoveHoles()));
+		ApiResponse resp = new ApiResponse(
+				hyGraph.getUpstreamDrainageArea(hyGraph.getECatchment(id), params.getRemoveHoles()));
 		sw.stop();
 		resp.setExecutionTime(sw.getElapsedTime());
 		resp.setParams(params);
 		return resp;
 	}
 
-	@RequestMapping(value = "/downstreamOf/ecatchment/{id}", method = {RequestMethod.GET,RequestMethod.POST})
-	public ApiResponse getDrainageAreaDownstreamOfCatchment(@PathVariable("id") int id, 
-			HygraphParameters params, BindingResult bindingResult) {
-		if(bindingResult.hasErrors()) {
+	@RequestMapping(value = "/downstreamOf/ecatchment/{id}", method = { RequestMethod.GET, RequestMethod.POST })
+	public ApiResponse getDrainageAreaDownstreamOfCatchment(@PathVariable("id") int id, HygraphParameters params,
+			BindingResult bindingResult) {
+		if (bindingResult.hasErrors()) {
 			throw new InvalidParameterException(bindingResult);
 		}
 		params.resolveAndValidate();
-		
+
 		StopWatch sw = new StopWatch();
 		sw.start();
-		ApiResponse resp = new ApiResponse(hyGraph.getDownstreamDrainageArea(hyGraph.getECatchment(id), params.getRemoveHoles()));
+		ApiResponse resp = new ApiResponse(
+				hyGraph.getDownstreamDrainageArea(hyGraph.getECatchment(id), params.getRemoveHoles()));
 		sw.stop();
 		resp.setExecutionTime(sw.getElapsedTime());
 		resp.setParams(params);
 		return resp;
 	}
 
-	@RequestMapping(value = "/upstreamOf/eflowpath/{id}", method = {RequestMethod.GET,RequestMethod.POST})
-	public ApiResponse getDrainageAreaUpstreamOfFlowpath(@PathVariable("id") int id, 
-			HygraphParameters params, BindingResult bindingResult) {
-		if(bindingResult.hasErrors()) {
+	@RequestMapping(value = "/upstreamOf/eflowpath/{id}", method = { RequestMethod.GET, RequestMethod.POST })
+	public ApiResponse getDrainageAreaUpstreamOfFlowpath(@PathVariable("id") int id, HygraphParameters params,
+			BindingResult bindingResult) {
+		if (bindingResult.hasErrors()) {
 			throw new InvalidParameterException(bindingResult);
 		}
 		params.resolveAndValidate();
-		
+
 		StopWatch sw = new StopWatch();
 		sw.start();
-		ApiResponse resp = new ApiResponse(hyGraph.getUpstreamDrainageArea(hyGraph.getEFlowpath(id).getCatchment(), params.getRemoveHoles()));
+		ApiResponse resp = new ApiResponse(
+				hyGraph.getUpstreamDrainageArea(hyGraph.getEFlowpath(id).getCatchment(), params.getRemoveHoles()));
 		sw.stop();
 		resp.setExecutionTime(sw.getElapsedTime());
 		resp.setParams(params);
 		return resp;
 	}
 
-	@RequestMapping(value = "/downstreamOf/eflowpath/{id}", method = {RequestMethod.GET,RequestMethod.POST})
-	public ApiResponse getDrainageAreaDownstreamOfFlowpath(@PathVariable("id") int id, 
-			HygraphParameters params, BindingResult bindingResult) {
-		if(bindingResult.hasErrors()) {
+	@RequestMapping(value = "/downstreamOf/eflowpath/{id}", method = { RequestMethod.GET, RequestMethod.POST })
+	public ApiResponse getDrainageAreaDownstreamOfFlowpath(@PathVariable("id") int id, HygraphParameters params,
+			BindingResult bindingResult) {
+		if (bindingResult.hasErrors()) {
 			throw new InvalidParameterException(bindingResult);
 		}
 		params.resolveAndValidate();
-		
+
 		StopWatch sw = new StopWatch();
 		sw.start();
-		ApiResponse resp = new ApiResponse(hyGraph.getDownstreamDrainageArea(hyGraph.getEFlowpath(id).getCatchment(), params.getRemoveHoles()));
+		ApiResponse resp = new ApiResponse(
+				hyGraph.getDownstreamDrainageArea(hyGraph.getEFlowpath(id).getCatchment(), params.getRemoveHoles()));
 		sw.stop();
 		resp.setExecutionTime(sw.getElapsedTime());
 		resp.setParams(params);
 		return resp;
 	}
 
-	@RequestMapping(value = "/upstreamOf", method = {RequestMethod.GET,RequestMethod.POST})
-	public ApiResponse getDrainageAreaUpstreamOfLocation(HygraphParameters params, BindingResult bindingResult) {
-		if(bindingResult.hasErrors()) {
+	@RequestMapping(value = "/upstreamOf", method = { RequestMethod.GET, RequestMethod.POST })
+	public ApiResponse getDrainageAreaUpstreamOfLocation(HygraphParameters params, BindingResult bindingResult,HttpServletRequest request) throws IOException {
+		
+		if (bindingResult.hasErrors()) {
 			throw new InvalidParameterException(bindingResult);
 		}
 		params.resolveAndValidate();
-		
-		if(params.getPoint() == null) {
+
+		if (params.getPoint() == null) {
 			String errMsg = "The point parameter must be provided.";
 			throw new IllegalArgumentException(errMsg);
 		}
 
+		
+		System.out.println(request.getHeaderNames());
+		//URL courrant *******Utilisé seulement en dev  ********************
+		/*String currentURL = request.getRequestURL().toString() + "?" + request.getQueryString();
+		ArrayList<Coverage> coverageList = cubeController.getLandCover(currentURL);
+		System.out.println();*/
+		
+		
+		//URL test en local *******Utilisé seulement pour les tests en local ********************
+		String urlTestLocal = "http://chyf.ca/chyf/ecatchment/upstreamOf.json?point=-73.2667922973633,45.14354689687145";		
+		ArrayList<Coverage> coverageList = cubeController.getLandCover(urlTestLocal);
+		
+		
 		StopWatch sw = new StopWatch();
 		sw.start();
-		ApiResponse resp = new ApiResponse(hyGraph.getUpstreamDrainageArea(hyGraph.getECatchment(params.getPoint()), params.getRemoveHoles()));
+		
+		ApiResponse resp = new ApiResponse(
+			hyGraph.getUpstreamDrainageAreaWithCoverage(hyGraph.getECatchment(params.getPoint()), params.getRemoveHoles(),coverageList));
+		
 		sw.stop();
 		resp.setExecutionTime(sw.getElapsedTime());
 		resp.setParams(params);
+	
+		
 		return resp;
 	}
-
-	@RequestMapping(value = "/downstreamOf", method = {RequestMethod.GET,RequestMethod.POST})
+	
+	@RequestMapping(value = "/downstreamOf", method = { RequestMethod.GET, RequestMethod.POST })
 	public ApiResponse getDrainageAreaDownstreamOfLocation(HygraphParameters params, BindingResult bindingResult) {
-		if(bindingResult.hasErrors()) {
+		if (bindingResult.hasErrors()) {
 			throw new InvalidParameterException(bindingResult);
 		}
 		params.resolveAndValidate();
-		
-		if(params.getPoint() == null) {
+
+		if (params.getPoint() == null) {
 			String errMsg = "The point parameter must be provided.";
 			throw new IllegalArgumentException(errMsg);
 		}
 
 		StopWatch sw = new StopWatch();
 		sw.start();
-		ApiResponse resp = new ApiResponse(hyGraph.getDownstreamDrainageArea(hyGraph.getECatchment(params.getPoint()), params.getRemoveHoles()));
+		ApiResponse resp = new ApiResponse(
+				hyGraph.getDownstreamDrainageArea(hyGraph.getECatchment(params.getPoint()), params.getRemoveHoles()));
 		sw.stop();
 		resp.setExecutionTime(sw.getElapsedTime());
 		resp.setParams(params);
