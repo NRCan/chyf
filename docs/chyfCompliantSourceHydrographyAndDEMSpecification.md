@@ -1,4 +1,4 @@
-# Common Hydrology Features (CHyF) <br> Volume 2: Compliant Source Hydrology <br> and DEM Specification,<br> Version 1.0
+# Common Hydrology Features (CHyF) <br> Volume 2: Compliant Source Hydrography <br> and DEM Specification,<br> Version 1.0
 
 **Natural Resources Canada (NRCan)**,
 **Canada Centre for Mapping and Earth Observation (CCMEO)**
@@ -6,17 +6,8 @@
 Date: 2019 May 16
 
 Copyright and Licence Notice
-
-Copyright © 2019 Government of Canada
-
-This document falls under the Open Government Licence - Canada, Version
-2.0
-
-([https://open.canada.ca/en/open-government-licence-canada](https://open.canada.ca/en/open-government-licence-canada))
-
-CHyF Website
-
-[https://github.com/NRCan/chyf](https://github.com/NRCan/chyf)
+- Copyright © 2019 Government of Canada
+- This document falls under the [Open Government Licence - Canada, Version 2.0](https://open.canada.ca/en/open-government-licence-canada)
 
 Authorship
 
@@ -39,7 +30,7 @@ International Joint Commission are gratefully acknowledged.
 
 This document is the second in the [CHyF documentation series](./index.md#CHyF-documentation-series):
 
-- Volume 1: CHyF Conceptual Model
+- Volume 1: [CHyF Conceptual Model](./chyfConceptualModel.md)
 
 - Volume 2: CHyF Compliant Source Data Hydrography and DEM Specification
 
@@ -331,7 +322,16 @@ respectively, as per the table below.
 
 |Value    |Name       |Description                                                                  |
 |---------|-----------|-----------------------------------------------------------------------------|
-|10       |Observed   |Reach flowpath subtype representing an observed stream flowpath. It is equivalent to _Observed_ for FLOW_QUALIFIER for a Water Linear Flow in the NHN                                                                        |
+|1        |Reach   |An elementary flowpath representing, in whole or in part, a linear waterbody. In the NHN these are referred to as Water Linear Flows with a flow qualifier of Observed or Constructed.                                      |
+|3        |Skeleton   |An elementary flowpath that is part of a virtual path located in a polygonal waterbody. Such a waterbody may have one or many associated skeleton flowpaths, depending upon the number of inflows and outflows, and the way the skeleton network is formed. In the NHN these are referred to as Water Linear Flows with a flow qualifier of Inferred.                  |
+
+##### EF Subtype
+
+An additional description of the flowpath type, that refers only to reach flowpaths. Currently the subtype is not required by the CHyF services, but it may be of interest to retain if it exists in the original data.
+
+|Value    |Name       |Description                                                                  |
+|---------|-----------|-----------------------------------------------------------------------------|
+|10       |Observed   |Reach flowpath subtype representing an observed stream flowpath. It is equivalent to _Observed_ for FLOW_QUALIFIER for a Water Linear Flow in the NHN                                                                      |
 |20       |Inferred   |Reach flowpath subtype representing a flowpath that appears to traverse the land but was not visible when mapped. It is equivalent to a _Constructed_ for FLOW_QUALIFIER for a Water Linear Flow in the NHN, but excludes flows through dams    |
 |30       |Buried/constructed Infrastructure|Reach flowpath subtype representing a subsurface flow contained in a conduit, such as a storm drain, a sanitary sewer, a flow through a dam or an industrial complex.In the case of a flow through a dam, it is equivalent to a _Constructed_ for FLOW_QUALIFIER for a Water Linear Flow in the NHN|
 |99       |Unknown    |Unknown, impossible to determine, or unrelated to the other existing subtypes. It is equivalent to _Not Identified_ for FLOW_QUALIFIER for a Water Linear Flow in the NHN   |
@@ -347,6 +347,7 @@ Tools.
 |---------|-----------|-----------------------------------------------------------------------------|
 |1        |Primary     |If the flowpath is considered to contain the principal water flow. It is equivalent to LEVEL_PRIORITY set to Primary for a Water Linear Flow in the NHN                                                                  |
 |2        |Secondary  |If the flowpath is considered a braid, a distributary or other flowpath encountered at a point of diversion, traversing in a downstream direction, and if it is considered as of less importance than the primary flowpath. It is equivalent to LEVEL_PRIORITY set to Secondary for a Water Linear Flow in the NHN                                                        |
+|99       |Unspecified|No indication is given as to whether the flowpath is considered a primary or secondary. Unspecified will typically be treated as Primary for data processing and analysis purposes.  It is equivalent to Not Identified for LEVEL_PRIORITY for a Water Linear Flow in the NHN.                                                                                         |
 
 ##### Common Name
 
@@ -384,6 +385,7 @@ Three attributes may be provided for the source data.
 |ec_type           |EC Type         |Yes              |Integer                                      |
 |ec_subtype        |EC Subtype      |No               |Integer                                      |
 |common_name       |Common Name     |No               |String                                       |
+|national_name_id  |National Name ID|No               |String (UUID)                                |
 
 ##### EC Type
 
@@ -572,8 +574,7 @@ not cross the boundary of an elementary catchment.
 
 (Rules 2 and 3 do not apply, so they are skipped here.)
 
-__EFEC Rule 4__: Each reach flowpath is
-contained in one and only one reach catchment.
+__EFEC Rule 4__: Each reach flowpath is contained in one and only one reach catchment.
 
 |Rule       |Flowpath Type (a)|Catchment Type (b)|Description          |Valid DE-9IM          |
 |-----------|-----------------|------------------|---------------------|----------------------|
@@ -588,7 +589,7 @@ reach flowpath is outside of (disjoint from) the water catchment.
 |-----------|---------|
 |![Correct elementary flowpath - elementary catchment shared vertex](./images/correct-waterbody-flowpath.png)|![Incorrect elementary flowpath - elementary catchment shared vertex](./images/incorrect-waterbody-flowpath.png)|
 
-_Figure 9: Elementary flowpath - elementary catchment shared vertex_
+_Figure 9: Elementary flowpath - elementary catchment shared vertex (elementary flowpaths within lake not shown)_
 
 |Rule       |Flowpath Type|Catchment Type|Description          |Valid DE-9IM          |
 |-----------|-------------|--------------|---------------------|----------------------|

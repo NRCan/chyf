@@ -24,7 +24,7 @@ The open source software and the demo viewer was developed by Refractions Resear
 
 Reference documents that will help you use CHyF software with your hydro data.
 
-1. CHyF Conceptual Model
+1. [CHyF Conceptual Model](./chyfConceptualModel.md)
 2. [CHyF Compliant Source Data Hydrography and DEM Specification.](./chyfCompliantSourceHydrographyAndDEMSpecification.md)
 3. CHyF Data for CHyF Services Specifications
 4. Data Processing Tools
