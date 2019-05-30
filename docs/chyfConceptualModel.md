@@ -1422,7 +1422,7 @@ a single catchment identified as the area of interest, or the universe U
 under consideration. In this more general case, U is defined as a set of
 DAGs as per the following expression.
 
-> <center>U ← {G<sub>0</sub>, G<sub>1</sub>, G<sub>2</sub>, ...}</center>
+> U ← {G<sub>0</sub>, G<sub>1</sub>, G<sub>2</sub>, ...}
 
 Each DAG, G<sub>i</sub>, is a component of the graph U. The hygraph is
 an implementation of this expression for any arbitrarily large catchment
@@ -1436,11 +1436,11 @@ catchments, hydro nodes, flow relationships and containment
 relationships. This expression can apply to the entire graph or to each
 individual DAG.
 
-> <center>Network Flow Graph ← (Flowpaths, Catchments, Hydro nodes, Flow Relationships, Containment Relationships)</center>
+> Network Flow Graph ← (Flowpaths, Catchments, Hydro nodes, Flow Relationships, Containment Relationships)
 
 Using abbreviations, this can be written more compactly.
 
-> <center>G ← (F, C, N, FR, CR)</center>
+> G ← (F, C, N, FR, CR)
 
 The expression below states that the flow relationships are defined by a
 set of relationships between x and y, where x flows into y if either of
@@ -1452,20 +1452,20 @@ catchment flows through a hydro node into a flowpath or another
 catchment. Another way of considering this expression is that it
 indicates what is happening at every hydro node.
 
-> <center>FR ← {(x,y) | (x ϵ F∪C and y ϵ N) or (x ϵ N and y ϵ F∪C)}</center>
+> FR ← {(x,y) | (x ϵ F∪C and y ϵ N) or (x ϵ N and y ϵ F∪C)}8
 
 The next expression defines containment relationships as a set of
 relationships between catchment c and flowpath f.
 
-> <center>CR ← {(c,f) | c ϵ C and f ϵ F}</center>
+> CR ← {(c,f) | c ϵ C and f ϵ F}
 
 We also define that each flowpath, f, is within a catchment, c. This
-does <u>not</u> imply that these relationships
-are of a one-to-one nature; similarly, this does <u>not</u> imply that every catchment contains a
+does **not** imply that these relationships
+are of a one-to-one nature; similarly, this does **not** imply that every catchment contains a
 flowpath. An examination of the previous map figures demonstrates these
 situations.
 
-> <center>∀ f ϵ F: ∃ c | (c,f) ϵ CR</center>
+> ∀ f ϵ F: ∃ c | (c,f) ϵ CR
 
 These expressions give rise to a number of topological rules that are
 the subject of a later section in this document.
@@ -1494,7 +1494,7 @@ etc.:
 
 ![hygraph and time series](./images/hygraph_timeseries.png)
 
-> <center>T ← {U<sub>t1</sub>, U<sub>t2</sub>, U<sub>t3</sub>, …}</center>
+> T ← {U<sub>t1</sub>, U<sub>t2</sub>, U<sub>t3</sub>, …}
 
 For example, t1, t2, t3, and t4 could refer to 1980, 2000, 2020, and
 2040, or to any particular times of interest. The underlying assumption
@@ -1507,7 +1507,7 @@ The different times may represent different return periods. For example,
 the 5 year, 10 year and 100 year return periods can be shown as a
 hygraph series as follows:
 
- > <center>R ← {U<sub>r5</sub>, U<sub>r10</sub>, U<sub>r100</sub>}</center>
+ > R ← {U<sub>r5</sub>, U<sub>r10</sub>, U<sub>r100</sub>}
 
 This approach assumes that separate, non-related hygraphs are modelled
 for each return period. An alternative approach that integrates the
@@ -1528,14 +1528,17 @@ Let a given  MAPF<sub>i</sub> be represented by the subgraph
 S<sub>i</sub> of U. Multiple versions of the subgraph can be defined, one for each value of x, where x represents the x year return period flood. The general case is denoted as S<sub>i(rx)</sub>, with S<sub>i(r0)</sub> being the subgraph for the not-flooded state. For the MAPF<sub>i</sub> a collection of subgraphs can be defined, each of which represents the entire  MAPF<sub>i</sub> under a different flooding
 extent.
 
-> <center>C<sub>i</sub> ← {S<sub>i(r0)</sub>, S<sub>i(rx1)</sub>,S<sub>i(rx2)</sub>, ... }</center>
+> C<sub>i</sub> ← {S<sub>i(r0)</sub>, S<sub>i(rx1)</sub>,S<sub>i(rx2)</sub>, ... }
 
 C<sub>i</sub> is a collection of subgraph options for the area within the APF<sub>i</sub>. For the area outside of the APF<sub>i</sub> a subgraph is necessary, referred to as S<sub>!i</sub>, i.e., S<sub>not\ i</sub>. The entire graph, U, can then be defined as the subgraph for the area outside of the MAPF<sub>i</sub> combined with the subgraph for the area inside the APF<sub>i</sub>, with the latter a member of C<sub>i</sub>. In the expressions below, the + sign means combined into a common graph. U<sub>i(rx)</sub> is the entire graph taking into account flooding in a given location, with the maximum extent of the flooding defined by MAPF<sub>i</sub> , and with a flood recurrence interval of rx.
 
 > as a general statement:
-> <center>U<sub>i(rx)</sub> ← {S<sub>!i</sub> + S<sub>i(rx)</sub>}</center>
+> 
+> U<sub>i(rx)</sub> ← {S<sub>!i</sub> + S<sub>i(rx)</sub>}
+> 
 > and for the not flooded state:
-> <center>U<sub>i(r0)</sub> ← {S<sub>!i</sub> + S<sub>i(r0)</sub>}</center>
+> 
+> U<sub>i(r0)</sub> ← {S<sub>!i</sub> + S<sub>i(r0)</sub>}
 
 The representations of the MAPF, associated with r0 and the other
 versions of rx, share a common outer boundary that follows catchment divide segments. All nexus points on the boundary of APF<sub>i</sub> must be shared by the subgraphs for the MAPF<sub>i</sub> for the different return periods (S<sub>i(r0)</sub> , S<sub>i(rx1)</sub>, etc.) and also by the subgraph for the area outside of the MAPF, (S<sub>!i</sub>). In other words, the connections and boundary between the area inside of MAPF<sub>i</sub> and the area outside of MAPF<sub>i</sub> must be identical for all $S_{i(rx)}. Flow analysis can be performed on the overall U with a given MAPF at a specified level of potential flooding by swapping out S<sub>i(r0)</sub> for S<sub>i(rx)</sub> in the graph. Different versions of S<sub>i(rx)</sub> with the associated geography can be retained, allowing for U<sub>i(rx)</sub> to be reconstituted as required. The figure below shows a simple case.
@@ -1548,7 +1551,7 @@ Given that the MAPFs do not overlap, this approach can support an
 arbitrary number of simultaneous flood scenarios. The expression above
 can be extended to the following.
 
-> <center>U<sub>i1(rx1),i2(rx2),...</sub> ← {S<sub>!i1,!i2,...</sub> + S<sub>i1(rx1)</sub> + S<sub>i2(rx2)</sub> + …}</center>
+> U<sub>i1(rx1),i2(rx2),...</sub> ← {S<sub>!i1,!i2,...</sub> + S<sub>i1(rx1)</sub> + S<sub>i2(rx2)</sub> + …}
 
 The first S in the brackets refers to the subgraph for the area outside of all APFs. The subsequent subgraphs refer to the areas
 MAPF<sub>i1</sub>, MAPF<sub>i2</sub>, etc. The return periods rx1, rx2, etc. would likely all be the same, but they could be different if desired.
@@ -1683,19 +1686,21 @@ children of each node in the tree are listed before the node’s siblings.
 
 > Expression:
 > 
-> <center>p1(p6(p5,x1(x2(p3,p2),p4(p7))))</center>
+> p1(p6(p5,x1(x2(p3,p2),p4(p7))))
 > 
 > Schematic:
 
-> <center>p3&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;p2&nbsp;&nbsp;&nbsp;p7</center>
-> <center>↘&nbsp;&nbsp;&nbsp;↙&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↓</center>
-> <center>&nbsp;&nbsp;&nbsp;&nbsp;x2&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;p4</center>
-> <center>&nbsp;&nbsp;&nbsp;↘&nbsp;&nbsp;&nbsp;&nbsp;↙</center>
-> <center>p5&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;x1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</center>
-> <center>↘&nbsp;&nbsp;↙&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</center>
-> <center>p6&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</center>
-> <center>↓&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</center>
-> <center>p1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</center>
+>| |    |    |    |    |
+>|-|:--:|:--:|:--:|:--:|
+>| |p3  |    |p2  |p7  |
+>| |↘   |    |↙   |↓   |
+>| |    |x2  |    |p4  |
+>| |    |↘   |    |↙   |
+>| |p5  |    |x1  |    |
+>| |↘   |    |↙   |    |
+>| |    |p6  |    |    |
+>| |    |↓   |    |    |
+>| |    |p1  |    |    |
 
 One important difference between the schematic and the actual geography
 is that with the schematic adjacent points at any one level of the tree
@@ -2064,7 +2069,7 @@ of these two approaches is also possible.
 
 ![catchment divide](./images/catchment-divide.png)
 
-#### 6.2.2.2 Flowpaths and Elementary Flowpaths
+##### Flowpaths and Elementary Flowpaths
 
 A flowpath is a theoretical construct representing the flow of water on
 the terrain. Geometrically, a flowpath is either a single elementary
@@ -2169,11 +2174,9 @@ six instantiable types of nexuses. Like those displayed above in figure
 yy, these relationships can contribute to a set of topological rules
 that can be applied to test data integrity (see section xx).
 
-###  
-
 ![overall relationships](./images/overall-relationships.png)
 
-### 6.2.4 Hydro Locations
+#### Hydro Locations
 
 Hydro locations are located along flowpaths and are represented as
 points that can be projected onto a flowpath. The projection may be to a
@@ -2269,7 +2272,7 @@ The rules between these elementary features are as follows:
 
 4. For every RC, its boundary *intersects* the boundary of an LF at either one or both endpoints.
 
-5. Every BC does <u>not</u> *contain* an LF.
+5. Every BC does **not** *contain* an LF.
 
 6. Every BC *touches* one and only one BF.
 
@@ -2283,11 +2286,11 @@ The rules between these elementary features are as follows:
 
 11. Every EC is *disjoint* from all other LC.
 
-12. Every LF does <u>not</u> *cross* any other LF.
+12. Every LF does **not** *cross* any other LF.
 
-13. The interior of every LF does <u>not</u> *touch* the boundary of an LC.
+13. The interior of every LF does **not** *touch* the boundary of an LC.
 
-14. An endpoint of every LF does <u>not</u> *touch* the other endpoint of the LF.
+14. An endpoint of every LF does **not** *touch* the other endpoint of the LF.
 
 15. Every BC *touches* one or more WC and the intersection of each such BC – WC pair is a linestring.
 
