@@ -17,15 +17,15 @@ Authorship
 
 This document is the first in the [CHyF documentation series](./index.md#CHyF-documentation-series):
 
-- Volume 1: CHyF Conceptual Model
+- Volume 1: **CHyF Conceptual Model**
 
 - Volume 2: [CHyF Compliant Source Data Hydrography and DEM Specification](./chyfCompliantSourceHydrographyAndDEMSpecification.md)
 
-- Volume 3: CHyF Data for CHyF Services Specification
+- Volume 3: [CHyF Data for CHyF Services Specification](./chyfDataForCHyFServicesSpecification.md)
 
-- Volume 4: Data Processing and Validation Tools
+- Volume 4: [Data Processing and Validation Tools](./chyfDataProcessingAndValidationTools.md)
 
-- Volume 5: Web Services and Applications
+- Volume 5: [Web Services and Applications](./chyfWebServicesAndApplications.md)
 
 ## Abstract
 
@@ -1410,9 +1410,7 @@ in the upper right.
 
 Using the catchment to flowpath relationships in brown, the seven
 subfigures above can be reduced to three, as shown in the next figure.
-$G_0$ is large, containing many connections. $G_1$ is
-much smaller but still contains several connections. $G_2$ ,
-corresponding to an empty catchment, includes a null set of flow
+G<sub>0</sub> is large, containing many connections. G<sub>1</sub> is much smaller but still contains several connections. G<sub>2</sub>, corresponding to an empty catchment, includes a null set of flow
 connections.
 
 ![flowpath relationships 2](./images/flowpath-relationships-2.png)
@@ -1424,9 +1422,9 @@ a single catchment identified as the area of interest, or the universe U
 under consideration. In this more general case, U is defined as a set of
 DAGs as per the following expression.
 
-> $$ U = ( G_0, G_1, G_2, ...) $$
+> <center>U ← {G<sub>0</sub>, G<sub>1</sub>, G<sub>2</sub>, ...}</center>
 
-Each DAG, $G_i$, is a component of the graph U. The hygraph is
+Each DAG, G<sub>i</sub>, is a component of the graph U. The hygraph is
 an implementation of this expression for any arbitrarily large catchment
 or set of catchments.
 
@@ -1438,11 +1436,11 @@ catchments, hydro nodes, flow relationships and containment
 relationships. This expression can apply to the entire graph or to each
 individual DAG.
 
-> $$ Network Flow Graph = (Flowpaths, Catchments, Hydro Nodes, Flow Relationships, Containment Relationships) $$
+> <center>Network Flow Graph ← (Flowpaths, Catchments, Hydro nodes, Flow Relationships, Containment Relationships)</center>
 
 Using abbreviations, this can be written more compactly.
 
-> $$ G = (F, C, N, FR, CR) $$
+> <center>G ← (F, C, N, FR, CR)</center>
 
 The expression below states that the flow relationships are defined by a
 set of relationships between x and y, where x flows into y if either of
@@ -1454,20 +1452,20 @@ catchment flows through a hydro node into a flowpath or another
 catchment. Another way of considering this expression is that it
 indicates what is happening at every hydro node.
 
-> $$ FR = {(x,y) | ((x \in F\cup C) And (y \in N)) or ((x \in N ) And (y \in F \cup C))} $$
+> <center>FR ← {(x,y) | (x ϵ F∪C and y ϵ N) or (x ϵ N and y ϵ F∪C)}</center>
 
 The next expression defines containment relationships as a set of
 relationships between catchment c and flowpath f.
 
-> $$ CR = {(c,f) | (c \in C) And (f \in F)} $$
+> <center>CR ← {(c,f) | c ϵ C and f ϵ F}</center>
 
 We also define that each flowpath, f, is within a catchment, c. This
-does $\underline{not}$ imply that these relationships
-are of a one-to-one nature; similarly, this does $\underline{not}$ imply that every catchment contains a
+does <u>not</u> imply that these relationships
+are of a one-to-one nature; similarly, this does <u>not</u> imply that every catchment contains a
 flowpath. An examination of the previous map figures demonstrates these
 situations.
 
-> $$ \forall f \in F: \exists c | (c,f) \in CR $$
+> <center>∀ f ϵ F: ∃ c | (c,f) ϵ CR</center>
 
 These expressions give rise to a number of topological rules that are
 the subject of a later section in this document.
@@ -1496,7 +1494,7 @@ etc.:
 
 ![hygraph and time series](./images/hygraph_timeseries.png)
 
-> $$ T = (U_{t1}, U_{t2}, U_{t3}, ...) $$
+> <center>T ← {U<sub>t1</sub>, U<sub>t2</sub>, U<sub>t3</sub>, …}</center>
 
 For example, t1, t2, t3, and t4 could refer to 1980, 2000, 2020, and
 2040, or to any particular times of interest. The underlying assumption
@@ -1509,7 +1507,7 @@ The different times may represent different return periods. For example,
 the 5 year, 10 year and 100 year return periods can be shown as a
 hygraph series as follows:
 
- > $$ R = (U_{r5}, U_{r10}, U_{r100}) $$
+ > <center>R ← {U<sub>r5</sub>, U<sub>r10</sub>, U<sub>r100</sub>}</center>
 
 This approach assumes that separate, non-related hygraphs are modelled
 for each return period. An alternative approach that integrates the
@@ -1526,49 +1524,21 @@ used as follows. The MAPF is the merged area of all elementary
 catchments that are completely or partially underwater, based on that
 largest flood.
 
-Let a given $MAPF_i$ be represented by the subgraph
-$S_i$ of U. Multiple versions of the subgraph can be defined,
-one for each value of x, where x represents the x year return period
-flood. The general case is denoted as $S_{i(rx)}$ , with
-$S_{i(r0)}$ being the subgraph for the not-flooded state. For the
-$MAPF_i$ a collection of subgraphs can be defined, each of which
-represents the entire $MAPF_i$ under a different flooding
+Let a given  MAPF<sub>i</sub> be represented by the subgraph
+S<sub>i</sub> of U. Multiple versions of the subgraph can be defined, one for each value of x, where x represents the x year return period flood. The general case is denoted as S<sub>i(rx)</sub>, with S<sub>i(r0)</sub> being the subgraph for the not-flooded state. For the MAPF<sub>i</sub> a collection of subgraphs can be defined, each of which represents the entire  MAPF<sub>i</sub> under a different flooding
 extent.
 
-> $$ C_i = (S_{i(r0)}, S_{i(rx1)}, S_{i(rx2)}, ... ) $$
+> <center>C<sub>i</sub> ← {S<sub>i(r0)</sub>, S<sub>i(rx1)</sub>,S<sub>i(rx2)</sub>, ... }</center>
 
-$C_i$ is a collection of subgraph options for the area within
-the $APF_i$ . For the area outside of the $APF_i$ a
-subgraph is necessary, referred to as $S_{!i}$, i.e.,
-$S_{not\ i}$ . The entire graph, U, can then be defined as the
-subgraph for the area outside of the $MAPF_i$ combined with the
-subgraph for the area inside the $MAPF_i$ , with the latter a
-member of $C_i$ . In the expressions below, the + sign means
-combined into a common graph. $U_{i(rx)}$ is the entire graph
-taking into account flooding in a given location, with the maximum
-extent of the flooding defined by $MAPF_i$ , and with a flood
-recurrence interval of rx.
+C<sub>i</sub> is a collection of subgraph options for the area within the APF<sub>i</sub>. For the area outside of the APF<sub>i</sub> a subgraph is necessary, referred to as S<sub>!i</sub>, i.e., S<sub>not\ i</sub>. The entire graph, U, can then be defined as the subgraph for the area outside of the MAPF<sub>i</sub> combined with the subgraph for the area inside the APF<sub>i</sub>, with the latter a member of C<sub>i</sub>. In the expressions below, the + sign means combined into a common graph. U<sub>i(rx)</sub> is the entire graph taking into account flooding in a given location, with the maximum extent of the flooding defined by MAPF<sub>i</sub> , and with a flood recurrence interval of rx.
 
 > as a general statement:
-> $$ U_{i(rx)} = (S_{!i} + S_{i(rx)}) $$
+> <center>U<sub>i(rx)</sub> ← {S<sub>!i</sub> + S<sub>i(rx)</sub>}</center>
 > and for the not flooded state:
-> $$ U_{i(r0)} = (S_{!i} + S_{i(r0)}) $$
+> <center>U<sub>i(r0)</sub> ← {S<sub>!i</sub> + S<sub>i(r0)</sub>}</center>
 
 The representations of the MAPF, associated with r0 and the other
-versions of rx, share a common outer boundary that follows catchment
-divide segments. All nexus points on the boundary of $APF_i$
-must be shared by the subgraphs for the $MAPF_i$ for the
-different return periods ($S_{i(r0)}$ , $S_{i(rx1)}$ , etc.)
-and also by the subgraph for the area outside of the MAPF,
-($S_{!i}$). In other words, the connections and boundary between
-the area inside of $MAPF_i$ and the area outside of
-$MAPF_i$ must be identical for all $S_{i(rx)}. Flow
-analysis can be performed on the overall U with a given MAPF at a
-specified level of potential flooding by swapping out $S_{i(r0)}$
-for $S_{i(rx)}$ in the graph. Different versions of
-$S_{i(rx)}$ with the associated geography can be retained,
-allowing for $U_{i(rx)}$ to be reconstituted as required. The
-figure below shows a simple case.
+versions of rx, share a common outer boundary that follows catchment divide segments. All nexus points on the boundary of APF<sub>i</sub> must be shared by the subgraphs for the MAPF<sub>i</sub> for the different return periods (S<sub>i(r0)</sub> , S<sub>i(rx1)</sub>, etc.) and also by the subgraph for the area outside of the MAPF, (S<sub>!i</sub>). In other words, the connections and boundary between the area inside of MAPF<sub>i</sub> and the area outside of MAPF<sub>i</sub> must be identical for all $S_{i(rx)}. Flow analysis can be performed on the overall U with a given MAPF at a specified level of potential flooding by swapping out S<sub>i(r0)</sub> for S<sub>i(rx)</sub> in the graph. Different versions of S<sub>i(rx)</sub> with the associated geography can be retained, allowing for U<sub>i(rx)</sub> to be reconstituted as required. The figure below shows a simple case.
 
 ![flood boundary extended to existing catchment](./images/flood-boundary.png)
 
@@ -1578,13 +1548,10 @@ Given that the MAPFs do not overlap, this approach can support an
 arbitrary number of simultaneous flood scenarios. The expression above
 can be extended to the following.
 
-> $$ U_{i1(rx1),i2(rx2),...} = (S_{!i1,!i2,...} + S_{i1(rx1)} + S_{i2(rx2)} + ...)  $$
+> <center>U<sub>i1(rx1),i2(rx2),...</sub> ← {S<sub>!i1,!i2,...</sub> + S<sub>i1(rx1)</sub> + S<sub>i2(rx2)</sub> + …}</center>
 
-The first S in the brackets refers to the subgraph for the area outside
-of all APFs. The subsequent subgraphs refer to the areas
-$MAPF_{i1}$, $MAPF_{i2}$, etc. The return periods rx1, rx2,
-etc. would likely all be the same, but they could be different if
-desired.
+The first S in the brackets refers to the subgraph for the area outside of all APFs. The subsequent subgraphs refer to the areas
+MAPF<sub>i1</sub>, MAPF<sub>i2</sub>, etc. The return periods rx1, rx2, etc. would likely all be the same, but they could be different if desired.
 
 ##### Graphs and Coalescing Waterbodies (experimental)
 
@@ -1645,12 +1612,7 @@ figure xx).
 
 ![network distances](./images/network-distances.png)
 
-A distance matrix, $d_{i,j}$, can be defined, with downstream
-distance indicated as a positive delta ($\Delta$) and upstream distance as a
-negative delta (-$\Delta$). The values below the main diagonal are equivalent
-to those above it, but with the sign reversed because of the difference
-in flow direction. The matrix could if desired be represented more
-compactly as a triangular matrix with no loss of information.
+A distance matrix, d<sub>i,j</sub>, can be defined, with downstream distance indicated as a positive delta (Δ) and upstream distance as a negative delta (Δ). The values below the main diagonal are equivalent to those above it, but with the sign reversed because of the difference in flow direction. The matrix could if desired be represented more compactly as a triangular matrix with no loss of information.
 
 |From\To|p1       |p2         |p3         |p4         |p5         |p6         |p7         |
 |-------|---------|-----------|-----------|-----------|-----------|-----------|-----------|
@@ -1665,13 +1627,13 @@ compactly as a triangular matrix with no loss of information.
 From this matrix it is easy to determine the complete set of paths,
 assuming that the network on which the points lie is dendritic:
 
-> $$ p2 \rightarrow p6 \rightarrow p1 $$
+> <center>p2 → p6 → p1</center>
 > 
-> $$ p3 \rightarrow p6 \rightarrow p1 $$
+> <center>p3 → p6 → p1</center>
 > 
-> $$ p5 \rightarrow p6 \rightarrow p1 $$
+> <center>p5 → p6 → p1</center>
 > 
-> $$ p7 \rightarrow p4 \rightarrow p6 \rightarrow p1 $$
+> <center>p7 → p4 → p6 → p1</center>
 
 Using the hygraph and spatial geometry, CHyF services can provide such
 information without depending on meaningful, immutable codes.
@@ -1721,19 +1683,19 @@ children of each node in the tree are listed before the node’s siblings.
 
 > Expression:
 > 
-> $$ p1(p6(p5,x1(x2(p3,p2),p4(p7))))$$
+> <center>p1(p6(p5,x1(x2(p3,p2),p4(p7))))</center>
 > 
 > Schematic:
 
->$$ p3 \enspace\enspace\enspace\enspace\enspace p2 \enspace\enspace p7 $$
->$$ \searrow \enspace \swarrow  \enspace\enspace\enspace \downarrow  $$  
->$$ \enspace\enspace\enspace x2 \enspace\enspace\enspace\enspace\enspace p4 $$
->$$ \enspace\enspace \searrow \enspace \swarrow $$
->$$ \enspace\enspace\enspace\enspace\enspace\enspace\enspace\enspace\enspace  p5 \enspace\enspace\enspace\enspace x1 $$  
->$$ \enspace\enspace\enspace\enspace\enspace\enspace\enspace\enspace \searrow \enspace \swarrow  $$
->$$ \enspace\enspace\enspace\enspace\enspace\enspace\enspace\enspace p6 $$
->$$ \enspace\enspace\enspace\enspace\enspace\enspace\enspace\downarrow  $$
->$$ \enspace\enspace\enspace\enspace\enspace\enspace\enspace\enspace p1 $$
+> <center>p3&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;p2&nbsp;&nbsp;&nbsp;p7</center>
+> <center>↘&nbsp;&nbsp;&nbsp;↙&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;↓</center>
+> <center>&nbsp;&nbsp;&nbsp;&nbsp;x2&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;p4</center>
+> <center>&nbsp;&nbsp;&nbsp;↘&nbsp;&nbsp;&nbsp;&nbsp;↙</center>
+> <center>p5&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;x1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</center>
+> <center>↘&nbsp;&nbsp;↙&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</center>
+> <center>p6&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</center>
+> <center>↓&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</center>
+> <center>p1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</center>
 
 One important difference between the schematic and the actual geography
 is that with the schematic adjacent points at any one level of the tree
@@ -2307,7 +2269,7 @@ The rules between these elementary features are as follows:
 
 4. For every RC, its boundary *intersects* the boundary of an LF at either one or both endpoints.
 
-5. Every BC does $\underline{not}$ *contain* an LF.
+5. Every BC does <u>not</u> *contain* an LF.
 
 6. Every BC *touches* one and only one BF.
 
@@ -2321,11 +2283,11 @@ The rules between these elementary features are as follows:
 
 11. Every EC is *disjoint* from all other LC.
 
-12. Every LF does $\underline{not}$ *cross* any other LF.
+12. Every LF does <u>not</u> *cross* any other LF.
 
-13. The interior of every LF does $\underline{not}$ *touch* the boundary of an LC.
+13. The interior of every LF does <u>not</u> *touch* the boundary of an LC.
 
-14. An endpoint of every LF does $\underline{not}$ *touch* the other endpoint of the LF.
+14. An endpoint of every LF does <u>not</u> *touch* the other endpoint of the LF.
 
 15. Every BC *touches* one or more WC and the intersection of each such BC – WC pair is a linestring.
 

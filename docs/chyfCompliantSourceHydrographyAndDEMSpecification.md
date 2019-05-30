@@ -32,13 +32,13 @@ This document is the second in the [CHyF documentation series](./index.md#CHyF-d
 
 - Volume 1: [CHyF Conceptual Model](./chyfConceptualModel.md)
 
-- Volume 2: CHyF Compliant Source Data Hydrography and DEM Specification
+- Volume 2: **CHyF Compliant Source Data Hydrography and DEM Specification**
 
-- Volume 3: CHyF Data for CHyF Services Specification
+- Volume 3: [CHyF Data for CHyF Services Specification](./chyfDataForCHyFServicesSpecification.md)
 
-- Volume 4: Data Processing and Validation Tools
+- Volume 4: [Data Processing and Validation Tools](./chyfDataProcessingAndValidationTools.md)
 
-- Volume 5: Web Services and Applications
+- Volume 5: [Web Services and Applications](./chyfWebServicesAndApplications.md)
 
 The position of this document within the scope of the CHyF series is
 shown in Figure 1 below.
