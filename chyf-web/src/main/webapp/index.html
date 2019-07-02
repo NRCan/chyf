@@ -373,7 +373,7 @@
 					<label class="form-check-label" for="removeHoles" style="font-weight:normal">Remove Holes</label><br>
 				</div>
 				<div class="form-group">
-					<button id="drainageAreaUpstreamOf" type="button" class="btn btn-default btn-sm tool" style="width:100%;margin-top:5px;color:darkgoldenrod">Upstream Of Point</button>
+					<button id="drainageAreaUpstreamOf" type="button" class="btn btn-default btn-sm tool" style="width:100%;margin-top:5px;">Upstream Of Point</button>
 					<button id="drainageAreaDownstreamOf" type="button" class="btn btn-default btn-sm tool" style="width:100%;margin-top:5px">Downstream Of Point</button>
 				</div>
 				
@@ -877,8 +877,11 @@
 					break;
 				case 'drainageAreaUpstreamOf':
 					
-					selectDrainageArea("drainageArea/upstreamOf.json?point=" + latlng.lng + "," + latlng.lat
-										+ "&removeHoles=" + $('#removeHoles').is(":checked"));
+					//selectDrainageArea("drainageArea/upstreamOf.json?point=" + latlng.lng + "," + latlng.lat
+									//	+ "&removeHoles=" + $('#removeHoles').is(":checked"));
+					
+					selectDrainageAreaUpstream("drainageArea/upstreamOf.json?point=" + latlng.lng + "," + latlng.lat
+							+ "&removeHoles=" + $('#removeHoles').is(":checked"));
 
 					
 					break;
@@ -1060,6 +1063,138 @@
 				}
 			});
 		}
+		
+		function selectDrainageAreaUpstream(path, center = 0) {
+			clearSelection();
+			$('#mapCover').css('z-index', 800);
+			$("#map").addClass('progress');
+			var selectionRequest = $.ajax({
+				url: chyfApi + path,
+			      async: false,
+				xhrFields: {
+   					withCredentials: true
+				},
+				success: function(data) {
+					
+					var arrayPourcentCoverage;
+					arrayPourcentCoverage = getCubeCoverage(chyfApi + path);
+					
+					//assing coverages values to dispay in the view
+
+					data.properties.class1 = arroundDecimal(arrayPourcentCoverage[0] * 100);
+					data.properties.class2 = arroundDecimal(arrayPourcentCoverage[1] * 100);
+					data.properties.class3 = arroundDecimal(arrayPourcentCoverage[2] * 100);
+					data.properties.class4 = arroundDecimal(arrayPourcentCoverage[3] * 100);
+					data.properties.class5 = arroundDecimal(arrayPourcentCoverage[4] * 100);
+					data.properties.class6 = arroundDecimal(arrayPourcentCoverage[5] * 100);
+					data.properties.class7 = arroundDecimal(arrayPourcentCoverage[6] * 100);
+					data.properties.class8 = arroundDecimal(arrayPourcentCoverage[7] * 100);
+					data.properties.class9 = arroundDecimal(arrayPourcentCoverage[8] * 100);
+					data.properties.class10 = arroundDecimal(arrayPourcentCoverage[9] * 100);
+					data.properties.class11 = arroundDecimal(arrayPourcentCoverage[10] * 100);
+					data.properties.class12 = arroundDecimal(arrayPourcentCoverage[11] * 100);
+					data.properties.class13 = arroundDecimal(arrayPourcentCoverage[12] * 100);
+					data.properties.class14 = arroundDecimal(arrayPourcentCoverage[13] * 100);
+					data.properties.class15 = arroundDecimal(arrayPourcentCoverage[14] * 100);
+					data.properties.class16 = arroundDecimal(arrayPourcentCoverage[15] * 100);
+					data.properties.class17 = arroundDecimal(arrayPourcentCoverage[16] * 100);
+					data.properties.class18 = arroundDecimal(arrayPourcentCoverage[17] * 100);
+					data.properties.class19 = arroundDecimal(arrayPourcentCoverage[18] * 100);
+
+	              //  console.log(data);
+					
+					fillDataTable(data, "drainageArea", chyfApi + path);
+					clearSelectionLayer();
+					selectionLayer = L.geoJson(data, {
+						interactive: false,
+						pane: 'selection',
+						style: function(feature) {
+							return {color:selectColor, weight:4};
+						}
+					}).addTo(map);
+					if(center > 0) {
+						centerMap(selectionLayer.getBounds());
+					}
+				},
+				complete: function() {
+					$('#mapCover').css('z-index', 0);
+					$("#map").removeClass('progress');
+				}
+			});
+		}
+		
+		//Function to arrond in 4 decimal
+		function arroundDecimal(number)
+		{
+			if(number != 0)
+				return Number.parseFloat(number).toFixed(2);
+			else
+				return number;
+		}
+		
+		function  getCubeCoverage(url) {
+			
+			var urlCube ="http://dy0a51yzxbhxw.cloudfront.net/datacube/temporal/landsat/landcover/12?";
+			var coveragePourcent = [];
+			
+			//*****************URL of CHyf when you run  use in dev*****************
+			var urlEncoder = encodeURIComponent(url);
+			
+			
+			//var urlProdEncoder = encodeURIComponent(urlToEncoder);
+			
+			//console.log(coveragePourcent[i-1]);
+		
+			
+			//***********URL of CHyf when you run in local*******************
+			//var urlTestLocal = "http://chyf.ca/chyf/ecatchment/upstreamOf.json?point=-73.2667922973633,45.14354689687145";
+			
+			//var urlTestLocal ="http://geosys-sbox-lb-web-1929366342.ca-central-1.elb.amazonaws.com:8010/chyf-datacube/drainageArea/upstreamOf.json?point=-73.27606201171876,45.034714778688624&removeHoles=true";
+			//var urlEncoder = encodeURIComponent(urlTestLocal);	
+			
+			
+			
+			//var data = {'collection': urlEncoder};
+			var data = {'feature': urlEncoder};
+			
+			console.log(data);
+			
+			var selectionRequest = $.ajax({
+	            type: 'GET',
+	            url: urlCube,
+	            dataType: 'json',
+	            async: false,
+	            data: data,
+	            success: function(data) {
+	                      	var obj = JSON.stringify(data);
+	                    	
+	                      	var objJsonParse = jQuery.parseJSON(obj);
+	                      	
+	                     	
+	                     	//Extract informations from the Json on coverage key							     
+	                     	var i;
+	                     	for (i = 1; i < 20; i++) {
+	                     		var dataCoverage;
+	                     		dataCoverage = objJsonParse.coverage[i];
+	                     		if(dataCoverage == null){
+	                     			dataCoverage = 0
+	                     		}
+	                     		coveragePourcent.push(dataCoverage);
+	                     		//console.log(coveragePourcent[i-1]);
+	                     	}
+	                     	
+	                          
+	                                    },
+	            error: function(data) {
+	            	console.log(data);
+	                          coveragePourcent = [];
+			
+	                                 }
+	        });					
+			
+			return coveragePourcent;
+		}
+		
 		
 		$('#nexusById').on("click", function() {
 			selectNexuses("nexus/" + $('#nexusId').val() + ".json", 2);
@@ -1625,7 +1760,7 @@
 		function fillDataTable(data, type, url) {
 			if(!data) {
 				return;
-			}
+			}			 
 			var $div = $('<div style="overflow:auto;"/>');
 			var $table = $('<table/>');
 			$div.append($table);

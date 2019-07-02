@@ -56,7 +56,6 @@ public abstract class ConverterHelper {
 	};
 	
 	public static enum DrainageCoverField{
-		//COVERAGE("coverage", Double.class),
 		COVERAGECLASS1("class1", Double.class),
 		COVERAGECLASS2("class2", Double.class),
 		COVERAGECLASS3("class3", Double.class),

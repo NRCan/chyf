@@ -27,8 +27,7 @@ public class JsonConverter {
 	
 }
 
-
- //Permet d'extraire les données du cube pour le landCover
+ //Extract informations content in the Json of the cube for the landcover 
  public ArrayList<Coverage> convertJsonToCover(String jsonString)
  {
 	 ArrayList<Coverage>  coverageList = new ArrayList<Coverage>();	

@@ -149,23 +149,26 @@ public class DrainageAreaController {
 		}
 
 		
-		System.out.println(request.getHeaderNames());
-		//URL courrant *******Utilisé seulement en dev  ********************
+		//URL courrant *******Only use in developpement  ********************
 		/*String currentURL = request.getRequestURL().toString() + "?" + request.getQueryString();
-		ArrayList<Coverage> coverageList = cubeController.getLandCover(currentURL);
-		System.out.println();*/
+		ArrayList<Coverage> coverageList = cubeController.getLandCover(currentURL);*/
 		
 		
-		//URL test en local *******Utilisé seulement pour les tests en local ********************
-		String urlTestLocal = "http://chyf.ca/chyf/ecatchment/upstreamOf.json?point=-73.2667922973633,45.14354689687145";		
-		ArrayList<Coverage> coverageList = cubeController.getLandCover(urlTestLocal);
+		//URL test en local *******Use when you run in local ********************
+		/*String urlTestLocal = "http://chyf.ca/chyf/ecatchment/upstreamOf.json?point=-73.2667922973633,45.14354689687145";		
+		ArrayList<Coverage> coverageList = cubeController.getLandCover(urlTestLocal);*/
 		
 		
 		StopWatch sw = new StopWatch();
 		sw.start();
 		
+		//******If you want to call the cube******
+		/*ApiResponse resp = new ApiResponse(
+			hyGraph.getUpstreamDrainageAreaWithCoverage(hyGraph.getECatchment(params.getPoint()), params.getRemoveHoles(),coverageList));*/
+		
+		//**********If you don't whant to call the cube*****
 		ApiResponse resp = new ApiResponse(
-			hyGraph.getUpstreamDrainageAreaWithCoverage(hyGraph.getECatchment(params.getPoint()), params.getRemoveHoles(),coverageList));
+				hyGraph.getUpstreamDrainageArea(hyGraph.getECatchment(params.getPoint()), params.getRemoveHoles()));
 		
 		sw.stop();
 		resp.setExecutionTime(sw.getElapsedTime());

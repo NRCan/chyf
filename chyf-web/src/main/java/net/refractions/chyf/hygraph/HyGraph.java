@@ -383,7 +383,7 @@ public class HyGraph {
 		return buildDrainageArea(getUpstreamECatchments(eCatchment, Integer.MAX_VALUE), removeHoles);
 	}
 	
-	//Utiliser avec pour avoir les coverage
+	//If you want the coverage with the upstream
 	public DrainageArea getUpstreamDrainageAreaWithCoverage(ECatchment eCatchment, boolean removeHoles, ArrayList<Coverage> coverageList) {
 		
 		return buildDrainageAreaWithCoverage(getUpstreamECatchments(eCatchment, Integer.MAX_VALUE), removeHoles, coverageList);

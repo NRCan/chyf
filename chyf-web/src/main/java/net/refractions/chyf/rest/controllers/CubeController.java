@@ -20,6 +20,7 @@ public class CubeController {
 	private String urlCUbeLandCover;
 	
 	public CubeController() {
+		//v/rifier si c'est collection= (eCatchman)  ou feauture = (si on utilise drainageArea)
 		this.urlCUbeLandCover = "http://dy0a51yzxbhxw.cloudfront.net/datacube/temporal/landsat/landcover/12?collection=";
 	}
 	
@@ -52,6 +53,8 @@ public class CubeController {
 	         result.append(line);
 	      }
 	      rd.close();
+	      
+	      System.out.println(result.toString());
 	      
 	      return result.toString();
 		
