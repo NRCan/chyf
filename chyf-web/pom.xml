@@ -12,7 +12,7 @@
 		<geotools.version>21-RC</geotools.version>
 		<springframework.version>4.3.22.RELEASE</springframework.version>
 		<springframework.security.version>4.2.11.RELEASE</springframework.security.version>
-		<postgres.version>42.1.4</postgres.version>
+		<postgres.version>42.2.25</postgres.version>
 		<deployEnv>local</deployEnv>
 	</properties>
 
