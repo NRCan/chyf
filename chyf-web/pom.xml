@@ -10,7 +10,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<geotools.version>21-RC</geotools.version>
-		<springframework.version>4.3.22.RELEASE</springframework.version>
+		<springframework.version>5.3.19</springframework.version>
 		<springframework.security.version>4.2.11.RELEASE</springframework.security.version>
 		<postgres.version>42.1.4</postgres.version>
 		<deployEnv>local</deployEnv>
